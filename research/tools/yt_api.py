@@ -99,17 +99,37 @@ def video_info(vid):
     return {"description": text(desc) if desc else ""}, r
 
 
-def transcript(vid):
-    """자막(대본). 없으면 None."""
-    _, r = video_info(vid)
-    params = [e["params"] for e in walk(r, "getTranscriptEndpoint")]
-    if not params:
+ANDROID = {"clientName": "ANDROID", "clientVersion": "20.10.38", "androidSdkVersion": 30, "hl": "ko", "gl": "KR"}
+
+
+def caption_tracks(vid):
+    """ANDROID 클라이언트 player 응답에서 자막 트랙 목록을 얻는다."""
+    body = {"context": {"client": ANDROID}, "videoId": vid}
+    req = urllib.request.Request(
+        BASE + "player?prettyPrint=false",
+        data=json.dumps(body).encode(),
+        headers={"Content-Type": "application/json"},
+    )
+    with urllib.request.urlopen(req, timeout=30) as r:
+        data = json.load(r)
+    return next(walk(data, "captionTracks"), [])
+
+
+def transcript(vid, lang="ko"):
+    """자막(대본). 자막 파일은 www.youtube.com/api/timedtext 에 있어 해당 호스트 접근이 필요하다."""
+    tracks = caption_tracks(vid)
+    if not tracks:
         return None
-    t = call("get_transcript", {"params": params[0]})
+    # 수동 자막 우선, 없으면 자동 생성(asr)
+    tracks.sort(key=lambda t: (t.get("languageCode") != lang, t.get("kind") == "asr"))
+    with urllib.request.urlopen(tracks[0]["baseUrl"] + "&fmt=json3", timeout=30) as r:
+        events = json.load(r).get("events", [])
     lines = []
-    for seg in walk(t, "transcriptSegmentRenderer"):
-        lines.append(text(seg.get("snippet")))
-    return "\n".join(l for l in lines if l.strip()) or None
+    for e in events:
+        line = "".join(seg.get("utf8", "") for seg in e.get("segs", [])).strip()
+        if line:
+            lines.append(f"[{e.get('tStartMs', 0) // 1000 // 60:02d}:{e.get('tStartMs', 0) // 1000 % 60:02d}] {line}")
+    return "\n".join(lines) or None
 
 
 if __name__ == "__main__":
