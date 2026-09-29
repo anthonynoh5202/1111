@@ -1,0 +1,41 @@
+# 리서치 에이전트 팀
+
+Anthropic 공식 문서의 **서브에이전트(Subagents)** 방식으로 구성했다.
+- 정의 파일: `.claude/agents/*.md` (YAML 프런트매터 + 시스템 프롬프트)
+- 참고 문서: https://code.claude.com/docs/en/sub-agents · https://code.claude.com/docs/en/agent-teams
+  · https://claude.com/blog/building-multi-agent-systems-when-and-how-to-use-them
+
+## 구성 (오케스트레이터-워커 + 검증 에이전트 패턴)
+
+```
+                 [리드 = 메인 Claude 세션]
+                  │ 작업 분배·결과 취합
+      ┌───────────┴────────────┐          ← 1단계: 서로 독립적이라 병렬 실행
+[chartpro-researcher]   [wonyotti-researcher]
+ 차트프로 유튜브 조사     워뇨띠 자료 조사
+      └───────────┬────────────┘
+                  ▼                        ← 2단계
+        [strategy-synthesizer]  → docs/STRATEGY.md 갱신
+                  ▼                        ← 3단계
+         [research-verifier]    → research/VERIFICATION.md (독립 팩트체크)
+```
+
+| 에이전트 | 역할 | 도구 | 산출물 |
+|---|---|---|---|
+| chartpro-researcher | 차트프로 강의 수집·기법 규칙화 | Bash(yt_api), 웹 검색 | `research/chartpro/REPORT.md` |
+| wonyotti-researcher | 워뇨띠 자료 수집·신뢰도 평가 | Bash(yt_api), 웹 검색 | `research/wonyotti/REPORT.md` |
+| strategy-synthesizer | 두 보고서 종합 → 전략 문서 갱신 | 파일 읽기·쓰기만 | `docs/STRATEGY.md` |
+| research-verifier | 주장·출처 독립 검증 | 웹 검색, 읽기 | `research/VERIFICATION.md` |
+
+### 설계 원칙 (공식 문서 기준)
+- **맥락 기준 분할**: 서로 정보를 공유할 필요가 없는 조사만 병렬로 나눴다
+- **단일 책임 + 최소 도구**: 종합 에이전트는 웹 접근 없이 보고서만 읽는다
+- **자기완결적 지시 + 정해진 출력 형식**: 각 에이전트는 무엇을 어디에 쓸지 명시돼 있다
+- **검증 에이전트 분리**: 작성자와 독립된 팩트체커가 마지막에 확인한다
+- **Agent Teams(실험 기능)를 쓰지 않은 이유**: 이번 작업은 조사원끼리 토론할 필요가 없고, 서브에이전트가 토큰 비용이 더 적다
+
+## 도구
+- `tools/yt_api.py` — YouTube 내부 API로 채널 영상 목록, 설명란, 댓글, 검색, 자막을 가져온다
+  - ⚠️ 현재 클라우드 환경의 네트워크 정책상 **자막 서버(www.youtube.com)와 영상 스트림(googlevideo.com)은 차단**되어 자막은 받지 못한다
+  - 환경 설정에서 `www.youtube.com`을 허용하면 자막 기반 분석이 가능해진다
+- `chartpro_videos.json` — 차트프로 채널 전체 영상 목록 (138개, 2026-09-29 기준)
