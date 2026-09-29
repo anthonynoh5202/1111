@@ -42,7 +42,7 @@
 - 여러 봉을 두루 본다: "3분봉, 30분봉, 3시간봉, 3일봉을 제외한 모든 봉을 참고" / https://www.fmkorea.com/3946325329 , https://94bit.com/47-2/ / B / 3
 - 평소엔 "매매하기 편하게 1분봉을 켜둘 뿐" / 위와 같음, https://coinpan.com/free/226243697 / B / 3
 - 아주 작은 봉은 "휩쏘가 많기에 신경 쓰지 않으려 한다" / 94bit / B / 2
-- 원장상 보유 시간이 점점 길어진다(스캘핑 → 단타 → 스윙). 2021 XBTUSD 보유 중앙값 약 15.4시간 / https://gall.dcinside.com/mgallery/board/view/?id=chartanalysis&no=5051899 , https://github.com/kwondoyun07/wonyotti-lab , https://www.youtube.com/watch?v=exT7Avd6YBc / C / 3
+- 원장상 보유 시간이 점점 길어진다(스캘핑 → 단타 → 스윙). 2021 XBTUSD 보유 중앙값 약 15.4시간 / https://gall.dcinside.com/mgallery/board/view/?id=chartanalysis&no=5051899 / C / 1 (검증 후 수정: wonyotti-lab README에는 이 수치가 없고, exT7Avd6YBc는 8.27초와 15.4시간 중 무엇이 맞는지 판정하지 않음)
 - "큰 봉으로 추세, 1분봉으로 진입"은 해설자의 해석이다. 본인 발언으로 확인되지 않았다.
 
 ### 3.2 캔들
@@ -75,8 +75,8 @@
 
 ### 3.7 손절
 - "시나리오에서 어긋나거나 멘탈이 지나치게 흔들리기 시작하면 손절". 현재 흐름이 아는 과거 모양과 완전히 달라지면 손절 / 94bit, fmkorea 3946325329 / B / 4
-- AMA(2025): "-20%가 강제 손절 타이밍". 거래소 자산의 20%이며, 그 이상이면 복구가 어렵다 / https://www.hankyung.com/article/202509183671O , https://bloomingbit.io/en/feed/news/97220 / A(요약 경유) / 3
-- 1회 최대 허용 손실: "시드가 적을 땐 1회 -20%, 요즘은 -10% 정도" / fmkorea 3946325329, https://theddari.com/en/trends/telegram/1446671164/40969 / B / 2
+- AMA(2025): "-20%가 강제 손절 타이밍". 거래소 자산의 20%이며, 그 이상이면 복구가 어렵다 / https://www.hankyung.com/article/202509183671O , https://bloomingbit.io/en/feed/news/97220 / C (검증 후 수정: 근거가 언론 요약뿐이고 AMA 원문에서 문구 미확인) / 3
+- 1회 최대 허용 손실: "시드가 적을 땐 1회 -20%, 요즘은 -10% 정도" / fmkorea 3946325329, https://theddari.com/en/trends/telegram/1446671164/40969 / B / 2 ("요즘"이 2021 Q&A 시점인지 2025 AMA 시점인지 불명)
 - "max loss is never more than 30% of his capital" / BitMEX 인터뷰 / A(요약 경유) / 4
 - "시세 기준 3%까지는 버티다 5%쯤 되면 손절" / 원출처 미특정 / C / 1
 - 항상 격리 마진. 청산돼도 대부분 시드의 20~30%만 잃었다 / https://m.cafe.daum.net/dotax/Elgq/4711585 , 94bit / B / 3
@@ -148,7 +148,7 @@
 
 ### 주의
 - 원장 공개자는 원장으로 만든 봇이나 2차 제작물의 유료 판매를 삼가 달라고 요청했다 (https://github.com/kwondoyun07/wonyotti-lab). 상업화한다면 이 요청을 따라야 한다.
-- 제3자 백테스트에서 원장에서 뽑은 진입 신호만으로는 2024~25년에 손실이 났다 (코린이유치원, 블록미디어). 재현할 핵심은 신호보다 R1~R10이다.
+- 제3자 백테스트에서 원장에서 뽑은 진입 신호만으로는 2024~25년에 손실이 났다 (코린이유치원. 검증 후 수정: 블록미디어 영상 설명란에는 백테스트 결과가 없어 근거에서 제외). 재현할 핵심은 신호보다 R1~R10이다.
 
 ## 5. 오해·과장 주의
 - "보유 중앙값 8.27초 초단타": 체결 단위와 포지션 단위를 섞은 오류로 보인다. 포지션 기준은 약 15시간 (https://www.youtube.com/watch?v=exT7Avd6YBc)
@@ -169,6 +169,9 @@ B: https://www.fmkorea.com/3946325329 · https://www.fmkorea.com/3946308771 · h
 C: https://github.com/twoimo/aoa-bitmex-analysis · https://github.com/JTech-CO/BTC-Legend · https://github.com/kwondoyun07/wonyotti-lab · https://github.com/wonjun-opensource/wonyotti-trade-book · https://github.com/Jeonyomi/Wonyotti · dcinside 5051899/5052052/5052178/5052698/5050720, dcbest 465253/465260 · YouTube bC3i7s-_WRc, exT7Avd6YBc, hNvnfNKLs3w, jXYPDGgMgNo, nIP2NAPBtR8, J-7tPXNz30A, EpstKF3qVmQ · https://theddari.com/en/trends/telegram/1446671164/40969 · bitpunk.one · coinexpert.co.kr · https://donkeypress.com/nyotti/ · https://www.tokenpost.kr/forum/free/293464 · trader-ggd.com · https://www.hankyung.com/article/202509183671O · https://en.bloomingbit.io/feed/news/90214 · https://bloomingbit.io/en/feed/news/97220 · https://www.mt.co.kr/society/2026/09/23/2026092223334644601 · https://www.mt.co.kr/stock/2025/10/30/2025103011490322038 · https://www.jemin.com/news/articleView.html?idxno=812377 · https://www.coinreaders.com/165878 · https://www.blockchaintoday.co.kr/news/articleView.html?idxno=41776 · https://x.com/fulllleverage/status/1932731144627470656
 
 D: coinbibleinvest.com 16138892 · mathnet.or.kr "워뇨띠 매매법 2탄" · https://www.clien.net/service/board/cm_vcoin/16758247 · 유튜브 "워뇨띠" 채널(t7K31n1PREg 등) · https://tgstat.com/channel/@aoafan
+
+## 검증 반영 (2026-09-29)
+`research/VERIFICATION.md`의 지적 4건(보유 시간 출처, -20% 등급, -10% 시점, 백테스트 근거)을 본문에 반영했다.
 
 ## 후속 과제
 1. 원장 원본을 받아 직접 계산한다(포지션 보유 시간, 손실 분포, 레버리지, 진입 직전 OHLCV). 이 값으로 R6·S1~S3 파라미터를 정한다.
