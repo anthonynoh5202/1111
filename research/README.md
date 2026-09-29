@@ -39,3 +39,29 @@ Anthropic 공식 문서의 **서브에이전트(Subagents)** 방식으로 구성
   - ⚠️ 현재 클라우드 환경의 네트워크 정책상 **자막 서버(www.youtube.com)와 영상 스트림(googlevideo.com)은 차단**되어 자막은 받지 못한다
   - 환경 설정에서 `www.youtube.com`을 허용하면 자막 기반 분석이 가능해진다
 - `chartpro_videos.json` — 차트프로 채널 전체 영상 목록 (138개, 2026-09-29 기준)
+
+---
+
+## v1.0 기획 문서 세트 (2026-09-29)
+
+두 번째 에이전트 팀(워크플로, 에이전트 26명)이 전체 기획을 조사·검토·작성했다.
+
+```
+[조사 8명 병렬] → [비판 3명: 트레이딩·보안·제품운영] → [판정 1명: 채택/기각, 공통 결정값]
+   → [문서 작성 9명 병렬] → [일관성 검증 1명] → [문서별 수정 4명]
+```
+
+| 파일 | 내용 |
+|---|---|
+| `planning/01_existing_systems.md` | freqtrade 등 기존 봇·시그널 서비스·LLM 트레이딩 에이전트 사례, 자체 개발 vs 프레임워크 |
+| `planning/02_chart_methods.md` | 다른 트레이더들의 차트 분석 방법 34가지와 근거 수준 |
+| `planning/03_llm_trading.md` | LLM 트레이딩 실증(대회·연구), 실패 양상, Claude 설계 권고, 비용 |
+| `planning/04_exchanges_regulation.md` | 거래소 보안·기능 비교, 한국 규제·세금 현황 |
+| `planning/05_infra_ops.md` | 호스팅 후보, 서버 보안, 모니터링, 월 비용 |
+| `planning/06_software_stack.md` | 라이브러리 버전·유지보수 상태, 백테스트 도구 |
+| `planning/07_telegram_hitl.md` | 텔레그램 승인 버튼 보안, 가격 재검증, Slack 비교 |
+| `planning/08_risk_backtest.md` | 포지션 크기, 주문 유형, 백테스트 함정, 실거래 전환 기준 |
+| `market/CHART_METHODS.md` | 차트 분석 방법 정리(사용자용 읽기 자료) |
+| `market/LANDSCAPE.md` | 비슷한 시스템·거래소·규제 지형도 |
+
+설계 문서는 `docs/`에 있다. 읽는 순서는 [docs/README.md](../docs/README.md)를 본다.
