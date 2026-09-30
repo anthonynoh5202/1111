@@ -9,7 +9,8 @@ BTCUSDT 무기한 선물(USDⓈ-M)의 과거 데이터를 받아 합친다.
     python tools/download_binance_data.py
 
 결과 (data/binance/):
-    BTCUSDT_15m.csv.gz, BTCUSDT_1h.csv.gz, BTCUSDT_4h.csv.gz, BTCUSDT_1d.csv.gz  캔들
+    BTCUSDT_5m / 15m / 1h / 4h / 1d .csv.gz      캔들 (2020년부터)
+    BTCUSDT_1m_<연도>.csv.gz                       1분봉 (최근 3년, 연도별)
     BTCUSDT_fundingRate.csv.gz                                               펀딩비
     BTCUSDT_metrics.csv.gz        미결제약정·롱숏비 (5분 간격, 바이낸스가 제공하는 기간만)
     manifest.json                 받은 기간, 행 수, 실패 목록
@@ -27,8 +28,11 @@ import urllib.request
 import zipfile
 
 SYMBOL = "BTCUSDT"
-TIMEFRAMES = ["15m", "1h", "4h", "1d"]
+TIMEFRAMES = ["5m", "15m", "1h", "4h", "1d"]
 KLINE_START = dt.date(2020, 1, 1)
+# 1분봉은 신호용이 아니라 백테스트에서 "손절과 목표 중 무엇이 먼저 닿았나"를 판정하는 용도.
+# 양이 커서 최근 3년만 받고, GitHub 파일 크기 제한 때문에 연도별 파일로 나눈다.
+MINUTE_START = dt.date(2023, 10, 1)
 METRICS_START = dt.date(2021, 12, 1)  # 이전 날짜는 바이낸스가 제공하지 않으면 건너뜀
 BASE = "https://data.binance.vision/data/futures/um"
 OUT = pathlib.Path(__file__).resolve().parents[1] / "data" / "binance"
@@ -98,11 +102,11 @@ def write_gz(name, header, rows):
         w.writerows(rows)
 
 
-def download_klines(tf, today):
+def download_klines(tf, today, start=KLINE_START, split_by_year=False):
     by_time = {}
     this_month = today.replace(day=1)
     daily_from = this_month
-    for m in months(KLINE_START, today):
+    for m in months(start, today):
         res = fetch_zip_rows(f"{BASE}/monthly/klines/{SYMBOL}/{tf}/{SYMBOL}-{tf}-{m:%Y-%m}.zip")
         if res is None and m >= this_month - dt.timedelta(days=62):
             daily_from = min(daily_from, m)  # 최근 달의 월별 파일이 아직 없으면 일별로 채운다
@@ -114,8 +118,16 @@ def download_klines(tf, today):
         for row in (res[1] if res else []):
             by_time[int(row[0])] = row
     rows = [by_time[k] for k in sorted(by_time)]
-    write_gz(f"{SYMBOL}_{tf}.csv.gz", KLINE_HEADER, rows)
-    return rows
+    if not split_by_year:
+        write_gz(f"{SYMBOL}_{tf}.csv.gz", KLINE_HEADER, rows)
+        return {f"{SYMBOL}_{tf}.csv.gz": rows}
+    parts = {}
+    for row in rows:
+        year = dt.datetime.fromtimestamp(int(row[0]) / 1000, dt.timezone.utc).year
+        parts.setdefault(f"{SYMBOL}_{tf}_{year}.csv.gz", []).append(row)
+    for name, part in parts.items():
+        write_gz(name, KLINE_HEADER, part)
+    return parts
 
 
 def download_funding(today):
@@ -157,10 +169,11 @@ def span(rows, col=0):
 def main():
     today = dt.datetime.now(dt.timezone.utc).date()
     manifest = {"symbol": SYMBOL, "source": BASE, "downloaded_at": dt.datetime.now(dt.timezone.utc).isoformat(), "files": {}}
-    for tf in TIMEFRAMES:
+    jobs = [(tf, KLINE_START, False) for tf in TIMEFRAMES] + [("1m", MINUTE_START, True)]
+    for tf, start, split in jobs:
         print(f"캔들 {tf} 받는 중...")
-        rows = download_klines(tf, today)
-        manifest["files"][f"{SYMBOL}_{tf}.csv.gz"] = {"rows": len(rows), "span_utc": span(rows)}
+        for name, rows in download_klines(tf, today, start, split).items():
+            manifest["files"][name] = {"rows": len(rows), "span_utc": span(rows)}
     print("펀딩비 받는 중...")
     rows = download_funding(today)
     manifest["files"][f"{SYMBOL}_fundingRate.csv.gz"] = {"rows": len(rows), "span_utc": span(rows)}
