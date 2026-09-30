@@ -1527,15 +1527,24 @@ class Gateway:
     def quick_unprotected_check(self, intent_row: sqlite3.Row) -> bool:
         """HALTED·EXITING 보유가 손절 없이 남았는지 가볍게 조회(대조 주기 사이, V-2). 손절 없음 **확인**이면 True.
 
-        우리 손절이 살아 있거나 포지션이 0이면 False. 조회 실패·429/418 대기 창이면 False(판단 보류 — 정규 대조가 본다,
-        대기 창 안에서는 보내지 않는다). 이벤트는 남기지 않는다(2초마다라 기록이 넘친다)."""
+        우리 손절이 살아 있거나 포지션이 0이면 False. 429/418 대기 창이면 False(보내지 않는다).
+        손절 조회(get_conditional)가 실패하면(V-8): HALTED는 fail-closed — 손절을 확인할 수 없으므로 '보호 안 됨'으로 보고
+        포지션만 확인해 포지션 > 0이면 True(호출자가 secure_halted → 방화벽을 거친 reduceOnly 청산). EXITING은 확인된 손절을
+        가진 채 들어온 상태라 판단 보류(False — 정규 대조가 본다). 포지션 조회까지 실패하면 청산 수량을 모르므로 False.
+        이벤트는 남기지 않는다(2초마다라 기록이 넘친다)."""
         if self.now_ms() < self._rate_until_ms:
             return False
         sl = make_client_id(intent_row["signal_id"], IdPurpose.STOP)
         try:
             c = self.ex.get_conditional(sl)
-            if c is not None and c.status in CONDITIONAL_ACTIVE_STATUSES:
+        except ExchangeError as exc:
+            self.note_exchange_error(exc)
+            if IntentState(intent_row["state"]) is not S.HALTED or self.now_ms() < self._rate_until_ms:
                 return False
+            c = None                                 # V-8: 확인 불가 = 보호 안 됨(fail-closed)
+        if c is not None and c.status in CONDITIONAL_ACTIVE_STATUSES:
+            return False
+        try:
             q = float(self.ex.position().qty)
         except ExchangeError as exc:
             self.note_exchange_error(exc)
@@ -1659,6 +1668,7 @@ class Gateway:
 # ---------------------------------------------------------------------------
 RESCUE_DEADLINE_MS = 60_000        # 시작 거부 전 보호에 쓰는 시간 상한(그 뒤 종료 → compose 재시작이 다시 시도)
 RESCUE_RETRY_SLEEP_MS = 1_000      # 조회 실패(네트워크 등) 뒤 다시 시도 전
+RESCUE_UNKNOWN_BACKOFF_MS = (500, 1_000, 2_000)   # 주문 POST '결과 모름' 뒤 대기(연속 횟수별, 끝값에서 멈춤 — V-7)
 
 
 def _is_our_protective_stop(c: ConditionalInfo, mark: float | None) -> bool:
@@ -1692,6 +1702,8 @@ def protect_without_db(ex: ExchangeClient, cfg: OrdersConfig, clock: Clock, *, b
     n = 0
     flattened_once = False
     last = "unavailable"
+    unknown_streak = 0                 # 연속 '결과 모름' 횟수(백오프 단계)
+    pending_cid: str | None = None     # 결과를 모르는 마지막 청산 주문 — 다시 보내기 전에 clientOrderId로 조회(V-7)
 
     def wait_err(exc: ExchangeError) -> bool:
         """오류 뒤 기다림. 기한 안에 다시 시도할 수 있으면 True."""
@@ -1733,6 +1745,19 @@ def protect_without_db(ex: ExchangeClient, cfg: OrdersConfig, clock: Clock, *, b
             conds = None                           # 손절 확인 불가 → 청산(fail-closed)
         if conds is not None and any(_is_our_protective_stop(c, mark) for c in conds):
             return "protected"
+        if pending_cid is not None:
+            # V-7: 결과를 모르는 청산 주문이 거래소에 살아 있으면(NEW·부분 체결) 새로 보내지 않고 기다린다(중복 청산 방지).
+            # 끝난 주문(체결·만료)·없음·조회 실패면 위에서 새로 본 포지션 기준으로 다시 보낸다(reduceOnly라 넘치지 않는다).
+            try:
+                po = ex.get_order(pending_cid)
+            except ExchangeError:
+                po = None
+            if po is not None and po.status not in ORDER_FINAL_STATUSES:
+                if now() + CLOSE_POLL_SLEEP_MS - start > deadline_ms:
+                    break
+                sleep_ms(CLOSE_POLL_SLEEP_MS)
+                continue
+            pending_cid = None
         if n and n % len(FLAT_PURPOSES) == 0:
             sid = gen()                            # f1~f3을 다 쓰면 새 구조 ID(clientOrderId 재사용 없음)
         cid = make_client_id(sid, FLAT_PURPOSES[n % len(FLAT_PURPOSES)])
@@ -1748,9 +1773,18 @@ def protect_without_db(ex: ExchangeClient, cfg: OrdersConfig, clock: Clock, *, b
         try:
             ex.place_order(req)
             flattened_once = True
+            unknown_streak = 0
         except ExchangeError as exc:
             if exc.outcome_unknown:
+                # V-7: 곧바로 다시 보내지 않는다 — 백오프 뒤 다음 바퀴에서 포지션을 보고, 이 주문을 clientOrderId로 조회한 다음에만 재전송
                 flattened_once = True
+                pending_cid = cid
+                wait = RESCUE_UNKNOWN_BACKOFF_MS[min(unknown_streak, len(RESCUE_UNKNOWN_BACKOFF_MS) - 1)]
+                unknown_streak += 1
+                if now() + wait - start > deadline_ms:
+                    last = "failed"
+                    break
+                sleep_ms(wait)
             elif not wait_err(exc):
                 last = "failed"
                 break

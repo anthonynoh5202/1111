@@ -14,7 +14,7 @@
   "state_at_halt": "HALTED",
   "unprotected_at_halt": true,
   "end_state": "FAILED_FLATTENED",
-  "protected_after_ms": 28300,
+  "protected_after_ms": 2300,
   "end_position": 0.0
  },
  {
@@ -23,7 +23,7 @@
   "state_at_halt": "HALTED",
   "unprotected_at_halt": true,
   "end_state": "FAILED_FLATTENED",
-  "protected_after_ms": 8300,
+  "protected_after_ms": 2300,
   "end_position": 0.0
  },
  {
@@ -32,7 +32,7 @@
   "state_at_halt": "HALTED",
   "unprotected_at_halt": true,
   "end_state": "FAILED_FLATTENED",
-  "protected_after_ms": 28300,
+  "protected_after_ms": 2300,
   "end_position": 0.0
  },
  {
@@ -41,7 +41,7 @@
   "state_at_halt": "HALTED",
   "unprotected_at_halt": true,
   "end_state": "FAILED_FLATTENED",
-  "protected_after_ms": 8300,
+  "protected_after_ms": 2300,
   "end_position": 0.0
  },
  {
