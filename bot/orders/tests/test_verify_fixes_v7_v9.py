@@ -18,11 +18,11 @@ import pytest
 from bot.orders import gateway as G
 from bot.orders import queue
 from bot.orders.fake_exchange import FakeExchange, Fault, FaultKind
-from bot.orders.firewall import FirewallRejected, FirewallVerdict
+from bot.orders.firewall import FirewallRejected, FirewallVerdict, OrderPurpose
 from bot.orders.gateway import RESCUE_UNKNOWN_BACKOFF_MS, protect_without_db
 from bot.orders.tests.conftest import MARK, T_APPROVED_MS, make_approved_intent, make_orders_config
 from bot.orders.tests.review_chaos_test import Monitor, make_worker, protected
-from bot.orders.types import IntentState, OrderInfo, OrderPurpose, OrderStatus, OrderType, Side, parse_client_id
+from bot.orders.types import IntentState, OrderInfo, OrderStatus, OrderType, Side, parse_client_id
 from bot.types import FakeClock, NS_PER_MS
 
 S = IntentState
@@ -60,7 +60,8 @@ class _Spy:
             return a
 
         def w(*x, **k):
-            self._log.append((name, x[0] if x else None))
+            arg = x[0] if x else None
+            self._log.append((name, getattr(arg, "client_id", arg)))   # place_order는 요청의 clientOrderId
             if name == "get_order" and self._go is not None:
                 r = self._go(*x)
                 if r is not NotImplemented:
@@ -259,7 +260,8 @@ def test_v9_design_16_1_table_is_contiguous():
 
 def test_v9_runbook_t8_mentions_exit_code_1():
     text = (ROOT / "docs" / "RUNBOOK.md").read_text(encoding="utf-8")
-    t8 = [l for l in text.splitlines() if "T8" in l and "종료" in l]
-    assert t8, "RUNBOOK T8 행을 찾지 못함"
-    assert any(re.search(r"1\s*·\s*2\s*·\s*3|1, 2, 3|1·2·3", l) for l in t8), t8
-    assert any("startup:" in l for l in t8), t8
+    sec = text[text.index("### T8."):text.index("### T9.")]
+    rows = [l for l in sec.splitlines() if l.startswith("| `orders`가 종료 코드")]
+    assert len(rows) == 1, "RUNBOOK T8 시작 거부 행을 찾지 못함"
+    row = rows[0]
+    assert "1·2·3" in row and "종료 1" in row and "startup:" in row, row
