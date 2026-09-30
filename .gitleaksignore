@@ -1,0 +1,5 @@
+# 테스트용 가짜 값(실제 비밀 아님): RFC 8032 시험 벡터·고정 가짜 API 키·가짜 PEM. 확인 2026-09-30
+fe63ce6230031ac08dfde6db02b54b90f0c5e708:bot/orders/tests/review_security_test.py:generic-api-key:123
+fe63ce6230031ac08dfde6db02b54b90f0c5e708:bot/orders/tests/test_binance_client.py:private-key:245
+fe63ce6230031ac08dfde6db02b54b90f0c5e708:bot/orders/tests/test_binance_client.py:generic-api-key:51
+fe63ce6230031ac08dfde6db02b54b90f0c5e708:bot/orders/verify/key_access_trace.py:private-key:218
