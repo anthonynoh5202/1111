@@ -5,3 +5,4 @@ __pycache__/
 
 # 백테스트 캐시
 data/cache/
+.venv/
