@@ -50,12 +50,16 @@ def main(argv: list[str] | None = None) -> int:
     hist = collections.Counter(("0" if r["worst"] == 0 else "<=5s" if r["worst"] <= 5000 else "<=6s"
                                 if r["worst"] <= 6000 else "<=10s" if r["worst"] <= 10_000 else ">10s") for r in res)
     states = collections.Counter(r["state"] for r in res)
+    nocrash = sorted((r for r in res if r["crash"] is None), key=lambda r: -r["worst"])
     out = dict(seeds=[a.start, a.start + a.count - 1], n=len(res), bad=bad, worst_top=worst,
+               no_crash=dict(n=len(nocrash), worst_top=nocrash[:10],
+                             over_5s=[(r["seed"], r["worst"], r["halts"]) for r in nocrash if r["worst"] > 5000]),
                worst_hist=dict(hist), end_states=dict(states),
                with_crash=sum(1 for r in res if r["crash"] is not None))
     OUT.parent.mkdir(parents=True, exist_ok=True)
     OUT.write_text(json.dumps(out, ensure_ascii=False, indent=1, default=str), encoding="utf-8")
-    print(json.dumps(dict(n=out["n"], bad=len(bad), worst_hist=out["worst_hist"], end_states=out["end_states"],
+    print(json.dumps(dict(n=out["n"], bad=len(bad), no_crash_worst=[(r["seed"], r["worst"], r["state"], r["halts"])
+                                                                   for r in nocrash[:10]], worst_hist=out["worst_hist"], end_states=out["end_states"],
                           worst_top=[(r["seed"], r["worst"], r["state"], r["reason"], r["crash"]) for r in worst]),
                      ensure_ascii=False, indent=1))
     for r in bad:

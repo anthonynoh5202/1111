@@ -1,0 +1,50 @@
+[
+ {
+  "variant": "control",
+  "after_crash": {
+   "position": 0.016,
+   "stops": 0
+  },
+  "restart_refused": null,
+  "after_restart": {
+   "position": 0.0,
+   "stops": 0
+  }
+ },
+ {
+  "variant": "drop_trigger",
+  "after_crash": {
+   "position": 0.016,
+   "stops": 0
+  },
+  "restart_refused": "DbError: 주문 기록 보호 트리거가 없다(변조 의심, 시작 거부): ['order_events_no_delete']",
+  "after_restart": {
+   "position": 0.016,
+   "stops": 0
+  }
+ },
+ {
+  "variant": "control(main)",
+  "after_crash": {
+   "position": 0.016,
+   "stops": 0
+  },
+  "exit_code": 0,
+  "after_restart": {
+   "position": 0.0,
+   "stops": 0
+  }
+ },
+ {
+  "variant": "drop_trigger(main)",
+  "after_crash": {
+   "position": 0.016,
+   "stops": 0
+  },
+  "exit_code": 3,
+  "after_restart": {
+   "position": 0.0,
+   "stops": 0
+  }
+ }
+]

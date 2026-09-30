@@ -24,6 +24,9 @@
 - 매 바퀴 DB 무결성(보호 트리거 본문·추가 전용 표의 빈 번호) 검사 → 문제면 T0(SEC-02).
 - 한 바퀴가 거래소 밖 예외로 끝나면 DB 없이 보호(emergency_protect)하고 다음 바퀴에 recover()를 먼저 돈다(F4·SEC-03).
 - STOP_VERIFIED 보유 중에는 대조 주기 사이에도 매 바퀴 손절 존재를 가볍게 조회해, 없으면 대조를 앞당긴다(F7).
+- 시작을 거부해야 할 때(설정·A 비밀·DB·시작 복구 예외)도 거부 **전에** DB 없이 보호한다(V-1, R-15): 우리 손절이
+  없으면 reduceOnly 청산. 잠금은 DB 연결보다 먼저 잡는다(다른 B가 있으면 보호에 끼어들지 않는다).
+- HALTED·EXITING 보유도 매 바퀴 손절 없음을 가볍게 조회한다: HALTED면 곧바로 secure_halted, EXITING이면 대조(V-2, R-16).
 """
 from __future__ import annotations
 
@@ -43,7 +46,7 @@ from typing import Any, Callable, Sequence
 from bot import db
 from bot.orders import queue
 from bot.orders.control import ControlState, load_control
-from bot.orders.gateway import RELEASE_AT_TOLERANCE_MS, Gateway
+from bot.orders.gateway import RELEASE_AT_TOLERANCE_MS, Gateway, protect_without_db
 from bot.orders.ledger import Ledger
 from bot.orders.reconcile import ReconcileReport, reconcile_once, recover
 from bot.orders.types import (
@@ -80,6 +83,14 @@ SELFTEST_TIMEOUT_S = 180
 
 def _now_ms(clock: Clock) -> int:
     return int(clock.now_ns()) // NS_PER_MS
+
+
+def _clock_sleeper(clock: Clock) -> Callable[[int], None]:
+    """FakeClock(시험)이면 시계만 진행, 아니면 실제로 잔다."""
+    adv = getattr(clock, "advance", None)
+    if adv is not None:
+        return lambda ms: adv(int(ms) * NS_PER_MS)
+    return lambda ms: time.sleep(max(0, int(ms)) / 1000.0)
 
 
 def _touch(path: str | None) -> None:
@@ -198,9 +209,16 @@ class Worker:
         due = self.last_reconcile_ms is None or now - self.last_reconcile_ms >= int(self.cfg.reconcile_interval_s) * 1000
         if not due:
             live = queue.live_intent(self.conn)
-            if live is not None and IntentState(live["state"]) is S.STOP_VERIFIED \
-                    and not self.gw.quick_stop_check(live):
+            lst = None if live is None else IntentState(live["state"])
+            if lst is S.STOP_VERIFIED and not self.gw.quick_stop_check(live):
                 log.warning("보유 손절이 조회에 없다 — 대조를 앞당긴다")
+                due = True
+            elif lst is S.HALTED and self.gw.quick_unprotected_check(live):
+                # V-2: 청산·손절 재등록이 실패한 HALTED 보유를 대조 주기(30초)까지 두지 않는다 — 매 바퀴 다시 보호
+                log.warning("HALTED 보유에 손절이 없다 — 매 바퀴 보호 재시도(secure_halted)")
+                self.gw.secure_halted(live)
+            elif lst is S.EXITING and self.gw.quick_unprotected_check(live):
+                log.warning("EXITING 보유에 손절이 없다 — 대조를 앞당긴다")
                 due = True
         if due:
             self.last_reconcile = reconcile_once(self.conn, self.gw, self.ex, self.clock, control)
@@ -529,6 +547,7 @@ def _acquire_single_instance_lock(db_path: str | os.PathLike[str]) -> int | None
     if str(db_path) == ":memory:":
         return -1
     path = f"{db_path}.orders.lock"
+    Path(path).parent.mkdir(parents=True, exist_ok=True)     # DB 연결보다 먼저 잡는다(db.connect와 같은 폴더 생성)
     fd = os.open(path, os.O_RDWR | os.O_CREAT, 0o600)
     try:
         fcntl.flock(fd, fcntl.LOCK_EX | fcntl.LOCK_NB)
@@ -560,9 +579,11 @@ def main(argv: list[str] | None = None, *, environ=None, clock: Clock | None = N
         _err("주문 프로세스는 mode = \"testnet\" 설정에서만 돈다(live는 없음)")
         return EXIT_CONFIG
     visible = _check_no_a_secrets(cfg)
+    command = args.command or "run"
     if visible is not None:
         _err(f"주문 프로세스(B)에 A 프로세스 비밀 파일이 보인다(compose 분리 확인): {visible}")
-        return EXIT_CONFIG
+        if command != "run":
+            return EXIT_CONFIG
     ocfg = cfg.orders
     handler = setup_logging(None, level=getattr(logging, args.log_level))
     prev_hooks = (sys.excepthook, threading.excepthook)
@@ -571,8 +592,37 @@ def main(argv: list[str] | None = None, *, environ=None, clock: Clock | None = N
     ex = None
     conn = None
     held_locks: list[int] = []
+
+    def refuse(code: int, why: str) -> int:
+        """시작 거부(V-1): recover() 전에 멈추더라도 손절 없는 포지션을 남기지 않는다 — DB 없이 보호한 뒤 종료.
+        다른 B가 잠금을 쥐고 있으면(그 B가 보호 중) 아무것도 하지 않는다."""
+        if command != "run" or ex is None:
+            return code
+        if not held_locks:
+            fd = _acquire_single_instance_lock(cfg.db_path)
+            if fd is None:
+                return code
+            held_locks.append(fd)
+        try:
+            res = protect_without_db(ex, ocfg, clock, base_url=str(getattr(ex, "base_url", "")),
+                                     sleep_ms=_clock_sleeper(clock))
+        except Exception as exc:  # noqa: BLE001 — 종류만
+            res = f"error:{type(exc).__name__}"
+        log.error("시작 거부(%s) 전 DB 없는 보호: %s", why, res)
+        _err(f"시작 거부({why}) — 거래소 포지션 보호 결과: {res}. "
+             + ("거래소 웹에서 포지션·손절을 즉시 확인할 것(RUNBOOK 테스트넷 §T8)" if res not in ("flat", "flattened")
+                else "포지션 0 확인"))
+        if conn is not None:
+            try:
+                queue.notify(conn, f"[TESTNET] P1 주문 프로세스 시작 거부({why}) — DB 없는 보호 결과: {res}. "
+                                   "서버에서 원인을 고치고 거래소 웹에서 포지션·손절 확인(RUNBOOK §T8)",
+                             now_ms=_now_ms(clock), kind="alert")
+            except Exception:  # noqa: BLE001 — DB가 문제라서 거부하는 중일 수 있다
+                pass
+        return code
+
     try:
-        if (args.command or "run") == "status":
+        if command == "status":
             try:
                 conn = db.connect(cfg.db_path, mode=Mode.TESTNET, now_ms=_now_ms(clock))
             except db.DbError as exc:
@@ -590,12 +640,20 @@ def main(argv: list[str] | None = None, *, environ=None, clock: Clock | None = N
         except (ConfigError, ValueError) as exc:
             _err(f"거래소 키·클라이언트: {exc}")
             return EXIT_CONFIG
+        if visible is not None:
+            return refuse(EXIT_CONFIG, "a_secrets_visible")
+        if command == "run":
+            # 잠금을 DB 연결보다 먼저: DB 문제로 거부할 때도 두 번째 B가 보호(청산)에 끼어들지 않게
+            lock_fd = _acquire_single_instance_lock(cfg.db_path)
+            if lock_fd is None:
+                _err("다른 주문 프로세스(B)가 이미 돌고 있다(잠금 파일) — 두 번째 B는 진입 중인 의도를 망가뜨린다. 시작하지 않는다")
+                return EXIT_CONFIG
+            held_locks.append(lock_fd)
         try:
             conn = db.connect(cfg.db_path, mode=Mode.TESTNET, now_ms=_now_ms(clock))
         except db.DbError as exc:
             _err(f"DB: {exc}")
-            return EXIT_DB
-        command = args.command or "run"
+            return refuse(EXIT_DB, "db_connect")
         if command == "selftest":
             rep = selftest_checks(ex, ocfg, clock)
             print(rep.text())
@@ -612,17 +670,21 @@ def main(argv: list[str] | None = None, *, environ=None, clock: Clock | None = N
                 _err(f"왕복 시험 시작 안 함: {exc}")
                 return EXIT_ERROR
             return EXIT_OK if rt.ok else EXIT_ERROR
-        lock_fd = _acquire_single_instance_lock(cfg.db_path)
-        if lock_fd is None:
-            _err("다른 주문 프로세스(B)가 이미 돌고 있다(잠금 파일) — 두 번째 B는 진입 중인 의도를 망가뜨린다. 시작하지 않는다")
-            return EXIT_CONFIG
-        held_locks.append(lock_fd)
         ledger = Ledger(ocfg.ledger_file)
         if ledger.error is not None:
             log.error("B 전용 원장(%s) 문제: %s — 신규 진입 차단 상태로 시작(보유 보호는 계속)",
                       ocfg.ledger_file, ledger.error)
-        worker = Worker(conn, ocfg, ex, clock, heartbeat_path=HEARTBEAT_PATH, ledger=ledger)
         stop = stop or threading.Event()
+        try:
+            worker = Worker(conn, ocfg, ex, clock, heartbeat_path=HEARTBEAT_PATH, ledger=ledger)
+            worker.startup()
+        except db.DbError as exc:
+            _err(f"DB: {exc}")
+            return refuse(EXIT_DB, "startup_db")
+        except Exception as exc:  # noqa: BLE001 — 시작 복구가 죽어도 포지션은 보호하고 종료
+            log.error("시작 복구 실패: %s", type(exc).__name__)
+            _err(f"시작 복구 실패({type(exc).__name__})")
+            return refuse(EXIT_ERROR, f"startup:{type(exc).__name__}")
         prev_handlers = {}
         for sig in (signal.SIGTERM, signal.SIGINT):
             try:
@@ -630,7 +692,6 @@ def main(argv: list[str] | None = None, *, environ=None, clock: Clock | None = N
             except (ValueError, OSError):  # pragma: no cover - 메인 스레드가 아닐 때
                 pass
         try:
-            worker.startup()
             worker.run_forever(stop)
         finally:
             for sig, h in prev_handlers.items():

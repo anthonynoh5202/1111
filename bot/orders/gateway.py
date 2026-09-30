@@ -1524,6 +1524,24 @@ class Gateway:
             return True
         return c is not None and c.status in CONDITIONAL_ACTIVE_STATUSES
 
+    def quick_unprotected_check(self, intent_row: sqlite3.Row) -> bool:
+        """HALTED·EXITING 보유가 손절 없이 남았는지 가볍게 조회(대조 주기 사이, V-2). 손절 없음 **확인**이면 True.
+
+        우리 손절이 살아 있거나 포지션이 0이면 False. 조회 실패·429/418 대기 창이면 False(판단 보류 — 정규 대조가 본다,
+        대기 창 안에서는 보내지 않는다). 이벤트는 남기지 않는다(2초마다라 기록이 넘친다)."""
+        if self.now_ms() < self._rate_until_ms:
+            return False
+        sl = make_client_id(intent_row["signal_id"], IdPurpose.STOP)
+        try:
+            c = self.ex.get_conditional(sl)
+            if c is not None and c.status in CONDITIONAL_ACTIVE_STATUSES:
+                return False
+            q = float(self.ex.position().qty)
+        except ExchangeError as exc:
+            self.note_exchange_error(exc)
+            return False
+        return q > 0
+
     def run_trend_exit(self, intent_row: sqlite3.Row) -> IntentState:
         """§4.6 추세 청산(now ≥ exit_due_ms인 STOP_VERIFIED/EXITING)."""
         iid = int(intent_row["intent_id"])
@@ -1634,3 +1652,109 @@ class Gateway:
             return True
         except ExchangeError as exc:
             return exc.kind in (ErrorKind.ORDER_NOT_FOUND, ErrorKind.CANCEL_REJECTED)
+
+
+# ---------------------------------------------------------------------------
+# 시작 거부 전 DB 없는 보호(V-1) — 설정·DB 문제로 B가 recover() 전에 멈춰야 할 때
+# ---------------------------------------------------------------------------
+RESCUE_DEADLINE_MS = 60_000        # 시작 거부 전 보호에 쓰는 시간 상한(그 뒤 종료 → compose 재시작이 다시 시도)
+RESCUE_RETRY_SLEEP_MS = 1_000      # 조회 실패(네트워크 등) 뒤 다시 시도 전
+
+
+def _is_our_protective_stop(c: ConditionalInfo, mark: float | None) -> bool:
+    p = parse_client_id(c.client_algo_id)
+    return (p is not None and p.purpose is IdPurpose.STOP and c.symbol == SYMBOL
+            and c.status in CONDITIONAL_ACTIVE_STATUSES and c.side is Side.SELL
+            and c.type is OrderType.STOP_MARKET and c.close_position is True
+            and (mark is None or float(c.trigger_price) < float(mark)))
+
+
+def protect_without_db(ex: ExchangeClient, cfg: OrdersConfig, clock: Clock, *, base_url: str,
+                       sleep_ms: Callable[[int], None], deadline_ms: int = RESCUE_DEADLINE_MS,
+                       new_signal_id: Callable[[], str] | None = None) -> str:
+    """DB·설정 문제로 시작을 거부하기 **전에** 거래소 사실만으로 포지션을 보호한다(V-1, fail-closed).
+
+    DB를 믿을 수 없으므로 신호·ATR(손절가 계산 재료)을 모른다 → 손절을 새로 만들지 않고, 우리 보호 손절(sig-…-sl,
+    closePosition STOP_MARKET 매도, 마크 아래)이 살아 있으면 그대로 두고(사람이 DB를 고친 뒤 recover가 판단),
+    없으면 reduceOnly 시장가로 전량 청산한다. 청산 ID는 이번 구조 전용 새 신호 ID의 f1~f3(재사용 없음, K15),
+    모든 주문은 방화벽(FLATTEN) 통과. 429·418은 Retry-After 동안 보내지 않는다(기한을 넘기면 포기).
+    결과: 'flat' · 'short'(아무것도 안 함 — 롱 전용 방화벽) · 'protected' · 'flattened' · 'unavailable' · 'failed'."""
+    from bot.types import new_signal_id as _nsid
+
+    gen = new_signal_id or _nsid
+
+    def now() -> int:
+        return int(clock.now_ns()) // NS_PER_MS
+
+    start = now()
+    rate_until = 0
+    sid = gen()
+    n = 0
+    flattened_once = False
+    last = "unavailable"
+
+    def wait_err(exc: ExchangeError) -> bool:
+        """오류 뒤 기다림. 기한 안에 다시 시도할 수 있으면 True."""
+        nonlocal rate_until
+        if exc.kind in (ErrorKind.RATE_LIMITED, ErrorKind.IP_BANNED):
+            ra = exc.retry_after_s
+            wait = (int(math.ceil(float(ra) * 1000)) + 50 if ra is not None and math.isfinite(float(ra)) and ra > 0
+                    else RATE_LIMIT_DEFAULT_WAIT_MS if exc.kind is ErrorKind.RATE_LIMITED else IP_BAN_DEFAULT_WAIT_MS)
+            rate_until = now() + wait
+        elif exc.kind in (ErrorKind.AUTH, ErrorKind.REGION_BLOCKED):
+            return False                           # 기다려도 안 된다
+        else:
+            wait = RESCUE_RETRY_SLEEP_MS
+        if now() + wait - start > deadline_ms:
+            return False
+        sleep_ms(wait)
+        return True
+
+    while now() - start <= deadline_ms:
+        if now() < rate_until:
+            sleep_ms(rate_until - now())
+        try:
+            q = float(ex.position().qty)
+        except ExchangeError as exc:
+            if not wait_err(exc):
+                break
+            continue
+        if q == 0.0:
+            return "flattened" if flattened_once else "flat"
+        if q < 0:
+            return "short"
+        try:
+            mark: float | None = float(ex.mark_price())
+        except ExchangeError:
+            mark = None
+        try:
+            conds = list(ex.open_conditional_orders())
+        except ExchangeError:
+            conds = None                           # 손절 확인 불가 → 청산(fail-closed)
+        if conds is not None and any(_is_our_protective_stop(c, mark) for c in conds):
+            return "protected"
+        if n and n % len(FLAT_PURPOSES) == 0:
+            sid = gen()                            # f1~f3을 다 쓰면 새 구조 ID(clientOrderId 재사용 없음)
+        cid = make_client_id(sid, FLAT_PURPOSES[n % len(FLAT_PURPOSES)])
+        n += 1
+        req = OrderRequest(symbol=SYMBOL, side=Side.SELL, type=OrderType.MARKET, qty=floor_to_step(q, QTY_STEP),
+                           client_id=cid, reduce_only=True)
+        ctx = FirewallContext(cfg=cfg, client_base_url=base_url, signal_id=sid, mark_price=mark, position_qty=q)
+        try:
+            enforce_order(req, OrderPurpose.FLATTEN, ctx)
+        except FirewallRejected as fr:
+            log.error("시작 거부 전 보호: 방화벽 거부 %s", list(fr.verdict.violations))
+            return "failed"
+        try:
+            ex.place_order(req)
+            flattened_once = True
+        except ExchangeError as exc:
+            if exc.outcome_unknown:
+                flattened_once = True
+            elif not wait_err(exc):
+                last = "failed"
+                break
+            continue
+        last = "failed"
+        sleep_ms(CLOSE_POLL_SLEEP_MS)
+    return last
