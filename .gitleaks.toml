@@ -1,0 +1,41 @@
+# gitleaks 설정 — 기본 규칙 + 이 프로젝트의 비밀 모양 3종. CI(.github/workflows/ci.yml)가 전체 이력을 검사한다.
+title = "btcbot gitleaks"
+
+[extend]
+useDefault = true
+
+[[rules]]
+id = "telegram-bot-token-generic"
+description = "텔레그램 봇 토큰(숫자:문자열)"
+regex = '''\b[0-9]{6,12}:[A-Za-z0-9_-]{30,}\b'''
+keywords = [":"]
+
+[[rules]]
+id = "anthropic-api-key-generic"
+description = "Anthropic API 키(sk-ant-)"
+regex = '''sk-ant-[A-Za-z0-9_-]{8,}'''
+keywords = ["sk-ant-"]
+
+[[rules]]
+id = "healthchecks-ping-url"
+description = "healthchecks 핑 URL(UUID 형식, ping key/slug 형식 모두 비밀)"
+regex = '''hc-ping\.com/[A-Za-z0-9_-]{20,}'''
+keywords = ["hc-ping.com"]
+
+[allowlist]
+description = "테스트 전용 가짜 값(실제 비밀 아님)과 대용량 시세 데이터"
+regexes = [
+  '''TEST-dummy-token-not-real''',
+  '''sk-ant-test-dummy-not-real''',
+  '''AAEabcdefghijklmnopqrstuvwxyz012345''',
+  '''sk-ant-api03-abcdefghijkl''',
+  '''sk-ant-abcdefghijkl''',
+  '''0f1e2d3c-4b5a-6978-8a9b-0c1d2e3f4a5b''',
+  '''hc-ping\.com/TEST-dummy-pingkey-not-real''',
+  '''^(?:E[01]|L1[ab]|S[23])-[A-Za-z0-9-]+_[a-z0-9_]+$''',
+  '''A035C8C19219BA821ECEA86B64E628F8D684696D''',
+]
+paths = [
+  # 시세 데이터 폴더만 제외한다(SEC-07: 저장소 전체의 *.csv.gz·*.npz를 빼지 않는다)
+  '''^data/binance/.*\.(csv\.gz|npz|json)$''',
+]

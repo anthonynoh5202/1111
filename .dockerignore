@@ -1,0 +1,22 @@
+# 이미지에 넣지 않는 것(비밀·데이터·개발 파일)
+.git
+.github
+.venv
+.env
+.env.*
+**/__pycache__
+**/*.pyc
+.pytest_cache
+secrets/
+backups/
+config/
+data/
+docs/
+research/
+tools/
+bot/tests/
+bot/verify/
+backtest/tests/
+backtest/results*/
+backtest/verify*/
+*.sqlite3*
