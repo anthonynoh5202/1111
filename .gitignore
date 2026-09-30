@@ -2,3 +2,6 @@ __pycache__/
 *.pyc
 .env
 .env.*
+
+# 백테스트 캐시
+data/cache/
