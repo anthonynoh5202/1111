@@ -1,0 +1,59 @@
+{
+ "summary": {
+  "total": 1,
+  "unsafe": [],
+  "worst_unprotected_ms": 6.0,
+  "worst_by_scenario": {
+   "S00_normal_no_kill": 6.0
+  }
+ },
+ "results": [
+  {
+   "name": "S00_normal_no_kill",
+   "safe": true,
+   "worst_unprotected_ms": 6.0,
+   "exchange": {
+    "position": 0.016,
+    "protected": true,
+    "mark": 60000.0,
+    "active_stops": [
+     [
+      "sig-2QRI2VCYHCYM3JG6-sl",
+      57000.0,
+      "NEW"
+     ]
+    ],
+    "unprotected_ms": [
+     6.0
+    ],
+    "open_unprotected_ms": null,
+    "posts": {
+     "place_order:e1": 1,
+     "place_conditional:sl": 1
+    },
+    "e1_posts": 1,
+    "kill_log": []
+   },
+   "intents": [
+    {
+     "id": 1,
+     "state": "STOP_VERIFIED",
+     "reason": "stop_verified",
+     "exit": null,
+     "unprotected_ms": 13
+    }
+   ],
+   "halts": [],
+   "b_starts": 1,
+   "b_exit_codes": [
+    0
+   ],
+   "db_flat_but_position": false,
+   "notes": [
+    "after_entry=STOP_VERIFIED"
+   ],
+   "params": {},
+   "elapsed_s": 8.0
+  }
+ ]
+}

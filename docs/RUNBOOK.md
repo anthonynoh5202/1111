@@ -2,6 +2,8 @@
 
 > 대상: 서버 작업이 익숙하지 않은 사람. 명령은 **그대로 복사해서** 붙여 넣으면 된다.
 > 이 봇은 **모의 운영 전용**이다. 거래소 API 키도, 주문 코드도 없다. 실제 돈은 움직이지 않는다.
+> 예외: **테스트넷(TESTNET) 단계**는 바이낸스 **모의 환경(데모 트레이딩)**에 실제 주문을 보낸다(가짜 돈).
+> 별도 서버·폴더에서만 하고, 절차는 맨 아래 [§10 테스트넷 절차](#10-테스트넷testnet-절차)를 따른다. LIVE(실거래)는 없다.
 > 설계 기준: [bot/DESIGN.md](../bot/DESIGN.md), 보안: [SECURITY.md](./SECURITY.md), 서버: [INFRA.md](./INFRA.md).
 
 ---
@@ -148,7 +150,8 @@ docker compose start bot     # 다시 켜기
   (10분에 한 번, 그 사이 시도 수를 합쳐서). 반복되면 봇 사용자명이 알려진 것이다 — 위 '토큰이 샜을 수 있다'를 따른다.
 - 봇은 5분마다 텔레그램 웹훅 설정을 점검한다. 누가 토큰으로 웹훅을 걸면(메시지 가로채기) 지우고 경고를 보낸다 →
   **토큰이 샌 것**이므로 위 절차로 토큰을 바꾼다.
-- `/resume`이 텔레그램에서 되는 것은 PAPER 단계의 예외다(SECURITY PV-15는 '해제는 서버에서'). TESTNET/LIVE 전에 서버 쪽 해제로 바꾼다.
+- `/resume`이 텔레그램에서 되는 것은 PAPER 단계의 예외다(SECURITY PV-15는 '해제는 서버에서'). TESTNET에서는
+  `/pause`·`/resume`이 **신규 신호 받기만** 켜고 끄며, 주문 쪽 킬 스위치(T0)는 **서버 제어 파일로만** 풀린다(§10 T5).
 
 ---
 
@@ -258,3 +261,195 @@ docker compose --profile replay run --rm replay
 
 ## 9. 종료 코드
 `0` 정상 · `1` 그 밖의 오류 · `2` 설정·비밀 오류(텔레그램 토큰 거부 포함) · `3` DB 오류(모드 불일치·권한·감사 로그 변조)
+
+주문 프로세스(`python -m bot.orders.worker`, 테스트넷 서비스 `orders`)도 같다: `0` 정상 · `1` 오류·selftest 실패 ·
+`2` 설정·비밀 오류(mode가 testnet이 아님, 키 파일 없음·권한 넓음·PEM 형식, A의 비밀이 보임) · `3` DB 오류.
+
+---
+
+## 10. 테스트넷(TESTNET) 절차
+
+> 바이낸스 **모의 환경(데모 트레이딩, `demo-fapi.binance.com`)**에 실제 서명 주문을 보내는 단계다(가짜 돈).
+> 설계 기준: [bot/orders/DESIGN.md](../bot/orders/DESIGN.md). LIVE(실거래)는 없다 — 설정에 `mode = "live"`를 쓰면 시작을 거부한다.
+> 호스트는 코드에 고정돼 있다(설정으로 실서버 주소를 넣을 수 없다).
+
+두 프로세스로 돈다.
+
+| | A: 서비스 `bot` (기존) | B: 서비스 `orders` (새로) |
+|---|---|---|
+| 하는 일 | 신호 계산·텔레그램 카드·[승인]·[확인]·추세 청산 **요청** | 주문(진입·손절·청산)·30초마다 거래소 대조·킬 스위치 |
+| 비밀 | 텔레그램 토큰, Anthropic 키 | 바이낸스 API 키 ID, Ed25519 개인키 |
+| 제어 파일 | 없음 | `config/orders_control.toml`(읽기 전용) |
+| B 전용 원장 | 없음(보이면 A가 시작 거부) | 볼륨 `ordersstate` → `/state/orders_ledger.json`: T0·진입·청산·해제 첫 확인 시각 |
+
+- 승인은 지금과 똑같이 텔레그램 [승인] → 60초 안에 [확인]. [확인]하는 순간 주문 큐에 들어가고 B가 2초 안에 가져간다.
+- 진입은 **IOC 상한 지정가**(마크 +0.1% 이내, 안 되면 체결 0 → 신호 건너뜀). 체결 직후 거래소에 보호 손절(2×ATR20,
+  closePosition)을 걸고 **조회로 확인**한다. 5초 안에 확인하지 못하면 즉시 시장가 청산 + 킬 스위치.
+- 추세 청산은 모의 운영과 같이 **자동**(판단 + 30분). 손절은 거래소가 직접 한다(봇이 꺼져 있어도).
+- 거래소 포지션은 **동시에 1개**다. 보유 중에 다른 신호가 오면 카드에 `보유 중(1포지션)`이 붙고, 승인해도 주문하지 않는다.
+- 텔레그램으로는 주문·청산·킬 스위치 해제를 **할 수 없다**. `/pause`는 새 신호만 막는다.
+- B는 **하나만** 돈다(DB 옆 잠금 파일 `testnet.sqlite3.orders.lock`). 서비스가 도는 중에 `docker compose run --rm orders`
+  (기본 명령 `run`)를 하면 두 번째 B는 `다른 주문 프로세스(B)가 이미 돌고 있다`로 바로 끝난다(종료 코드 2). `status`·
+  `selftest`는 잠그지 않는다.
+- B는 A와 따로 **누적 한도**를 센다(B 전용 원장 기준, 다음 UTC 00:00 = KST 09:00 자동 해제): UTC 하루 진입 3번,
+  24시간 안 손절 3번(T1), 하루 실현 손실 −3R 또는 R 자본 −3%(T2). 걸리면 텔레그램 `누적 한도 …` 경고, 새 진입 거부.
+
+### T1. 준비 (paper와 분리)
+- **별도 서버(또는 별도 폴더)**에서 한다. paper 운영 폴더에서 하지 않는다(DB·설정이 다르다).
+- 1-1 ~ 1-4, 2-1 ~ 2-2(텔레그램·Anthropic 비밀 파일)를 이 폴더에서도 똑같이 한다. 텔레그램 봇은 **테스트넷 전용 봇**을
+  하나 더 만드는 것을 권한다(메시지 머리표가 `[TESTNET]`이지만 채팅을 나누면 헷갈리지 않는다).
+- 서버 시계: `timedatectl`에서 `System clock synchronized: yes`. 1초 넘게 틀리면 B가 주문하지 않는다.
+
+### T2. 데모 계정·Ed25519 키 만들기 (사용자가 할 일)
+1. 바이낸스 **데모 트레이딩**(웹 `demo.binance.com`)에 로그인해 선물(USDⓈ-M) 데모 계정을 연다(가짜 USDT가 들어 있다).
+   메뉴 이름은 바뀔 수 있다 — '데모 트레이딩'의 **API 관리**를 찾는다.
+2. **서버에서** 키 쌍을 만든다. 개인키는 서버 밖으로 내보내지 않는다(복사·메신저·메모 금지):
+   ```bash
+   mkdir -p secrets && chmod 700 secrets
+   openssl genpkey -algorithm ed25519 -out secrets/binance_ed25519_private_key
+   openssl pkey -in secrets/binance_ed25519_private_key -pubout -out binance_ed25519_public.pem
+   cat binance_ed25519_public.pem        # 이 '공개키'만 바이낸스에 등록한다
+   ```
+   개인키 파일은 `-----BEGIN PRIVATE KEY-----`로 시작해야 한다(PKCS#8, 암호 없음). 다른 형식이면 B가 시작을 거부한다.
+3. 데모 API 관리에서 **자체 생성(Self-generated) 키 → Ed25519**를 고르고 공개키 내용을 붙여 넣는다.
+   권한은 **읽기 + 선물 거래(Enable Futures)만** 켠다. **출금(Withdrawals)·현물·마진·범용 전송은 켜지 않는다.**
+   가능하면 **IP 제한**에 이 서버의 공인 IP만 넣는다.
+4. 등록이 끝나면 화면에 나오는 **API 키(ID)**를 파일에 넣는다(값이 화면에 남지 않게):
+   ```bash
+   read -rs BK && printf '%s' "$BK" > secrets/binance_api_key && unset BK
+   sudo chown 10001:10001 secrets/binance_api_key secrets/binance_ed25519_private_key
+   sudo chmod 400 secrets/binance_api_key secrets/binance_ed25519_private_key
+   rm binance_ed25519_public.pem        # 공개키 사본은 지워도 된다(바이낸스에 등록돼 있음)
+   ```
+5. 키가 샜을 수 있으면: 데모 API 관리에서 키 **삭제** → 2~4를 새로 한다 → `docker compose --profile testnet restart orders`.
+
+### T3. 거래소 웹에서 계정 설정 (봇은 **검사만** 하고 바꾸지 않는다)
+데모 선물 화면에서 한 번 맞춰 둔다. 다르면 B가 진입을 거부하고 킬 스위치(T0)를 건다.
+
+| 항목 | 값 | 봇이 보는 곳 |
+|---|---|---|
+| 포지션 모드 | **One-way**(단방향). Hedge 금지 | `account_mode` |
+| 자산 모드 | **Single-Asset**(멀티 에셋 끔) | `account_mode` |
+| BTCUSDT 마진 | **Isolated**(격리) | `leverage_margin` |
+| BTCUSDT 레버리지 | 설정 `expected_leverage`와 같은 값(기본 **3**, 3 넘으면 거부) | `leverage_margin` |
+
+### T4. 설정·제어 파일 만들고 점검
+```bash
+cp config/bot.testnet.example.toml config/bot.toml
+nano config/bot.toml                     # 텔레그램 숫자 ID 두 개, [orders] r_capital_usdt(데모 잔고에 맞게)
+cp config/orders_control.example.toml config/orders_control.toml
+chmod 644 config/orders_control.toml     # 그룹·다른 사용자 '쓰기'가 있으면 B가 수동 정지로 본다
+docker compose build
+docker compose run --rm bot check                              # A 점검: 거래 키가 A에 보이면 여기서 거부된다
+docker compose --profile testnet run --rm orders selftest      # B 점검: 거래소 **조회만**(주문 없음)
+```
+`selftest`는 항목마다 `[통과]`/`[실패]`를 찍는다. 실패하면 고치고 다시 한다.
+
+| 실패 항목 | 해결 |
+|---|---|
+| 서버 시각 | 서버 NTP 동기화(`timedatectl`). 1000ms 넘으면 주문 안 함 |
+| 계정 모드 | T3의 One-way·Single-Asset |
+| 레버리지·마진 | T3의 Isolated·레버리지(= `expected_leverage`) |
+| 심볼 규칙 | tick 0.1·step 0.001이 아니면 거래소 규칙이 바뀐 것 — 개발자에게 알린다(코드 상수 확인) |
+| 잔고 | 데모 계정에 USDT가 있어야 한다 |
+| 조회 실패 `AUTH` | 키 ID·공개키 등록·권한(선물)·IP 제한 확인 |
+| 조회 실패 `REGION_BLOCKED`(451·403)·`IP_BANNED`(418) | 서버 위치·IP 문제. 418이면 몇 분~몇 시간 기다린다 |
+| `출금 권한: 모름(K10…)` | 실패가 아니다. 데모에서는 키 권한을 조회하지 못할 수 있다 — 웹에서 출금 권한이 꺼져 있는지 **눈으로** 확인 |
+
+### T5. 제어 파일 — 정지와 킬 스위치(T0) 해제 (서버에서만)
+`config/orders_control.toml`은 B에만 **읽기 전용**으로 붙는다. B는 2초마다 읽는다(재시작 필요 없음).
+- **신규 진입 정지**: `halt = true`로 바꾼다. 보유 포지션의 손절·추세 청산은 계속된다. 풀 때는 `halt = false`.
+- 파일이 없거나, 형식이 틀리거나, 그룹·다른 사용자 쓰기 권한이 있으면 B는 **수동 정지**로 본다(텔레그램 경고 `주문 제어 파일 문제`).
+- **킬 스위치 T0**: 손절 확인 실패·계정 모드 이상·모르는 주문·조회 불가 등이 생기면 텔레그램에 `킬 스위치 T0 #N: 사유`가 온다.
+  그동안 새 진입은 전부 거부되고, 보유 포지션의 손절은 거래소에 그대로 있다.
+- **해제 순서**: ① 원인을 확인하고 고친다(T6 `status`, 로그, 거래소 웹) ② 제어 파일에 아래를 **추가**한다 ③ 텔레그램에 `T0 #N 해제` 알림이 온다.
+  ```toml
+  [[release]]
+  halt_id = 3                        # 텔레그램 경고의 #N
+  at = "2026-10-01T09:00:00Z"
+  reason = "손절 누락 원인(데모 점검) 확인 후 해제"   # 필수
+  ```
+  텔레그램 `/resume`은 T0를 풀지 **않는다**. DB에 해제 행을 넣어도 소용없다(판정은 제어 파일만).
+- **해제는 그 T0에 묶인다**: B는 `halt_id`를 **그 T0가 생긴 뒤에 처음 봤을 때만** 해제로 인정하고, `at`을 적으면 그 시각이
+  T0 시각보다 이르면 무시한다. 그래서 `at`은 **적는 지금 시각(UTC)**으로 적는다. DB를 백업에서 되살리거나 새로 만든 뒤에는
+  T0 번호가 다시 1부터 쓰일 수 있다 — 옛 `[[release]]` 줄은 새 T0를 풀지 못하므로(의도된 동작) 지우고, 새 T0마다 새로 적는다.
+  해제가 안 먹으면 B 로그에 `인정하지 않은 id`가 찍힌다.
+- **DB 변조 흔적 T0**(`order_error`, 경고 문구 `주문 DB 변조 흔적`): 추가 전용 표(T0·주문 기록)의 행이 지워졌거나 보호
+  트리거 본문이 바뀌었다 = A 침해 의심. 서버에서 원인(누가 DB를 고쳤나)을 확인하기 전에는 해제하지 않는다. 해제하면 그
+  흔적은 '확인됨'으로 원장에 남고, 더 지워지면 다시 T0가 걸린다.
+
+### T6. 시작·상태 보기
+```bash
+docker compose --profile testnet up -d          # A(bot) + B(orders)
+docker compose --profile testnet ps             # 둘 다 (healthy)
+docker compose --profile testnet logs --tail 100 orders
+docker compose --profile testnet exec orders python -m bot.orders.worker --config /config/bot.toml status
+```
+- 텔레그램에 `[TESTNET] 시작 …`(A)과 `[TESTNET] 주문 프로세스(B) 재시작 복구: 이상 없음`(B)이 오면 정상이다.
+- 텔레그램 `/status`에 B 심장 박동·마지막 대조·풀리지 않은 T0가, `/positions`에 거래소(데모) 보유가 나온다.
+- `status`(서버 명령)는 DB만 읽는다: 노출 의도, T0마다 `정지 중`/`해제됨`, 마지막 대조, 시계 오차.
+- 멈추기: `docker compose --profile testnet stop orders`(B만) — 거래소 손절은 남아 있어 보유 포지션은 보호된다.
+  다시 켜면 B가 먼저 **거래소 사실로 복구**한다(손절이 확인되지 않은 포지션은 새로 손절을 거는 대신 청산 + T0 —
+  청산이 안 되면 그때는 보호 손절을 다시 건다).
+- **B 전용 원장**(`ordersstate` 볼륨의 `/state/orders_ledger.json`, 0600): B가 건 T0·진입·청산을 A가 못 쓰는 곳에 남긴다.
+  B 로그에 `B 전용 원장 … 문제`(권한·손상·폴더 없음)가 나오면 B는 **새 진입만 막고** 보호는 계속한다. 볼륨이 붙어 있는지
+  (`docker compose --profile testnet exec orders ls -l /state`), 파일 권한이 0600인지 확인한다. 손상됐으면 파일을 다른 이름으로
+  옮기고 `restart orders`(새 원장으로 시작 — 그 뒤 하루 진입 수·T1·T2는 DB의 B 기록으로도 센다).
+
+### T7. 왕복 시험 (텔레그램 /selftest 대신 서버 명령)
+B가 돌고 있는 상태에서, 시험 신호 한 건으로 **진입 → 손절 등록·확인 → 추세 청산 → 손절 취소**를 끝까지 해 본다.
+```bash
+docker compose --profile testnet exec orders python -m bot.orders.worker --config /config/bot.toml selftest --roundtrip
+```
+- 먼저 T4의 조회 점검을 다시 하고, 통과해야 시작한다. 보유 중·대기 중인 의도가 있거나 T0·수동 정지 중이면 시작하지 않는다.
+- 크기는 진짜 신호와 같은 규칙(R 자본 × 0.5% 위험, 명목 상한)이다. 시험 ATR은 마크의 1%(손절 거리 약 2%).
+- 끝에 `결과: CLOSED exit_reason=trend`와 `주문 요청: sig-…-e1×1, sig-…-sl×…, sig-…-x1×1`이 나오면 통과다.
+  텔레그램에도 `[TESTNET]` 체결·청산 알림이 온다(알림 경로 왕복 확인).
+- 실패하면 결과 줄의 상태·`halt_id`를 보고 T5·T8을 따른다. 거래소 웹에서 포지션 0·미체결 0인지 **눈으로** 확인한다.
+- 시험 신호는 DB에 `spec_version = SELFTEST`로 남는다(진짜 신호와 구분).
+
+### T8. 문제 대응
+| 증상 | 할 일 |
+|---|---|
+| 텔레그램 `주문 프로세스(B) 심장 박동 없음` / `orders`가 `(unhealthy)` | `docker compose --profile testnet logs --tail 200 orders` → `restart orders`. 보유 포지션은 거래소 손절이 보호 중 |
+| `P1 킬 스위치 T0: 비상 청산 실패` | **거래소 웹에서 BTCUSDT 포지션을 시장가로 닫고, 남은 주문·조건부 주문을 모두 취소**한다 → `status`로 확인 → 원인 확인 뒤 T5로 해제. B가 포지션 0을 확인해 그 의도를 끝낸다 |
+| T0 `unknown_position`(모르는 포지션) | 봇 계좌에서 사람이 거래했거나 이상. 봇은 **청산하지 않는다**. 웹에서 확인·정리 → T5 해제. 봇 계좌에서 손으로 매매하지 않는다 |
+| T0 `unknown_order` | 봇이 모르는 일반 주문은 이미 취소했다. 웹에서 확인 → T5 해제 |
+| T0 `stop_missing`·`stop_not_verified`·`restart_unprotected` | 봇이 이미 청산했다(포지션 0 확인). 로그·order_events로 원인 확인(데모 장애·K 항목) → T5 해제 |
+| T0 `algo_endpoint`(-4120) | 손절 창구 설정(`conditional_api`)이 거래소와 다르다. T9 K2 확인 뒤 설정 수정 → 재시작 → 해제 |
+| T0 `clock_skew` | 서버 시계 동기화 → 해제 |
+| T0 `auth`·`exchange_block` | 키·권한·IP·지역 차단 확인(T2) → 해제 |
+| T0 `reconcile_unavailable` | 거래소 조회가 3번 연속 실패. 거래소 점검·네트워크 확인. 손절은 거래소에 있다 → 복구 뒤 해제 |
+| 신호가 `order:position_exists`로 건너뜀 | 정상(동시 1포지션) |
+| 신호가 `order:stale_approval`로 건너뜀 | [확인] 뒤 5분 안에 B가 못 가져갔다(B가 꺼져 있었음). 정상 보호 동작 |
+| 신호가 `order:future_approval`로 건너뜀 | 승인 시각이 미래 = A 서버 시계 이상 또는 DB 위조. 시계·A 로그 확인 |
+| 신호가 `order:daily_entry_cap`·`t1_stop_streak`·`t2_daily_loss`로 건너뜀 | 누적 한도(위 T 절). 다음 UTC 00:00(KST 09:00)에 자동 해제. 짧은 시간에 여러 번이면 A 침해·이상 신호를 의심 |
+| 신호가 `order:ledger_unavailable`로 건너뜀 | B 전용 원장 문제(T6). 보유 보호는 계속된다 |
+| T0 `unknown_position` + 경고 `늦게 확인된 진입 체결` | 체결이 조회에 늦게 보여 '체결 없음'으로 끝낸 신호의 진입이 실제로는 체결돼 있었다. 봇이 이미 청산했다(안 되면 손절을 걸었다). 웹에서 포지션 0 확인 → 해제 |
+| T0 `position_mismatch`(`terminal_intent_stop_with_position`) | DB는 '끝남'인데 거래소에 포지션과 그 신호의 손절이 있다(DB 위조 의심). 봇은 **손절을 지우지 않고** 둔다. 웹에서 확인·정리 → 해제 |
+| `P1 … 비상 청산 실패 — 보호 손절은 다시 걸었다` | 포지션은 손절로 보호 중. 대조가 30초마다 손절을 확인하고, 없어지면 다시 청산·손절을 시도한다. 웹에서 청산 후 해제 |
+| B 로그 `비상 보호(...)` | DB 쓰기가 막힌 동안(잠김 등) B가 DB 없이 손절을 걸거나 청산했다. DB가 풀리면 다음 바퀴에 거래소 사실로 기록한다. A가 DB를 오래 잡고 있지 않은지 확인 |
+| 429(레이트 리밋) | B는 Retry-After 동안 **아무 요청도 보내지 않는다**(더 보내면 418 금지로 번진다). 그동안 손절 등록이 막히면 창이 끝난 뒤 청산 + T0 `unprotected_timeout` |
+
+### T9. PoC 확인 기록표 (데모 키로 한 번씩 확인하고 적는다)
+이 컨테이너(개발 환경)에서는 바이낸스에 접속할 수 없어 아래는 **확인되지 않았다**. 확인 전에는 보수적인 기본값으로 돈다.
+설정값을 바꿀 때는 이 표에 날짜·결과를 먼저 적는다(텔레그램으로는 바꿀 수 없다).
+
+| K | 확인할 것 | 확인 방법 | 기본값(미확인) | 결과·날짜 |
+|---|---|---|---|---|
+| K1 | 포지션 0에서 closePosition 손절을 미리 걸 수 있나, 포지션이 닫히면 자동 취소되나 | 데모 웹에서 포지션 없이 BTCUSDT 'Stop Market · Close Position' 주문을 걸어 본다 | `stop_placement = "post_fill"` | |
+| K2 | 조건부 주문 창구(algo `/fapi/v1/algoOrder` vs 옛 `/fapi/v1/order`) | T7 왕복 시험 통과 = algo 창구 동작. 로그에 -4120이 있으면 창구 문제 | `conditional_api = "algo"` | |
+| K3 | 모의 환경 호스트(데모 vs 구 테스트넷) | T4 `selftest`의 `환경` 줄 통과 | `env = "demo"` | |
+| K4 | algo 요청 필드 이름·값(type/orderType, priceProtect 대소문자) | T7 통과(봇이 손절 트리거·closePosition·workingType을 조회로 대조) | ccxt 매핑 | |
+| K5 | 손절 발동 뒤 상태 값·실제 주문 연결·조회 가능 기간 | 작은 포지션에서 손절이 실제로 발동했을 때 `status`·order_events | 청산가 None으로 CLOSED(stop) | |
+| K6 | IOC 부분 체결 응답 모양 | 로그·order_events의 진입 응답 | executedQty만 믿음 | |
+| K7 | `priceProtect=false` 허용 | T7 통과 | false | |
+| K8 | 레버리지·마진 조회 엔드포인트 | T4 `레버리지·마진` 통과 | symbolConfig → positionRisk | |
+| K9 | positionSide/dual·multiAssetsMargin 조회 | T4 `계정 모드` 통과 | 조회 실패 = 거부 + T0 | |
+| K10 | 키 출금 권한 조회 | T4 `출금 권한`(데모는 '모름'일 수 있음) | 모름 허용 — **LIVE 전 필수 확인** | |
+| K11 | BTCUSDT 최소 수량·최소 명목 | T4 `심볼 규칙` 줄의 minQty·minNotional | 거래소 값 그대로 | |
+| K12 | 주문 접수 → 조회에 보이기까지 지연 | order_events의 REQUEST·QUERY 시각 | 2초 | |
+| K13 | countdownCancelAll이 algo 손절도 지우나 | 쓰지 않음 | 쓰지 않음 | |
+| K14 | 청산 뒤 closePosition 손절이 자동 취소되나 | T7 뒤 웹의 조건부 주문 목록(봇은 항상 명시적으로 취소) | 항상 취소 | |
+| K15 | 끝난(FILLED·EXPIRED) 시장가 주문의 clientOrderId를 다시 쓸 수 있나(비상 청산 f1~f3을 다음 주기에 재사용) | 데모에서 같은 `newClientOrderId`로 reduceOnly 시장가를 두 번(첫 주문이 끝난 뒤) | 재사용(거부되면 -4116 → 다음 번호) | |
+| K16 | 손익 내역(income, REALIZED_PNL) 조회로 T2를 거래소 사실로 계산할 수 있나 | `GET /fapi/v1/income` (서명) 응답 | B 원장의 추정 손익(청산가·손절가, 수수료 0.05% 가정) | |

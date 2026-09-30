@@ -1,4 +1,4 @@
-# BTC 추세추종 모의 운영(PAPER) — docs/RUNBOOK.md 참고
+# BTC 추세추종 모의 운영(PAPER) · 테스트넷(TESTNET, profile testnet) — docs/RUNBOOK.md 참고
 # 보안 규칙(bot/DESIGN.md §7): ports 없음(인바운드 0, 텔레그램 롱 폴링), 비밀은 secrets 파일로만,
 # environment에 비밀 금지, 읽기 전용 루트 + /data 볼륨만 쓰기, 권한 전부 제거.
 name: btcbot
@@ -42,6 +42,50 @@ services:
         max-size: "10m"
         max-file: "5"
 
+  # TESTNET 주문 프로세스(B) — 테스트넷 서버(staging)에서만: docker compose --profile testnet up -d
+  # (bot/orders/DESIGN.md §1). 거래 키 secrets·제어 파일은 **이 서비스에만** 준다(A 서비스 bot에는 없음 —
+  # A가 보이면 시작 거부). config/bot.toml은 mode = "testnet" + [orders] 절(config/bot.testnet.example.toml).
+  # paper 서버에서는 profile을 켜지 않으므로 이 서비스와 거래 키 파일이 필요 없다.
+  orders:
+    profiles: ["testnet"]
+    build: .
+    image: btcbot:paper
+    entrypoint: ["python", "-m", "bot.orders.worker", "--config", "/config/bot.toml"]
+    command: ["run"]
+    restart: unless-stopped          # 강제 종료 뒤 재시작 → recover()가 거래소 사실로 복구(무방비 구간 최소화)
+    user: "10001:10001"
+    read_only: true
+    tmpfs:
+      - /tmp:size=16m,mode=1777
+    cap_drop: [ALL]
+    security_opt:
+      - no-new-privileges:true
+    pids_limit: 128
+    mem_limit: 256m
+    stop_grace_period: 60s           # 처리 중인 의도(결과 모름 조회 최대 약 30초)를 끝낼 시간
+    environment:
+      TZ: UTC                        # 비밀 값은 여기에 절대 넣지 않는다(시작 시 거부됨)
+    volumes:
+      - ./config/bot.toml:/config/bot.toml:ro
+      - ./config/orders_control.toml:/control/orders_control.toml:ro   # 정지·T0 해제(서버에서만 고친다)
+      - botdata:/data                 # A와 같은 SQLite 파일(WAL) — 주문 큐
+      - ordersstate:/state            # B 전용 원장(T0·진입·청산·해제 기록) — A에는 마운트하지 않는다(SEC-02·04)
+    # 심장 박동: 루프가 한 바퀴 성공할 때마다 /tmp/orders-heartbeat 갱신. 2분 넘게 멈추면 unhealthy.
+    healthcheck:
+      test: ["CMD", "python", "-c", "import os,sys,time; sys.exit(0 if time.time() - os.path.getmtime('/tmp/orders-heartbeat') < 120 else 1)"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+    secrets:
+      - binance_api_key
+      - binance_ed25519_private_key
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "5"
+
   # 과거 재생(선택): docker compose --profile replay run --rm replay
   replay:
     profiles: ["replay"]
@@ -71,6 +115,7 @@ services:
 volumes:
   botdata:
   replaydata:
+  ordersstate:                     # 주문 프로세스 B 전용(원장). 지우면 B가 새 원장으로 시작 — RUNBOOK §T6
 
 secrets:
   telegram_bot_token:
@@ -79,3 +124,8 @@ secrets:
     file: ./secrets/anthropic_api_key
   # healthcheck_ping_url:
   #   file: ./secrets/healthcheck_ping_url
+  # TESTNET 전용(서비스 orders에만 연결). 파일은 테스트넷 서버에만 만든다(RUNBOOK 테스트넷 §T2).
+  binance_api_key:
+    file: ./secrets/binance_api_key
+  binance_ed25519_private_key:
+    file: ./secrets/binance_ed25519_private_key

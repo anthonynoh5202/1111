@@ -7,7 +7,10 @@
 - 비밀(텔레그램 토큰, Claude API 키, 헬스체크 URL)은 **파일 경로로만** 받는다. 값은 환경 변수·설정 파일·로그에 두지 않는다.
   환경 변수에 비밀 이름이 있으면 시작을 거부한다(check_env_no_secrets).
 - 텔레그램 설정 변경 불가: 이 모듈은 파일만 읽는다. 바꾸려면 서버에서 파일을 고치고 재시작한다.
-- 모드는 replay / paper 만. live 는 이 단계에 없다.
+- 모드는 replay / paper / testnet 만. live 는 이 단계에 없다.
+- testnet: 프로세스 A(bot.main)는 신호·승인·텔레그램만, 주문은 프로세스 B(bot.orders.worker)만 한다(bot/orders/DESIGN.md §1).
+  [orders] 절은 testnet에서만 허용·필수이고 ``OrdersConfig.from_mapping``으로 검증한다. A는 거래 키 **경로만** 알고
+  파일은 읽지 않는다 — A에서 그 경로에 파일이 보이면 시작을 거부한다(``check_no_trading_keys``, I12 확장).
 """
 from __future__ import annotations
 
@@ -20,9 +23,12 @@ import stat
 import tomllib
 from dataclasses import asdict, dataclass, field, fields
 from pathlib import Path
-from typing import Any, Mapping
+from typing import TYPE_CHECKING, Any, Mapping
 
 from bot.types import Mode
+
+if TYPE_CHECKING:  # 실행 시에는 지역 import(bot.orders.types → bot.types만 의존, 순환 없음)
+    from bot.orders.types import OrdersConfig
 
 STRATEGY_KEY = "E0-L-ENS"          # TREND_SPEC v1.0 조합(사용자 위임으로 확정)
 CLAUDE_MODEL = "claude-opus-5-5"
@@ -226,6 +232,7 @@ class BotConfig:
     marketdata: MarketDataConfig = field(default_factory=MarketDataConfig)
     replay: ReplayConfig = field(default_factory=ReplayConfig)
     health: HealthConfig = field(default_factory=HealthConfig)
+    orders: "OrdersConfig | None" = None      # testnet 전용 [orders] 절(프로세스 B 설정, A는 경로만 참고)
 
     # --- 파생값 ---------------------------------------------------------------
     @property
@@ -246,6 +253,10 @@ class BotConfig:
         """감사 로그·config_snapshots용. 비밀 값은 원래 없고(경로만), 텔레그램 ID는 끝 3자리만 남긴다."""
         d = asdict(self)
         d["mode"] = self.mode.value
+        if self.orders is None:
+            d.pop("orders", None)          # paper·replay 설정 지문은 예전과 같게
+        else:
+            d["orders"] = {k: (v.value if hasattr(v, "value") else v) for k, v in d["orders"].items()}
         tg = d["telegram"]
         tg["allowed_user_id"] = _mask_id(self.telegram.allowed_user_id)
         tg["allowed_chat_id"] = _mask_id(self.telegram.allowed_chat_id)
@@ -275,7 +286,7 @@ _SECTIONS: dict[str, type] = {
     "replay": ReplayConfig,
     "health": HealthConfig,
 }
-_TOP_KEYS = {"mode", "db_path", "strategy_key"}
+_TOP_KEYS = {"mode", "db_path", "strategy_key", "orders"}
 
 
 def _is_int(v: object) -> bool:
@@ -329,7 +340,19 @@ def config_from_dict(raw: Mapping[str, Any]) -> BotConfig:
     if strategy_key != STRATEGY_KEY:
         raise ConfigError(f"strategy_key는 {STRATEGY_KEY}만 허용: {strategy_key!r}")
     sections = {name: _coerce(name, cls, raw.get(name, {})) for name, cls in _SECTIONS.items()}
-    cfg = BotConfig(mode=mode, db_path=db_path, strategy_key=strategy_key, **sections)
+    orders = None
+    if mode == Mode.TESTNET:
+        if "orders" not in raw:
+            raise ConfigError("mode = \"testnet\"에는 [orders] 절이 필요하다(bot.testnet.example.toml 참고)")
+        from bot.orders.types import OrdersConfig, OrdersConfigError
+
+        try:
+            orders = OrdersConfig.from_mapping(raw["orders"])
+        except (OrdersConfigError, TypeError) as exc:
+            raise ConfigError(f"[orders]: {exc}") from None
+    elif "orders" in raw:
+        raise ConfigError("[orders] 절은 mode = \"testnet\"에서만 쓴다")
+    cfg = BotConfig(mode=mode, db_path=db_path, strategy_key=strategy_key, orders=orders, **sections)
     validate(cfg)
     return cfg
 
@@ -404,6 +427,13 @@ def validate(cfg: BotConfig) -> None:
             raise ConfigError(f"replay.{name} 형식: YYYY-MM-DD")
     if cfg.health.ping_url_file and not Path(cfg.health.ping_url_file).is_absolute():
         raise ConfigError("health.ping_url_file은 절대 경로")
+    if (cfg.mode == Mode.TESTNET) != (cfg.orders is not None):
+        raise ConfigError("[orders]는 testnet 모드에서만, 그리고 testnet 모드에는 반드시 있어야 한다")
+    if cfg.orders is not None:
+        a_side = {cfg.telegram.bot_token_file, cfg.claude.api_key_file, cfg.health.ping_url_file}
+        b_side = {cfg.orders.api_key_file, cfg.orders.private_key_file, cfg.orders.control_file}
+        if a_side & b_side:
+            raise ConfigError("[orders]의 키·제어 파일 경로가 A 프로세스 비밀 파일 경로와 겹친다")
     cfg.trend_config()  # 전략 키와 backtest 조합 일치 확인
 
 
@@ -416,10 +446,31 @@ class Secrets:
     ping_url: Secret | None = None
 
 
+def check_no_trading_keys(cfg: BotConfig) -> None:
+    """TESTNET의 프로세스 A: 거래 키 파일·제어 파일·B 원장이 **보이면** 시작 거부(I12 확장, bot/orders/DESIGN.md §1).
+
+    거래 키와 제어 파일은 프로세스 B(서비스 orders)에만 마운트한다. A에 보인다는 것은 compose 설정 실수이므로
+    읽지 않고(값을 건드리지 않고) 경로만 알린다. 다른 모드는 [orders]가 없으므로 검사할 것이 없다.
+    """
+    if cfg.orders is None:
+        return
+    # B 전용 원장(/state)도 A에 보이면 안 된다: A가 쓰면 정지·누적 한도의 근거를 지울 수 있다(SEC-02·04)
+    for label, path in (("거래 API 키", cfg.orders.api_key_file), ("거래 개인키", cfg.orders.private_key_file),
+                        ("주문 제어 파일", cfg.orders.control_file), ("주문 B 원장", cfg.orders.ledger_file)):
+        try:
+            present = os.path.lexists(path)
+        except OSError:
+            present = True                                 # 판단할 수 없으면 보이는 것으로(fail-closed)
+        if present:
+            raise ConfigError(f"TESTNET 프로세스 A에 {label} 파일이 보인다(주문 프로세스 B에만 마운트할 것): {path}")
+
+
 def load_secrets(cfg: BotConfig) -> Secrets:
-    """활성화된 기능의 비밀 파일만 읽는다. 재생 모드에서는 아무것도 읽지 않는다(가짜 전송·가짜 분석가)."""
+    """활성화된 기능의 비밀 파일만 읽는다. 재생 모드에서는 아무것도 읽지 않는다(가짜 전송·가짜 분석가).
+    testnet이면 먼저 거래 키·제어 파일이 A에 보이지 않는지 검사한다(check_no_trading_keys)."""
     if cfg.mode == Mode.REPLAY:
         return Secrets()
+    check_no_trading_keys(cfg)
     return Secrets(
         telegram_token=read_telegram_token(cfg.telegram.bot_token_file) if cfg.telegram.enabled else None,
         anthropic_api_key=read_secret(cfg.claude.api_key_file) if cfg.claude.enabled else None,
