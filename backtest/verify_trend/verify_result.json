@@ -1,0 +1,1299 @@
+{
+ "created": "2026-09-30T12:42:18.395349+00:00",
+ "seed": 7772026,
+ "combos": {
+  "E0-LS-ENS": {
+   "n": 188,
+   "mean_r": 0.695102289358109,
+   "pf": 2.27579697670152,
+   "only_mine": 0,
+   "only_csv": 0,
+   "worst": {
+    "entry_time_ns": 0.0,
+    "entry_price": 0.0,
+    "stop": 0.0,
+    "exit_time_ns": 0.0,
+    "exit_price": 0.0,
+    "fees": 2.1016353488892323e-16,
+    "slippage": 1.9582630250147065e-16,
+    "funding": 1.5620496506012158e-15,
+    "r_multiple": 4.438483647403943e-16,
+    "risk_per_unit": 3.133257534607759e-16
+   },
+   "cost2_mean_r": 0.37311141052012015,
+   "boot_lo_indep": 0.13312110602507196,
+   "verdict_indep": "fail",
+   "boot_lo_json": 0.13255260002019598,
+   "positive_years": 4
+  },
+  "E0-LS-N55": {
+   "n": 44,
+   "mean_r": 1.4204967395011716,
+   "pf": 3.632886914829651,
+   "only_mine": 0,
+   "only_csv": 0,
+   "worst": {
+    "entry_time_ns": 0.0,
+    "entry_price": 0.0,
+    "stop": 0.0,
+    "exit_time_ns": 0.0,
+    "exit_price": 0.0,
+    "fees": 1.8654213833482106e-16,
+    "slippage": 1.9582630250147065e-16,
+    "funding": 8.570855057140432e-16,
+    "r_multiple": 2.220446049250313e-16,
+    "risk_per_unit": 2.1710687375321635e-16
+   },
+   "cost2_mean_r": 0.8682355287078928,
+   "boot_lo_indep": -0.028938423820809113,
+   "verdict_indep": "fail",
+   "boot_lo_json": -0.009338360146126498,
+   "positive_years": 6
+  },
+  "E0-L-ENS": {
+   "n": 100,
+   "mean_r": 1.306071602745415,
+   "pf": 3.300527981255993,
+   "only_mine": 0,
+   "only_csv": 0,
+   "worst": {
+    "entry_time_ns": 0.0,
+    "entry_price": 0.0,
+    "stop": 0.0,
+    "exit_time_ns": 0.0,
+    "exit_price": 0.0,
+    "fees": 1.8654213833482106e-16,
+    "slippage": 1.9582630250147065e-16,
+    "funding": 1.1290433186206555e-15,
+    "r_multiple": 3.5046451084287836e-16,
+    "risk_per_unit": 2.4419819874195705e-16
+   },
+   "cost2_mean_r": 0.72457203298971,
+   "boot_lo_indep": 0.3066857513360116,
+   "verdict_indep": "fail",
+   "boot_lo_json": 0.28765812296932264,
+   "positive_years": 4
+  },
+  "E0-L-N55": {
+   "n": 25,
+   "mean_r": 2.3263394330031075,
+   "pf": 5.106398330233598,
+   "only_mine": 0,
+   "only_csv": 0,
+   "worst": {
+    "entry_time_ns": 0.0,
+    "entry_price": 0.0,
+    "stop": 0.0,
+    "exit_time_ns": 0.0,
+    "exit_price": 0.0,
+    "fees": 1.8654213833482106e-16,
+    "slippage": 1.9582630250147065e-16,
+    "funding": 8.570855057140432e-16,
+    "r_multiple": 2.220446049250313e-16,
+    "risk_per_unit": 2.1710687375321635e-16
+   },
+   "cost2_mean_r": 1.380371586749485,
+   "boot_lo_indep": -0.12494830344483797,
+   "verdict_indep": "pending",
+   "boot_lo_json": -0.11253437939910409,
+   "positive_years": 4
+  },
+  "E1-LS-ENS": {
+   "n": 174,
+   "mean_r": 0.3985183326355951,
+   "pf": 1.7503596798281296,
+   "only_mine": 0,
+   "only_csv": 0,
+   "worst": {
+    "entry_time_ns": 0.0,
+    "entry_price": 0.0,
+    "stop": 0.0,
+    "exit_time_ns": 0.0,
+    "exit_price": 0.0,
+    "fees": 2.2195866530430877e-16,
+    "slippage": 1.9139631327957324e-16,
+    "funding": 1.1100159477917286e-15,
+    "r_multiple": 4.154521150391769e-16,
+    "risk_per_unit": 2.6103112082896666e-16
+   },
+   "cost2_mean_r": 0.14431467676168294,
+   "boot_lo_indep": -0.06421878742231535,
+   "verdict_indep": "fail",
+   "boot_lo_json": -0.07004996564159248,
+   "positive_years": 4
+  },
+  "E1-LS-N55": {
+   "n": 43,
+   "mean_r": 0.7859477014310435,
+   "pf": 2.2796995903382204,
+   "only_mine": 0,
+   "only_csv": 0,
+   "worst": {
+    "entry_time_ns": 0.0,
+    "entry_price": 0.0,
+    "stop": 0.0,
+    "exit_time_ns": 0.0,
+    "exit_price": 0.0,
+    "fees": 1.8697253123216573e-16,
+    "slippage": 1.453164365521971e-16,
+    "funding": 8.583562942471532e-16,
+    "r_multiple": 3.3306690738754696e-16,
+    "risk_per_unit": 2.6103112082896666e-16
+   },
+   "cost2_mean_r": 0.35965622611635534,
+   "boot_lo_indep": -0.35487530807305345,
+   "verdict_indep": "fail",
+   "boot_lo_json": -0.3706522271308447,
+   "positive_years": 3
+  },
+  "E1-L-ENS": {
+   "n": 95,
+   "mean_r": 0.8376672661448042,
+   "pf": 2.4927287121540385,
+   "only_mine": 0,
+   "only_csv": 0,
+   "worst": {
+    "entry_time_ns": 0.0,
+    "entry_price": 0.0,
+    "stop": 0.0,
+    "exit_time_ns": 0.0,
+    "exit_price": 0.0,
+    "fees": 2.2195866530430877e-16,
+    "slippage": 1.9129152694926868e-16,
+    "funding": 1.1100159477917286e-15,
+    "r_multiple": 3.818659836135216e-16,
+    "risk_per_unit": 2.1950270465662726e-16
+   },
+   "cost2_mean_r": 0.3869173601530087,
+   "boot_lo_indep": 0.004668556815196594,
+   "verdict_indep": "fail",
+   "boot_lo_json": -0.00016552862443094536,
+   "positive_years": 4
+  },
+  "E1-L-N55": {
+   "n": 24,
+   "mean_r": 1.4805298706352599,
+   "pf": 3.384757499547686,
+   "only_mine": 0,
+   "only_csv": 0,
+   "worst": {
+    "entry_time_ns": 0.0,
+    "entry_price": 0.0,
+    "stop": 0.0,
+    "exit_time_ns": 0.0,
+    "exit_price": 0.0,
+    "fees": 1.5400113044988169e-16,
+    "slippage": 1.1778226853738308e-16,
+    "funding": 8.583562942471532e-16,
+    "r_multiple": 2.2245930538662783e-16,
+    "risk_per_unit": 2.1950270465662726e-16
+   },
+   "cost2_mean_r": 0.7362173246423817,
+   "boot_lo_indep": -0.4525660876377414,
+   "verdict_indep": "pending",
+   "boot_lo_json": -0.4631912855756464,
+   "positive_years": 4
+  }
+ },
+ "sample": [
+  {
+   "combo": "E0-LS-ENS",
+   "plan_id": "E0-LS-ENS_N20_2026-06-26_S",
+   "status": "filled",
+   "exit_reason": "trend",
+   "r_csv": -0.69743223141544,
+   "r_mine": -0.6974322314154399,
+   "ok": true,
+   "errs": []
+  },
+  {
+   "combo": "E0-LS-ENS",
+   "plan_id": "E0-LS-ENS_N20_2021-09-21_S",
+   "status": "filled",
+   "exit_reason": "stop",
+   "r_csv": -0.9845129796474392,
+   "r_mine": -0.9845129796474391,
+   "ok": true,
+   "errs": []
+  },
+  {
+   "combo": "E0-LS-ENS",
+   "plan_id": "E0-LS-ENS_N55_2023-10-17_L",
+   "status": "filled",
+   "exit_reason": "trend",
+   "r_csv": 8.147413523893297,
+   "r_mine": 8.147413523893297,
+   "ok": true,
+   "errs": []
+  },
+  {
+   "combo": "E0-LS-ENS",
+   "plan_id": "E0-LS-ENS_N55_2024-07-04_S",
+   "status": "filled",
+   "exit_reason": "stop",
+   "r_csv": -0.9610601444219412,
+   "r_mine": -0.9610601444219412,
+   "ok": true,
+   "errs": []
+  },
+  {
+   "combo": "E0-LS-ENS",
+   "plan_id": "E0-LS-ENS_N55_2024-08-06_S",
+   "status": "filled",
+   "exit_reason": "stop",
+   "r_csv": -0.999564358225306,
+   "r_mine": -0.999564358225306,
+   "ok": true,
+   "errs": []
+  },
+  {
+   "combo": "E0-LS-ENS",
+   "plan_id": "E0-LS-ENS_N55_2026-08-20_L",
+   "status": "filled",
+   "exit_reason": "eod",
+   "r_csv": 5.148832180064781,
+   "r_mine": 5.148832180064781,
+   "ok": true,
+   "errs": []
+  },
+  {
+   "combo": "E0-LS-N55",
+   "plan_id": "E0-LS-N55_N55_2021-07-31_L",
+   "status": "filled",
+   "exit_reason": "stop",
+   "r_csv": -1.0133777544922598,
+   "r_mine": -1.0133777544922598,
+   "ok": true,
+   "errs": []
+  },
+  {
+   "combo": "E0-LS-N55",
+   "plan_id": "E0-LS-N55_N55_2026-06-03_S",
+   "status": "filled",
+   "exit_reason": "trend",
+   "r_csv": 0.3872525919695125,
+   "r_mine": 0.3872525919695126,
+   "ok": true,
+   "errs": []
+  },
+  {
+   "combo": "E0-LS-N55",
+   "plan_id": "E0-LS-N55_N55_2022-09-22_S",
+   "status": "filled",
+   "exit_reason": "stop",
+   "r_csv": -0.9804772041347072,
+   "r_mine": -0.9804772041347071,
+   "ok": true,
+   "errs": []
+  },
+  {
+   "combo": "E0-LS-N55",
+   "plan_id": "E0-LS-N55_N55_2025-01-22_L",
+   "status": "filled",
+   "exit_reason": "stop",
+   "r_csv": -1.0316692390740971,
+   "r_mine": -1.031669239074097,
+   "ok": true,
+   "errs": []
+  },
+  {
+   "combo": "E0-LS-N55",
+   "plan_id": "E0-LS-N55_N55_2024-05-01_S",
+   "status": "filled",
+   "exit_reason": "stop",
+   "r_csv": -0.9770690301109356,
+   "r_mine": -0.9770690301109355,
+   "ok": true,
+   "errs": []
+  },
+  {
+   "combo": "E0-LS-N55",
+   "plan_id": "E0-LS-N55_N55_2026-08-20_L",
+   "status": "filled",
+   "exit_reason": "eod",
+   "r_csv": 5.148832180064781,
+   "r_mine": 5.148832180064781,
+   "ok": true,
+   "errs": []
+  },
+  {
+   "combo": "E0-L-ENS",
+   "plan_id": "E0-L-ENS_N100_2026-09-22_L",
+   "status": "filled",
+   "exit_reason": "eod",
+   "r_csv": -0.7176708422858152,
+   "r_mine": -0.7176708422858152,
+   "ok": true,
+   "errs": []
+  },
+  {
+   "combo": "E0-L-ENS",
+   "plan_id": "E0-L-ENS_N20_2024-05-16_L",
+   "status": "filled",
+   "exit_reason": "trend",
+   "r_csv": 0.2198058471332048,
+   "r_mine": 0.21980584713320483,
+   "ok": true,
+   "errs": []
+  },
+  {
+   "combo": "E0-L-ENS",
+   "plan_id": "E0-L-ENS_N20_2026-09-04_L",
+   "status": "filled",
+   "exit_reason": "trend",
+   "r_csv": -0.8726580586116369,
+   "r_mine": -0.8726580586116369,
+   "ok": true,
+   "errs": []
+  },
+  {
+   "combo": "E0-L-ENS",
+   "plan_id": "E0-L-ENS_N100_2021-08-24_L",
+   "status": "filled",
+   "exit_reason": "stop",
+   "r_csv": -1.0878896001613914,
+   "r_mine": -1.0878896001613914,
+   "ok": true,
+   "errs": []
+  },
+  {
+   "combo": "E0-L-ENS",
+   "plan_id": "E0-L-ENS_N100_2023-01-21_L",
+   "status": "filled",
+   "exit_reason": "stop",
+   "r_csv": -1.119247230617232,
+   "r_mine": -1.119247230617232,
+   "ok": true,
+   "errs": []
+  },
+  {
+   "combo": "E0-L-N55",
+   "plan_id": "E0-L-N55_N55_2026-04-17_L",
+   "status": "filled",
+   "exit_reason": "trend",
+   "r_csv": 0.0693589629854844,
+   "r_mine": 0.06935896298548441,
+   "ok": true,
+   "errs": []
+  },
+  {
+   "combo": "E0-L-N55",
+   "plan_id": "E0-L-N55_N55_2025-01-22_L",
+   "status": "filled",
+   "exit_reason": "stop",
+   "r_csv": -1.0316692390740971,
+   "r_mine": -1.031669239074097,
+   "ok": true,
+   "errs": []
+  },
+  {
+   "combo": "E0-L-N55",
+   "plan_id": "E0-L-N55_N55_2020-06-02_L",
+   "status": "filled",
+   "exit_reason": "stop",
+   "r_csv": -1.0361006345651138,
+   "r_mine": -1.0361006345651138,
+   "ok": true,
+   "errs": []
+  },
+  {
+   "combo": "E0-L-N55",
+   "plan_id": "E0-L-N55_N55_2026-08-20_L",
+   "status": "filled",
+   "exit_reason": "eod",
+   "r_csv": 5.148832180064781,
+   "r_mine": 5.148832180064781,
+   "ok": true,
+   "errs": []
+  },
+  {
+   "combo": "E0-L-N55",
+   "plan_id": "E0-L-N55_N55_2024-10-15_L",
+   "status": "filled",
+   "exit_reason": "trend",
+   "r_csv": 6.407986082517305,
+   "r_mine": 6.407986082517305,
+   "ok": true,
+   "errs": []
+  },
+  {
+   "combo": "E1-LS-ENS",
+   "plan_id": "E1-LS-ENS_N20_2022-10-21_S",
+   "status": "filled",
+   "exit_reason": "trend",
+   "r_csv": -0.4268258385106464,
+   "r_mine": -0.4268258385106464,
+   "ok": true,
+   "errs": []
+  },
+  {
+   "combo": "E1-LS-ENS",
+   "plan_id": "E1-LS-ENS_N20_2020-08-02_L",
+   "status": "filled",
+   "exit_reason": "stop",
+   "r_csv": -1.0,
+   "r_mine": -1.0,
+   "ok": true,
+   "errs": []
+  },
+  {
+   "combo": "E1-LS-ENS",
+   "plan_id": "E1-LS-ENS_N20_2023-10-22_L",
+   "status": "filled",
+   "exit_reason": "trend",
+   "r_csv": 6.157119597976409,
+   "r_mine": 6.1571195979764095,
+   "ok": true,
+   "errs": []
+  },
+  {
+   "combo": "E1-LS-ENS",
+   "plan_id": "E1-LS-ENS_N55_2025-07-23_L",
+   "status": "filled",
+   "exit_reason": "stop",
+   "r_csv": -1.050155496408881,
+   "r_mine": -1.050155496408881,
+   "ok": true,
+   "errs": []
+  },
+  {
+   "combo": "E1-LS-ENS",
+   "plan_id": "E1-LS-ENS_N55_2024-07-04_S",
+   "status": "filled",
+   "exit_reason": "stop",
+   "r_csv": -0.9607448882676748,
+   "r_mine": -0.9607448882676749,
+   "ok": true,
+   "errs": []
+  },
+  {
+   "combo": "E1-LS-ENS",
+   "plan_id": "E1-LS-ENS_N55_2026-08-25_L",
+   "status": "filled",
+   "exit_reason": "eod",
+   "r_csv": 1.1048104320354666,
+   "r_mine": 1.1048104320354666,
+   "ok": true,
+   "errs": []
+  },
+  {
+   "combo": "E1-LS-ENS",
+   "plan_id": "E1-LS-ENS_N20_2025-02-25_S",
+   "status": "expired",
+   "exit_reason": "",
+   "r_csv": null,
+   "r_mine": null,
+   "ok": true,
+   "errs": []
+  },
+  {
+   "combo": "E1-LS-N55",
+   "plan_id": "E1-LS-N55_N55_2023-03-22_L",
+   "status": "filled",
+   "exit_reason": "trend",
+   "r_csv": -0.4822585284402612,
+   "r_mine": -0.48225852844026135,
+   "ok": true,
+   "errs": []
+  },
+  {
+   "combo": "E1-LS-N55",
+   "plan_id": "E1-LS-N55_N55_2023-03-11_S",
+   "status": "filled",
+   "exit_reason": "stop",
+   "r_csv": -0.9999011658352052,
+   "r_mine": -0.999901165835205,
+   "ok": true,
+   "errs": []
+  },
+  {
+   "combo": "E1-LS-N55",
+   "plan_id": "E1-LS-N55_N55_2026-01-14_L",
+   "status": "filled",
+   "exit_reason": "stop",
+   "r_csv": -1.0066296873244918,
+   "r_mine": -1.0066296873244918,
+   "ok": true,
+   "errs": []
+  },
+  {
+   "combo": "E1-LS-N55",
+   "plan_id": "E1-LS-N55_N55_2020-08-11_L",
+   "status": "filled",
+   "exit_reason": "stop",
+   "r_csv": -1.1782571506012265,
+   "r_mine": -1.1782571506012263,
+   "ok": true,
+   "errs": []
+  },
+  {
+   "combo": "E1-LS-N55",
+   "plan_id": "E1-LS-N55_N55_2025-01-22_L",
+   "status": "filled",
+   "exit_reason": "stop",
+   "r_csv": -1.0153755428396938,
+   "r_mine": -1.0153755428396936,
+   "ok": true,
+   "errs": []
+  },
+  {
+   "combo": "E1-LS-N55",
+   "plan_id": "E1-LS-N55_N55_2026-08-25_L",
+   "status": "filled",
+   "exit_reason": "eod",
+   "r_csv": 1.1048104320354666,
+   "r_mine": 1.1048104320354666,
+   "ok": true,
+   "errs": []
+  },
+  {
+   "combo": "E1-LS-N55",
+   "plan_id": "E1-LS-N55_N55_2023-08-17_S",
+   "status": "expired",
+   "exit_reason": "",
+   "r_csv": null,
+   "r_mine": null,
+   "ok": true,
+   "errs": []
+  },
+  {
+   "combo": "E1-L-ENS",
+   "plan_id": "E1-L-ENS_N100_2020-06-02_L",
+   "status": "filled",
+   "exit_reason": "stop",
+   "r_csv": -1.034720321729546,
+   "r_mine": -1.034720321729546,
+   "ok": true,
+   "errs": []
+  },
+  {
+   "combo": "E1-L-ENS",
+   "plan_id": "E1-L-ENS_N20_2024-04-09_L",
+   "status": "filled",
+   "exit_reason": "stop",
+   "r_csv": -1.0207997685450276,
+   "r_mine": -1.0207997685450276,
+   "ok": true,
+   "errs": []
+  },
+  {
+   "combo": "E1-L-ENS",
+   "plan_id": "E1-L-ENS_N100_2025-07-23_L",
+   "status": "filled",
+   "exit_reason": "stop",
+   "r_csv": -1.050155496408881,
+   "r_mine": -1.050155496408881,
+   "ok": true,
+   "errs": []
+  },
+  {
+   "combo": "E1-L-ENS",
+   "plan_id": "E1-L-ENS_N100_2024-10-19_L",
+   "status": "filled",
+   "exit_reason": "trend",
+   "r_csv": 4.853043384634497,
+   "r_mine": 4.853043384634498,
+   "ok": true,
+   "errs": []
+  },
+  {
+   "combo": "E1-L-ENS",
+   "plan_id": "E1-L-ENS_N55_2025-04-26_L",
+   "status": "filled",
+   "exit_reason": "trend",
+   "r_csv": 0.909789543523331,
+   "r_mine": 0.909789543523331,
+   "ok": true,
+   "errs": []
+  },
+  {
+   "combo": "E1-L-ENS",
+   "plan_id": "E1-L-ENS_N100_2026-08-25_L",
+   "status": "filled",
+   "exit_reason": "eod",
+   "r_csv": 1.1048104320354666,
+   "r_mine": 1.1048104320354666,
+   "ok": true,
+   "errs": []
+  },
+  {
+   "combo": "E1-L-ENS",
+   "plan_id": "E1-L-ENS_N100_2023-01-21_L",
+   "status": "expired",
+   "exit_reason": "",
+   "r_csv": null,
+   "r_mine": null,
+   "ok": true,
+   "errs": []
+  },
+  {
+   "combo": "E1-L-N55",
+   "plan_id": "E1-L-N55_N55_2024-02-10_L",
+   "status": "filled",
+   "exit_reason": "trend",
+   "r_csv": 4.394122183100584,
+   "r_mine": 4.394122183100584,
+   "ok": true,
+   "errs": []
+  },
+  {
+   "combo": "E1-L-N55",
+   "plan_id": "E1-L-N55_N55_2020-10-28_L",
+   "status": "filled",
+   "exit_reason": "trend",
+   "r_csv": 31.94034677601809,
+   "r_mine": 31.940346776018096,
+   "ok": true,
+   "errs": []
+  },
+  {
+   "combo": "E1-L-N55",
+   "plan_id": "E1-L-N55_N55_2025-10-06_L",
+   "status": "filled",
+   "exit_reason": "stop",
+   "r_csv": -1.0171156763831943,
+   "r_mine": -1.0171156763831943,
+   "ok": true,
+   "errs": []
+  },
+  {
+   "combo": "E1-L-N55",
+   "plan_id": "E1-L-N55_N55_2023-06-28_L",
+   "status": "filled",
+   "exit_reason": "trend",
+   "r_csv": -0.5177562627285803,
+   "r_mine": -0.5177562627285803,
+   "ok": true,
+   "errs": []
+  },
+  {
+   "combo": "E1-L-N55",
+   "plan_id": "E1-L-N55_N55_2023-10-22_L",
+   "status": "filled",
+   "exit_reason": "trend",
+   "r_csv": 5.385886130946898,
+   "r_mine": 5.385886130946899,
+   "ok": true,
+   "errs": []
+  },
+  {
+   "combo": "E1-L-N55",
+   "plan_id": "E1-L-N55_N55_2026-08-25_L",
+   "status": "filled",
+   "exit_reason": "eod",
+   "r_csv": 1.1048104320354666,
+   "r_mine": 1.1048104320354666,
+   "ok": true,
+   "errs": []
+  },
+  {
+   "combo": "E1-L-N55",
+   "plan_id": "E1-L-N55_N55_2021-10-07_L",
+   "status": "expired",
+   "exit_reason": "",
+   "r_csv": null,
+   "r_mine": null,
+   "ok": true,
+   "errs": []
+  }
+ ],
+ "random_unconditional_mean_r": {
+  "N20L": 0.25138341505456,
+  "N20S": -0.058944113320363395,
+  "N55L": 1.2792780099115615,
+  "N55S": -0.13442265787032665,
+  "N100L": 2.3706874833922256,
+  "N100S": -0.31174665065990687
+ },
+ "random": {
+  "E0-LS-ENS": {
+   "mean": 1.4149844406039114,
+   "p95": 1.6924745116010518,
+   "p95_maker": 1.716574776122355,
+   "threshold": 1.6924745116010518,
+   "sd": 0.19730623196086472,
+   "json_mean": 1.3979420435531875,
+   "json_threshold": 1.6866365743196128,
+   "real": 0.6951022893581091,
+   "c5_indep": false
+  },
+  "E0-LS-N55": {
+   "mean": 1.4574671059682205,
+   "p95": 1.878036445583204,
+   "p95_maker": 1.9017853479401292,
+   "threshold": 1.878036445583204,
+   "sd": 0.3111012293819779,
+   "json_mean": 1.4626773905705044,
+   "json_threshold": 1.8622180504291428,
+   "real": 1.4204967395011714,
+   "c5_indep": false
+  },
+  "E0-L-ENS": {
+   "mean": 2.562826682861866,
+   "p95": 3.0988613299360703,
+   "p95_maker": 3.136426708274776,
+   "threshold": 3.0988613299360703,
+   "sd": 0.37178644591159055,
+   "json_mean": 2.569560039971586,
+   "json_threshold": 3.102654391787904,
+   "real": 1.3060716027454147,
+   "c5_indep": false
+  },
+  "E0-L-N55": {
+   "mean": 2.4399857862297623,
+   "p95": 3.144581647683015,
+   "p95_maker": 3.1819758396058497,
+   "threshold": 3.144581647683015,
+   "sd": 0.5051069951538385,
+   "json_mean": 2.4237006079748955,
+   "json_threshold": 3.0808629180311513,
+   "real": 2.326339433003107,
+   "c5_indep": false
+  },
+  "E1-LS-ENS": {
+   "mean": 0.867828600991611,
+   "p95": 1.0791619042141896,
+   "p95_maker": 1.095272809508408,
+   "threshold": 1.095272809508408,
+   "sd": 0.1362431591673252,
+   "json_mean": 0.8699821147847743,
+   "json_threshold": 1.0810122899353294,
+   "real": 0.398518332635595,
+   "c5_indep": false
+  },
+  "E1-LS-N55": {
+   "mean": 1.3326870641006467,
+   "p95": 1.7343043391185078,
+   "p95_maker": 1.7585786305197242,
+   "threshold": 1.7585786305197242,
+   "sd": 0.30039778770046294,
+   "json_mean": 1.3218266628801025,
+   "json_threshold": 1.7688178889123463,
+   "real": 0.7859477014310432,
+   "c5_indep": false
+  },
+  "E1-L-ENS": {
+   "mean": 1.5909112917684287,
+   "p95": 1.9388807564685049,
+   "p95_maker": 1.96166179659975,
+   "threshold": 1.96166179659975,
+   "sd": 0.24026539487678403,
+   "json_mean": 1.5801775985362077,
+   "json_threshold": 1.9576252579011302,
+   "real": 0.8376672661448041,
+   "c5_indep": false
+  },
+  "E1-L-N55": {
+   "mean": 2.353118949200866,
+   "p95": 2.994452658845094,
+   "p95_maker": 3.029550496153163,
+   "threshold": 3.029550496153163,
+   "sd": 0.5069215360202097,
+   "json_mean": 2.363941194554197,
+   "json_threshold": 3.0727880450862255,
+   "real": 1.4805298706352599,
+   "c5_indep": false
+  }
+ },
+ "random_design_diagnostic": {
+  "E0-LS-ENS": {
+   "real": 0.6951022893581091,
+   "uncond_mean": 0.422427430382339,
+   "uncond_p95": 0.895591962612393,
+   "post_signal_mean": 0.4840532031387969,
+   "post_signal_p95": 0.6606249052319421,
+   "spec_p95": 1.6924745116010518
+  },
+  "E0-LS-N55": {
+   "real": 1.4204967395011714,
+   "uncond_mean": 0.6271538412451307,
+   "uncond_p95": 1.8263000277135457,
+   "post_signal_mean": 0.6250150997650733,
+   "post_signal_p95": 0.9596252647822332,
+   "spec_p95": 1.878036445583204
+  },
+  "E0-L-ENS": {
+   "real": 1.3060716027454147,
+   "uncond_mean": 0.9212499987231111,
+   "uncond_p95": 1.8756906115726921,
+   "post_signal_mean": 0.9838276151783246,
+   "post_signal_p95": 1.2873972327024412,
+   "spec_p95": 3.0988613299360703
+  },
+  "E0-L-N55": {
+   "real": 2.326339433003107,
+   "uncond_mean": 1.3035030825651979,
+   "uncond_p95": 3.746650843309401,
+   "post_signal_mean": 1.101695512611523,
+   "post_signal_p95": 1.645592942460367,
+   "spec_p95": 3.144581647683015
+  },
+  "E1-LS-ENS": {
+   "real": 0.398518332635595,
+   "uncond_mean": 0.4467367129097087,
+   "uncond_p95": 0.9855064904682992,
+   "post_signal_mean": 0.2972040161897771,
+   "post_signal_p95": 0.4893108832271577,
+   "spec_p95": 1.095272809508408
+  },
+  "E1-LS-N55": {
+   "real": 0.7859477014310432,
+   "uncond_mean": 0.6404516021556019,
+   "uncond_p95": 1.9214893470385366,
+   "post_signal_mean": 0.3207835800527444,
+   "post_signal_p95": 0.6423291795664329,
+   "spec_p95": 1.7585786305197242
+  },
+  "E1-L-ENS": {
+   "real": 0.8376672661448041,
+   "uncond_mean": 0.9076956647528217,
+   "uncond_p95": 1.9142178579861275,
+   "post_signal_mean": 0.7060662388184848,
+   "post_signal_p95": 1.0400216929905044,
+   "spec_p95": 1.96166179659975
+  },
+  "E1-L-N55": {
+   "real": 1.4805298706352599,
+   "uncond_mean": 1.2407920316668026,
+   "uncond_p95": 3.642404952326231,
+   "post_signal_mean": 0.7986057826995794,
+   "post_signal_p95": 1.2623051121926931,
+   "spec_p95": 3.029550496153163
+  }
+ },
+ "equity": {
+  "E0-LS-N55": {
+   "equity_risk": {
+    "maxdev": 4.440892098500626e-16,
+    "cagr": 0.04432507206399228,
+    "mdd": 0.07877148268498002,
+    "maxratio": 0.20000000000000004,
+    "json_cagr": 0.04432507206399228,
+    "json_mdd": 0.07877148268498002,
+    "json_ratio": 0.20000000000000004
+   },
+   "equity_fixed": {
+    "maxdev": 2.220446049250313e-16,
+    "cagr": 0.05479861033492872,
+    "mdd": 0.13418034413851077,
+    "maxratio": 0.20000000000000007,
+    "json_cagr": 0.05479861033492872,
+    "json_mdd": 0.13418034413851077,
+    "json_ratio": 0.20000000000000007
+   },
+   "equity_risk_hold": {
+    "maxdev": 6.661338147750939e-16,
+    "cagr": 0.04488869586712707,
+    "mdd": 0.1396252240596546,
+    "maxratio": 0.3636637720390218,
+    "json_cagr": 0.04488869586712707,
+    "json_mdd": 0.1396252240596546,
+    "json_ratio": 0.3636637720390218
+   },
+   "equity_fixed_hold": {
+    "maxdev": 6.661338147750939e-16,
+    "cagr": 0.07463448367816095,
+    "mdd": 0.2094557336616375,
+    "maxratio": 0.5528086208371641,
+    "json_cagr": 0.07463448367816095,
+    "json_mdd": 0.2094557336616376,
+    "json_ratio": 0.5528086208371641
+   }
+  },
+  "E0-LS-ENS": {
+   "equity_risk": {
+    "maxdev": 8.881784197001252e-16,
+    "cagr": 0.09062487377123851,
+    "mdd": 0.19277449412254644,
+    "maxratio": 0.4882535758156245,
+    "json_cagr": 0.09062487377123829,
+    "json_mdd": 0.19277449412254655,
+    "json_ratio": 0.48825357581562456
+   },
+   "equity_fixed": {
+    "maxdev": 4.440892098500626e-16,
+    "cagr": 0.07992076526362779,
+    "mdd": 0.36115561558121434,
+    "maxratio": 0.6000000000000002,
+    "json_cagr": 0.07992076526362779,
+    "json_mdd": 0.36115561558121434,
+    "json_ratio": 0.6000000000000002
+   },
+   "equity_risk_hold": {
+    "maxdev": 4.440892098500626e-16,
+    "cagr": 0.08668452930190695,
+    "mdd": 0.25318993944146295,
+    "maxratio": 0.5986214174014132,
+    "json_cagr": 0.08668452930190695,
+    "json_mdd": 0.25318993944146295,
+    "json_ratio": 0.5986214174014132
+   },
+   "equity_fixed_hold": {
+    "maxdev": 1.3322676295501878e-15,
+    "cagr": 0.09233136945136833,
+    "mdd": 0.48293886580483525,
+    "maxratio": 0.9631016096214227,
+    "json_cagr": 0.09233136945136833,
+    "json_mdd": 0.482938865804835,
+    "json_ratio": 0.9631016096214227
+   }
+  },
+  "E1-L-ENS": {
+   "equity_risk": {
+    "maxdev": 2.220446049250313e-16,
+    "cagr": 0.05568144509334627,
+    "mdd": 0.21654273632523346,
+    "maxratio": 0.4486765275174087,
+    "json_cagr": 0.05568144509334627,
+    "json_mdd": 0.21654273632523346,
+    "json_ratio": 0.4486765275174087
+   },
+   "equity_fixed": {
+    "maxdev": 6.661338147750939e-16,
+    "cagr": 0.06593951366099793,
+    "mdd": 0.354356216955928,
+    "maxratio": 0.6000000000000001,
+    "json_cagr": 0.06593951366099793,
+    "json_mdd": 0.354356216955928,
+    "json_ratio": 0.6000000000000002
+   },
+   "equity_risk_hold": {
+    "maxdev": 2.220446049250313e-16,
+    "cagr": 0.052660683730838764,
+    "mdd": 0.24337985508367355,
+    "maxratio": 0.5180613507645414,
+    "json_cagr": 0.052660683730838764,
+    "json_mdd": 0.24337985508367355,
+    "json_ratio": 0.5180613507645414
+   },
+   "equity_fixed_hold": {
+    "maxdev": 4.440892098500626e-16,
+    "cagr": 0.07899349941744505,
+    "mdd": 0.47310248416368816,
+    "maxratio": 0.937681880039972,
+    "json_cagr": 0.07899349941744505,
+    "json_mdd": 0.47310248416368816,
+    "json_ratio": 0.937681880039972
+   }
+  }
+ },
+ "reentry": {
+  "E0-LS-ENS": [
+   25,
+   0.835462424324999
+  ],
+  "E0-L-ENS": [
+   16,
+   1.8460637957786499
+  ]
+ },
+ "checks": [
+  {
+   "name": "data.exec_bars",
+   "passed": true,
+   "detail": "독립 병합 1969632 vs JSON 1969632",
+   "critical": false
+  },
+  {
+   "name": "data.funding_synthetic",
+   "passed": true,
+   "detail": "대체 펀딩 85행 vs JSON 85",
+   "critical": false
+  },
+  {
+   "name": "regen.E0-LS-ENS",
+   "passed": true,
+   "detail": "행 188/188, 나만 0 CSV만 0, 상태 불일치 0, 청산 사유 불일치 0, 최대 상대오차 entry_time_ns=0.0e+00, entry_price=0.0e+00, stop=0.0e+00, exit_time_ns=0.0e+00, exit_price=0.0e+00, fees=2.1e-16, slippage=2.0e-16, funding=1.6e-15, r_multiple=4.4e-16, risk_per_unit=3.1e-16; n 188/188, 평균 R 0.695102/0.695102, PF 2.275797/2.275797",
+   "critical": false
+  },
+  {
+   "name": "regen.E0-LS-N55",
+   "passed": true,
+   "detail": "행 44/44, 나만 0 CSV만 0, 상태 불일치 0, 청산 사유 불일치 0, 최대 상대오차 entry_time_ns=0.0e+00, entry_price=0.0e+00, stop=0.0e+00, exit_time_ns=0.0e+00, exit_price=0.0e+00, fees=1.9e-16, slippage=2.0e-16, funding=8.6e-16, r_multiple=2.2e-16, risk_per_unit=2.2e-16; n 44/44, 평균 R 1.420497/1.420497, PF 3.632887/3.632887",
+   "critical": false
+  },
+  {
+   "name": "regen.E0-L-ENS",
+   "passed": true,
+   "detail": "행 100/100, 나만 0 CSV만 0, 상태 불일치 0, 청산 사유 불일치 0, 최대 상대오차 entry_time_ns=0.0e+00, entry_price=0.0e+00, stop=0.0e+00, exit_time_ns=0.0e+00, exit_price=0.0e+00, fees=1.9e-16, slippage=2.0e-16, funding=1.1e-15, r_multiple=3.5e-16, risk_per_unit=2.4e-16; n 100/100, 평균 R 1.306072/1.306072, PF 3.300528/3.300528",
+   "critical": false
+  },
+  {
+   "name": "regen.E0-L-N55",
+   "passed": true,
+   "detail": "행 25/25, 나만 0 CSV만 0, 상태 불일치 0, 청산 사유 불일치 0, 최대 상대오차 entry_time_ns=0.0e+00, entry_price=0.0e+00, stop=0.0e+00, exit_time_ns=0.0e+00, exit_price=0.0e+00, fees=1.9e-16, slippage=2.0e-16, funding=8.6e-16, r_multiple=2.2e-16, risk_per_unit=2.2e-16; n 25/25, 평균 R 2.326339/2.326339, PF 5.106398/5.106398",
+   "critical": false
+  },
+  {
+   "name": "regen.E1-LS-ENS",
+   "passed": true,
+   "detail": "행 242/242, 나만 0 CSV만 0, 상태 불일치 0, 청산 사유 불일치 0, 최대 상대오차 entry_time_ns=0.0e+00, entry_price=0.0e+00, stop=0.0e+00, exit_time_ns=0.0e+00, exit_price=0.0e+00, fees=2.2e-16, slippage=1.9e-16, funding=1.1e-15, r_multiple=4.2e-16, risk_per_unit=2.6e-16; n 174/174, 평균 R 0.398518/0.398518, PF 1.750360/1.750360",
+   "critical": false
+  },
+  {
+   "name": "regen.E1-LS-N55",
+   "passed": true,
+   "detail": "행 58/58, 나만 0 CSV만 0, 상태 불일치 0, 청산 사유 불일치 0, 최대 상대오차 entry_time_ns=0.0e+00, entry_price=0.0e+00, stop=0.0e+00, exit_time_ns=0.0e+00, exit_price=0.0e+00, fees=1.9e-16, slippage=1.5e-16, funding=8.6e-16, r_multiple=3.3e-16, risk_per_unit=2.6e-16; n 43/43, 평균 R 0.785948/0.785948, PF 2.279700/2.279700",
+   "critical": false
+  },
+  {
+   "name": "regen.E1-L-ENS",
+   "passed": true,
+   "detail": "행 135/135, 나만 0 CSV만 0, 상태 불일치 0, 청산 사유 불일치 0, 최대 상대오차 entry_time_ns=0.0e+00, entry_price=0.0e+00, stop=0.0e+00, exit_time_ns=0.0e+00, exit_price=0.0e+00, fees=2.2e-16, slippage=1.9e-16, funding=1.1e-15, r_multiple=3.8e-16, risk_per_unit=2.2e-16; n 95/95, 평균 R 0.837667/0.837667, PF 2.492729/2.492729",
+   "critical": false
+  },
+  {
+   "name": "regen.E1-L-N55",
+   "passed": true,
+   "detail": "행 33/33, 나만 0 CSV만 0, 상태 불일치 0, 청산 사유 불일치 0, 최대 상대오차 entry_time_ns=0.0e+00, entry_price=0.0e+00, stop=0.0e+00, exit_time_ns=0.0e+00, exit_price=0.0e+00, fees=1.5e-16, slippage=1.2e-16, funding=8.6e-16, r_multiple=2.2e-16, risk_per_unit=2.2e-16; n 24/24, 평균 R 1.480530/1.480530, PF 3.384757/3.384757",
+   "critical": false
+  },
+  {
+   "name": "regen.status_exit_counts.E0-LS-ENS",
+   "passed": true,
+   "detail": "상태 {'filled': 188, 'cancelled': 0, 'expired': 0, 'not_filled': 0} vs {'filled': 188, 'cancelled': 0, 'expired': 0, 'not_filled': 0}; 청산 {'stop': 74, 'trend': 111, 'eod': 3} vs {'stop': 74, 'trend': 111, 'eod': 3}",
+   "critical": false
+  },
+  {
+   "name": "regen.status_exit_counts.E0-LS-N55",
+   "passed": true,
+   "detail": "상태 {'filled': 44, 'cancelled': 0, 'expired': 0, 'not_filled': 0} vs {'filled': 44, 'cancelled': 0, 'expired': 0, 'not_filled': 0}; 청산 {'stop': 21, 'trend': 22, 'eod': 1} vs {'stop': 21, 'trend': 22, 'eod': 1}",
+   "critical": false
+  },
+  {
+   "name": "regen.status_exit_counts.E0-L-ENS",
+   "passed": true,
+   "detail": "상태 {'filled': 100, 'cancelled': 0, 'expired': 0, 'not_filled': 0} vs {'filled': 100, 'cancelled': 0, 'expired': 0, 'not_filled': 0}; 청산 {'stop': 42, 'trend': 55, 'eod': 3} vs {'stop': 42, 'trend': 55, 'eod': 3}",
+   "critical": false
+  },
+  {
+   "name": "regen.status_exit_counts.E0-L-N55",
+   "passed": true,
+   "detail": "상태 {'filled': 25, 'cancelled': 0, 'expired': 0, 'not_filled': 0} vs {'filled': 25, 'cancelled': 0, 'expired': 0, 'not_filled': 0}; 청산 {'stop': 12, 'trend': 12, 'eod': 1} vs {'stop': 12, 'trend': 12, 'eod': 1}",
+   "critical": false
+  },
+  {
+   "name": "regen.status_exit_counts.E1-LS-ENS",
+   "passed": true,
+   "detail": "상태 {'filled': 174, 'cancelled': 0, 'expired': 68, 'not_filled': 0} vs {'filled': 174, 'cancelled': 0, 'expired': 68, 'not_filled': 0}; 청산 {'stop': 62, 'trend': 110, 'eod': 2} vs {'stop': 62, 'trend': 110, 'eod': 2}",
+   "critical": false
+  },
+  {
+   "name": "regen.status_exit_counts.E1-LS-N55",
+   "passed": true,
+   "detail": "상태 {'filled': 43, 'cancelled': 0, 'expired': 15, 'not_filled': 0} vs {'filled': 43, 'cancelled': 0, 'expired': 15, 'not_filled': 0}; 청산 {'stop': 23, 'trend': 19, 'eod': 1} vs {'stop': 23, 'trend': 19, 'eod': 1}",
+   "critical": false
+  },
+  {
+   "name": "regen.status_exit_counts.E1-L-ENS",
+   "passed": true,
+   "detail": "상태 {'filled': 95, 'cancelled': 0, 'expired': 40, 'not_filled': 0} vs {'filled': 95, 'cancelled': 0, 'expired': 40, 'not_filled': 0}; 청산 {'stop': 37, 'trend': 56, 'eod': 2} vs {'stop': 37, 'trend': 56, 'eod': 2}",
+   "critical": false
+  },
+  {
+   "name": "regen.status_exit_counts.E1-L-N55",
+   "passed": true,
+   "detail": "상태 {'filled': 24, 'cancelled': 0, 'expired': 9, 'not_filled': 0} vs {'filled': 24, 'cancelled': 0, 'expired': 9, 'not_filled': 0}; 청산 {'stop': 13, 'trend': 10, 'eod': 1} vs {'stop': 13, 'trend': 10, 'eod': 1}",
+   "critical": false
+  },
+  {
+   "name": "cost2.E0-LS-ENS",
+   "passed": true,
+   "detail": "n 188/188, 평균 R 0.373111/0.373111, PF 1.6382/1.6382, 거래 집합 같음 True",
+   "critical": false
+  },
+  {
+   "name": "cost2.E0-LS-N55",
+   "passed": true,
+   "detail": "n 44/44, 평균 R 0.868236/0.868236, PF 2.4885/2.4885, 거래 집합 같음 True",
+   "critical": false
+  },
+  {
+   "name": "cost2.E0-L-ENS",
+   "passed": true,
+   "detail": "n 100/100, 평균 R 0.724572/0.724572, PF 2.1501/2.1501, 거래 집합 같음 True",
+   "critical": false
+  },
+  {
+   "name": "cost2.E0-L-N55",
+   "passed": true,
+   "detail": "n 25/25, 평균 R 1.380372/1.380372, PF 3.1702/3.1702, 거래 집합 같음 True",
+   "critical": false
+  },
+  {
+   "name": "cost2.E1-LS-ENS",
+   "passed": true,
+   "detail": "n 174/174, 평균 R 0.144315/0.144315, PF 1.2554/1.2554, 거래 집합 같음 True",
+   "critical": false
+  },
+  {
+   "name": "cost2.E1-LS-N55",
+   "passed": true,
+   "detail": "n 43/43, 평균 R 0.359656/0.359656, PF 1.5466/1.5466, 거래 집합 같음 True",
+   "critical": false
+  },
+  {
+   "name": "cost2.E1-L-ENS",
+   "passed": true,
+   "detail": "n 95/95, 평균 R 0.386917/0.386917, PF 1.6298/1.6298, 거래 집합 같음 True",
+   "critical": false
+  },
+  {
+   "name": "cost2.E1-L-N55",
+   "passed": true,
+   "detail": "n 24/24, 평균 R 0.736217/0.736217, PF 2.0641/2.0641, 거래 집합 같음 True",
+   "critical": false
+  },
+  {
+   "name": "sensitivity.regen32",
+   "passed": true,
+   "detail": "불일치 0/32 []",
+   "critical": false
+  },
+  {
+   "name": "sample.recompute",
+   "passed": true,
+   "detail": "50건(조합별 {'E0-LS-ENS': 6, 'E0-LS-N55': 6, 'E0-L-ENS': 5, 'E0-L-N55': 5, 'E1-LS-ENS': 7, 'E1-LS-N55': 7, 'E1-L-ENS': 7, 'E1-L-N55': 7}), 불일치 0 []",
+   "critical": false
+  },
+  {
+   "name": "aggregate.csv_vs_json",
+   "passed": true,
+   "detail": "불일치 0 []",
+   "critical": false
+  },
+  {
+   "name": "aggregate.summary_lists",
+   "passed": true,
+   "detail": "fail ['E0-LS-ENS', 'E0-LS-N55', 'E0-L-ENS', 'E1-LS-ENS', 'E1-LS-N55', 'E1-L-ENS'] pending ['E0-L-N55', 'E1-L-N55'] pass []",
+   "critical": false
+  },
+  {
+   "name": "aggregate.e1_vs_e0",
+   "passed": true,
+   "detail": "불일치 []",
+   "critical": false
+  },
+  {
+   "name": "report.tables_vs_json",
+   "passed": true,
+   "detail": "불일치 0 []",
+   "critical": false
+  },
+  {
+   "name": "report.headline",
+   "passed": true,
+   "detail": "한눈에 보기의 E0-L-N55 문장(25건, 2.33R, 연 4.1%, 낙폭 9.3%) = JSON",
+   "critical": false
+  },
+  {
+   "name": "lookahead.prefix_invariance",
+   "passed": true,
+   "detail": "절단 20곳 × N 3개, 불일치 0",
+   "critical": false
+  },
+  {
+   "name": "lookahead.trades_truncated_and_perturbed",
+   "passed": true,
+   "detail": "구현 거래 825행(8조합 CSV 전체): 신호 봉까지 자른 일봉·미래 교란 일봉으로 레벨·ATR·신호 재계산, 활성 이후 첫 봉 진입, 추세 청산 신호 재계산, 손절 첫 닿음 — 불일치 0 []",
+   "critical": false
+  },
+  {
+   "name": "lookahead.e1_order_window",
+   "passed": true,
+   "detail": "E1 체결 봉 끝 ≤ min(만료, 청산 신호 판단), 관통, 지정가 체결 — 불일치 0",
+   "critical": false
+  },
+  {
+   "name": "sanity.random_baseline_indep",
+   "passed": true,
+   "detail": "독립 표(유효 일봉 전부 시장가 진입) + 독립 난수 1000회: E0-LS-ENS 평균 1.415/1.398 기준 1.692/1.687; E0-LS-N55 평균 1.457/1.463 기준 1.878/1.862; E0-L-ENS 평균 2.563/2.570 기준 3.099/3.103; E0-L-N55 평균 2.440/2.424 기준 3.145/3.081; E1-LS-ENS 평균 0.868/0.870 기준 1.095/1.081; E1-LS-N55 평균 1.333/1.322 기준 1.759/1.769; E1-L-ENS 평균 1.591/1.580 기준 1.962/1.958; E1-L-N55 평균 2.353/2.364 기준 3.030/3.073",
+   "critical": false
+  },
+  {
+   "name": "sanity.random_unconditional",
+   "passed": true,
+   "detail": "유효 일봉 전체 무조건 무작위 평균 R: N20L +0.251, N20S -0.059, N55L +1.279, N55S -0.134, N100L +2.371, N100S -0.312",
+   "critical": false
+  },
+  {
+   "name": "diagnostic.random_design",
+   "passed": true,
+   "detail": "E0-LS-ENS 실제 +0.695 | 명세(거래 달) p95 +1.692 | 무조건 평균 +0.422 p95 +0.896 | 신호일 이후만 평균 +0.484 p95 +0.661; E0-LS-N55 실제 +1.420 | 명세(거래 달) p95 +1.878 | 무조건 평균 +0.627 p95 +1.826 | 신호일 이후만 평균 +0.625 p95 +0.960; E0-L-ENS 실제 +1.306 | 명세(거래 달) p95 +3.099 | 무조건 평균 +0.921 p95 +1.876 | 신호일 이후만 평균 +0.984 p95 +1.287; E0-L-N55 실제 +2.326 | 명세(거래 달) p95 +3.145 | 무조건 평균 +1.304 p95 +3.747 | 신호일 이후만 평균 +1.102 p95 +1.646; E1-LS-ENS 실제 +0.399 | 명세(거래 달) p95 +1.095 | 무조건 평균 +0.447 p95 +0.986 | 신호일 이후만 평균 +0.297 p95 +0.489; E1-LS-N55 실제 +0.786 | 명세(거래 달) p95 +1.759 | 무조건 평균 +0.640 p95 +1.921 | 신호일 이후만 평균 +0.321 p95 +0.642; E1-L-ENS 실제 +0.838 | 명세(거래 달) p95 +1.962 | 무조건 평균 +0.908 p95 +1.914 | 신호일 이후만 평균 +0.706 p95 +1.040; E1-L-N55 실제 +1.481 | 명세(거래 달) p95 +3.030 | 무조건 평균 +1.241 p95 +3.642 | 신호일 이후만 평균 +0.799 p95 +1.262",
+   "critical": false
+  },
+  {
+   "name": "sanity.random_not_filled_cause",
+   "passed": true,
+   "detail": "무작위 표에서 체결 안 되는 일봉 = ['2026-09-29T00:00:00Z'] (데이터 마지막 일봉: 활성 시각 뒤 실행 봉 없음)",
+   "critical": false
+  },
+  {
+   "name": "data.daily_vs_exec",
+   "passed": true,
+   "detail": "일봉 연속 True; 실행 봉 집계 대비 최대 상대차 open 0.0e+00, high 0.0e+00, low 0.0e+00, close 0.0e+00; 종가 0.05 초과 차이 0일",
+   "critical": false
+  },
+  {
+   "name": "report.e1_marketable_count",
+   "passed": true,
+   "detail": "E1 즉시 체결 지정가 수 독립 계산 = 보고서 §8 — 불일치 []",
+   "critical": false
+  },
+  {
+   "name": "diagnostic.concentration",
+   "passed": true,
+   "detail": "E0-LS-ENS: 상위 2건 [42.9, 36.0] = 총 R의 60%, 제외 시 평균 +0.278; E0-L-ENS: 상위 2건 [42.9, 36.0] = 총 R의 60%, 제외 시 평균 +0.527; E0-LS-N55: 상위 2건 [42.9, 8.1] = 총 R의 82%, 제외 시 평균 +0.272",
+   "critical": false
+  },
+  {
+   "name": "sanity.no_overlap_within_system",
+   "passed": true,
+   "detail": "하위 시스템 안 동시 포지션·대기 주문 없음(반대 신호 날 제외, 그때도 새 진입 ≥ 이전 청산) — 위반 0 []",
+   "critical": false
+  },
+  {
+   "name": "sanity.long_subset_identical",
+   "passed": true,
+   "detail": "LS 조합의 롱 행 = L 조합 행(같은 신호·R): 불일치 []",
+   "critical": false
+  },
+  {
+   "name": "sanity.r_range",
+   "passed": true,
+   "detail": "E0-LS-ENS: min -1.27, max 42.9, 손절 74건 중 갭 0건, 비갭 손절 R [-1.271, -0.856]; E0-LS-N55: min -1.18, max 42.9, 손절 21건 중 갭 0건, 비갭 손절 R [-1.177, -0.961]; E0-L-ENS: min -1.27, max 42.9, 손절 42건 중 갭 0건, 비갭 손절 R [-1.271, -1.000]; E0-L-N55: min -1.18, max 42.9, 손절 12건 중 갭 0건, 비갭 손절 R [-1.177, -1.009]; E1-LS-ENS: min -1.31, max 31.9, 손절 62건 중 갭 0건, 비갭 손절 R [-1.313, -0.855]; E1-LS-N55: min -1.31, max 31.9, 손절 23건 중 갭 0건, 비갭 손절 R [-1.313, -0.939]; E1-L-ENS: min -1.31, max 31.9, 손절 37건 중 갭 0건, 비갭 손절 R [-1.313, -1.000]; E1-L-N55: min -1.31, max 31.9, 손절 13건 중 갭 0건, 비갭 손절 R [-1.313, -1.000]",
+   "critical": false
+  },
+  {
+   "name": "sanity.equity_curve_indep",
+   "passed": true,
+   "detail": "E0-LS-N55: equity_risk 최대차 4.4e-16 명목비(시가) 0.200, equity_fixed 최대차 2.2e-16 명목비(시가) 0.200, equity_risk_hold 최대차 6.7e-16 명목비(시가) 0.364, equity_fixed_hold 최대차 6.7e-16 명목비(시가) 0.553 | E0-LS-ENS: equity_risk 최대차 8.9e-16 명목비(시가) 0.488, equity_fixed 최대차 4.4e-16 명목비(시가) 0.600, equity_risk_hold 최대차 4.4e-16 명목비(시가) 0.599, equity_fixed_hold 최대차 1.3e-15 명목비(시가) 0.963 | E1-L-ENS: equity_risk 최대차 2.2e-16 명목비(시가) 0.449, equity_fixed 최대차 6.7e-16 명목비(시가) 0.600, equity_risk_hold 최대차 2.2e-16 명목비(시가) 0.518, equity_fixed_hold 최대차 4.4e-16 명목비(시가) 0.938",
+   "critical": false
+  },
+  {
+   "name": "sanity.notional_at_entry",
+   "passed": true,
+   "detail": "위험 기반 진입 명목 ÷ 자산 = 0.005 ÷ (R 분모 ÷ 진입가): E0-LS-ENS [0.018, 0.179] 상한 0.2 걸린 0건; E0-LS-N55 [0.031, 0.179] 상한 0.2 걸린 0건; E0-L-ENS [0.023, 0.179] 상한 0.2 걸린 0건; E0-L-N55 [0.040, 0.179] 상한 0.2 걸린 0건; E1-LS-ENS [0.016, 0.154] 상한 0.2 걸린 0건; E1-LS-N55 [0.032, 0.119] 상한 0.2 걸린 0건; E1-L-ENS [0.023, 0.154] 상한 0.2 걸린 0건; E1-L-N55 [0.045, 0.119] 상한 0.2 걸린 0건",
+   "critical": false
+  },
+  {
+   "name": "sanity.max_concurrent_positions",
+   "passed": true,
+   "detail": "최대 동시 포지션 {'E0-LS-ENS': 3, 'E0-LS-N55': 1, 'E0-L-ENS': 3, 'E0-L-N55': 1, 'E1-LS-ENS': 3, 'E1-LS-N55': 1, 'E1-L-ENS': 3, 'E1-L-N55': 1} (앙상블 ≤ 3, 단독 ≤ 1)",
+   "critical": false
+  },
+  {
+   "name": "sanity.r_denominator_literal",
+   "passed": true,
+   "detail": "R 분모에서 E0 진입 슬리피지를 뺀 문자 그대로 평균 R vs 보고: E0-LS-ENS 0.6983/0.6951; E0-LS-N55 1.4269/1.4205; E0-L-ENS 1.3120/1.3061; E0-L-N55 2.3370/2.3263",
+   "critical": false
+  },
+  {
+   "name": "sanity.reentry_after_stop",
+   "passed": true,
+   "detail": "손절 뒤 청산 신호 전 같은 방향 재진입(T-2) 수·평균 R: E0-LS-ENS 25건 평균 +0.835; E0-L-ENS 16건 평균 +1.846",
+   "critical": false
+  }
+ ],
+ "runtime_sec": 16.7
+}
