@@ -568,3 +568,5 @@ def main(argv: list[str] | None = None) -> int        # 종료 코드: 0 정상,
 | R-13 | SEC-06 B의 독립 경보 경로 없음 | **남은 과제**. 완화만: B는 T0를 자기 로그에 WARNING으로 남긴다. 독립 경로(B 전용 헬스 핑 비밀 또는 C18 외부 감시자)는 비밀·운영 결정이 필요해 이번 범위 밖 |
 | R-14 | SEC-05 미래 approved_ms | `_submit`·`reject_stale_queued` 모두 `approved_ms > now + max_clock_skew_ms`면 REJECTED(`future_approval`) |
 
+| R-15 | V-1 시작 거부(설정·A 비밀 보임·DB 모드·보호 트리거·시작 복구 예외)가 recover() 전에 종료 → 체결 뒤 손절 없는 포지션이 무기한 | `worker.main(run)`이 거부하기 **전에** `gateway.protect_without_db`: 거래소 사실만으로 우리 보호 손절(sig-…-sl closePosition, 마크 아래)이 살아 있으면 그대로, 없으면 reduceOnly 시장가 전량 청산(방화벽 FLATTEN, `sig-<새 신호 ID>-f1..f3` — DB의 ID·ATR을 믿지 않고 clientOrderId 재사용도 없음). 429·418 Retry-After 존중, 60초 상한. 잠금(R-12)을 DB 연결보다 먼저 잡고, 다른 B가 쥐고 있으면 아무것도 하지 않는다. 결과는 stderr·로그·(DB가 되면) outbox 경보. 손절을 새로 만들지 않는 이유: DB 없이는 손절가 재료(ATR)가 없다 → fail-closed 청산 |
+| R-16 | V-2 HALTED 보유(청산 f1~f3 실패 + 손절 재등록 실패)가 다음 대조(최대 30초)까지 무방비 | 매 바퀴 `quick_unprotected_check`(get_conditional(sl) → 없으면 position): HALTED면 곧바로 `secure_halted`, EXITING이면 대조를 앞당김. 429·418 대기 창 안에서는 보내지 않는다. 테스트넷 견본 `reconcile_interval_s` 30 → 10. 퍼징 seed 9531·4253: 30.8초 → 4.8·2.8초(Monitor 표본, 과대 추정 쪽) |

@@ -33,5 +33,5 @@ expected_leverage = 3        # 거래소 웹에서 BTCUSDT 레버리지를 이 �
 ioc_cap_bps = 10             # IOC 상한 지정가 폭 0.10% (≤ 30)
 conditional_api = "algo"     # K2: 손절 창구. PoC에서 옛 창구가 정상일 때만 "legacy"
 stop_placement = "post_fill" # K1: PoC에서 선배치가 확인될 때만 "pre_entry"
-reconcile_interval_s = 30
+reconcile_interval_s = 10     # 거래소 ↔ DB 대조 주기(5~30초). HALTED·손절 누락은 매 바퀴 따로 본다(V-2)
 loop_interval_s = 2.0

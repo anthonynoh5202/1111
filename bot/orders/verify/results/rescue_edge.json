@@ -1,0 +1,217 @@
+[
+ {
+  "name": "baseline_unprotected",
+  "result": "flattened",
+  "elapsed_ms": 300,
+  "calls": 5,
+  "orders": 1,
+  "unique_ids": true,
+  "shapes_ok": true,
+  "end_position": 0.0,
+  "our_stops": 0
+ },
+ {
+  "name": "our_stop_active",
+  "result": "protected",
+  "elapsed_ms": 0,
+  "calls": 3,
+  "orders": 0,
+  "unique_ids": true,
+  "shapes_ok": true,
+  "end_position": 0.016,
+  "our_stops": 1
+ },
+ {
+  "name": "foreign_web_stop_only",
+  "result": "flattened",
+  "elapsed_ms": 300,
+  "calls": 5,
+  "orders": 1,
+  "unique_ids": true,
+  "shapes_ok": true,
+  "end_position": 0.0,
+  "our_stops": 0
+ },
+ {
+  "name": "our_stop_fired_before_rescue",
+  "result": "flat",
+  "elapsed_ms": 0,
+  "calls": 1,
+  "orders": 0,
+  "unique_ids": true,
+  "shapes_ok": true,
+  "end_position": 0.0,
+  "our_stops": 0
+ },
+ {
+  "name": "open_cond_query_fails",
+  "result": "flattened",
+  "elapsed_ms": 300,
+  "calls": 5,
+  "orders": 1,
+  "unique_ids": true,
+  "shapes_ok": true,
+  "end_position": 0.0,
+  "our_stops": 1
+ },
+ {
+  "name": "f1_delayed_arrival_3s",
+  "result": "flattened",
+  "elapsed_ms": 300,
+  "calls": 9,
+  "orders": 2,
+  "unique_ids": true,
+  "shapes_ok": true,
+  "end_position": 0.0,
+  "our_stops": 0
+ },
+ {
+  "name": "f1_timeout_after",
+  "result": "flattened",
+  "elapsed_ms": 0,
+  "calls": 5,
+  "orders": 1,
+  "unique_ids": true,
+  "shapes_ok": true,
+  "end_position": 0.0,
+  "our_stops": 0
+ },
+ {
+  "name": "fill_delay_hide_position",
+  "result": "flattened",
+  "elapsed_ms": 3000,
+  "calls": 17,
+  "orders": 4,
+  "unique_ids": true,
+  "shapes_ok": true,
+  "end_position": 0.0,
+  "our_stops": 0
+ },
+ {
+  "name": "partial_fills",
+  "result": "flattened",
+  "elapsed_ms": 1800,
+  "calls": 25,
+  "orders": 6,
+  "unique_ids": true,
+  "shapes_ok": true,
+  "end_position": 0.0,
+  "our_stops": 0
+ },
+ {
+  "name": "reject_4164_x5",
+  "result": "flattened",
+  "elapsed_ms": 5300,
+  "calls": 25,
+  "orders": 6,
+  "unique_ids": true,
+  "shapes_ok": true,
+  "end_position": 0.0,
+  "our_stops": 0
+ },
+ {
+  "name": "reject_forever",
+  "result": "failed",
+  "elapsed_ms": 60000,
+  "calls": 244,
+  "orders": 61,
+  "unique_ids": true,
+  "shapes_ok": true,
+  "end_position": 0.016,
+  "our_stops": 0
+ },
+ {
+  "name": "position_5xx_forever",
+  "result": "unavailable",
+  "elapsed_ms": 60000,
+  "calls": 61,
+  "orders": 0,
+  "unique_ids": true,
+  "shapes_ok": true,
+  "end_position": 0.016,
+  "our_stops": 0
+ },
+ {
+  "name": "disconnect_all",
+  "result": "unavailable",
+  "elapsed_ms": 60000,
+  "calls": 61,
+  "orders": 0,
+  "unique_ids": true,
+  "shapes_ok": true,
+  "end_position": 0.016,
+  "our_stops": 0
+ },
+ {
+  "name": "rate_limit_429_then_ok",
+  "result": "flattened",
+  "elapsed_ms": 5350,
+  "calls": 6,
+  "orders": 1,
+  "unique_ids": true,
+  "shapes_ok": true,
+  "end_position": 0.0,
+  "our_stops": 0
+ },
+ {
+  "name": "ban_418_long",
+  "result": "unavailable",
+  "elapsed_ms": 60000,
+  "calls": 3,
+  "orders": 0,
+  "unique_ids": true,
+  "shapes_ok": true,
+  "end_position": 0.016,
+  "our_stops": 0
+ },
+ {
+  "name": "auth_401",
+  "result": "unavailable",
+  "elapsed_ms": 0,
+  "calls": 1,
+  "orders": 0,
+  "unique_ids": true,
+  "shapes_ok": true,
+  "end_position": 0.016,
+  "our_stops": 0
+ },
+ {
+  "name": "post_timeout_before_forever",
+  "result": "RUNAWAY(position)",
+  "elapsed_ms": 0,
+  "calls": 2001,
+  "orders": 500,
+  "unique_ids": true,
+  "shapes_ok": true,
+  "end_position": 0.016,
+  "our_stops": 0
+ },
+ {
+  "name": "post_503_forever",
+  "result": "RUNAWAY(position)",
+  "elapsed_ms": 0,
+  "calls": 2001,
+  "orders": 500,
+  "unique_ids": true,
+  "shapes_ok": true,
+  "end_position": 0.016,
+  "our_stops": 0
+ },
+ {
+  "name": "post_timeout_before_x4",
+  "result": "flattened",
+  "elapsed_ms": 300,
+  "calls": 21,
+  "orders": 5,
+  "unique_ids": true,
+  "shapes_ok": true,
+  "end_position": 0.0,
+  "our_stops": 0
+ },
+ {
+  "name": "short_position",
+  "result": "short",
+  "orders": 0,
+  "end_position": -0.01
+ }
+]

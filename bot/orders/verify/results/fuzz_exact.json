@@ -1,0 +1,410 @@
+{
+ "seeds": [
+  1000,
+  9999
+ ],
+ "n": 9000,
+ "bad": [],
+ "worst_hist": {
+  "0": 7567,
+  "<=5s": 1240,
+  "<=6s": 173,
+  "<=10s": 20
+ },
+ "no_crash": {
+  "n": 3490,
+  "worst_top": [
+   {
+    "seed": 9531,
+    "state": "FAILED_FLATTENED",
+    "reason": "flatten",
+    "pos": 0.0,
+    "protected": true,
+    "e1": 1,
+    "live": 0,
+    "halts": [
+     "stop_not_verified",
+     "flatten_failed"
+    ],
+    "worst": 4800,
+    "exc": [],
+    "crash": null,
+    "exit": false,
+    "db_says_flat": true,
+    "bad": false
+   },
+   {
+    "seed": 3016,
+    "state": "HALTED",
+    "reason": "flatten_failed",
+    "pos": 0.0,
+    "protected": true,
+    "e1": 1,
+    "live": 1,
+    "halts": [
+     "stop_not_verified",
+     "flatten_failed"
+    ],
+    "worst": 4600,
+    "exc": [],
+    "crash": null,
+    "exit": false,
+    "db_says_flat": false,
+    "bad": false
+   },
+   {
+    "seed": 8991,
+    "state": "FAILED_FLATTENED",
+    "reason": "stop_missing",
+    "pos": 0.0,
+    "protected": true,
+    "e1": 1,
+    "live": 0,
+    "halts": [
+     "reconcile_unavailable",
+     "stop_missing"
+    ],
+    "worst": 4000,
+    "exc": [],
+    "crash": null,
+    "exit": false,
+    "db_says_flat": true,
+    "bad": false
+   },
+   {
+    "seed": 9295,
+    "state": "FAILED_FLATTENED",
+    "reason": "stop_missing",
+    "pos": 0.0,
+    "protected": true,
+    "e1": 1,
+    "live": 0,
+    "halts": [
+     "reconcile_unavailable",
+     "stop_missing"
+    ],
+    "worst": 4000,
+    "exc": [],
+    "crash": null,
+    "exit": true,
+    "db_says_flat": true,
+    "bad": false
+   },
+   {
+    "seed": 5291,
+    "state": "HALTED",
+    "reason": "flatten_failed",
+    "pos": 0.0,
+    "protected": true,
+    "e1": 1,
+    "live": 1,
+    "halts": [
+     "stop_missing",
+     "flatten_failed"
+    ],
+    "worst": 3700,
+    "exc": [],
+    "crash": null,
+    "exit": false,
+    "db_says_flat": false,
+    "bad": false
+   },
+   {
+    "seed": 4253,
+    "state": "FAILED_FLATTENED",
+    "reason": "flatten",
+    "pos": 0.0,
+    "protected": true,
+    "e1": 1,
+    "live": 0,
+    "halts": [
+     "stop_missing",
+     "flatten_failed"
+    ],
+    "worst": 2800,
+    "exc": [],
+    "crash": null,
+    "exit": false,
+    "db_says_flat": true,
+    "bad": false
+   },
+   {
+    "seed": 9873,
+    "state": "HALTED",
+    "reason": "flatten_failed",
+    "pos": 0.0,
+    "protected": true,
+    "e1": 1,
+    "live": 1,
+    "halts": [
+     "stop_not_verified",
+     "flatten_failed"
+    ],
+    "worst": 2600,
+    "exc": [],
+    "crash": null,
+    "exit": false,
+    "db_says_flat": false,
+    "bad": false
+   },
+   {
+    "seed": 4833,
+    "state": "HALTED",
+    "reason": "flatten_failed",
+    "pos": 0.0,
+    "protected": true,
+    "e1": 1,
+    "live": 1,
+    "halts": [
+     "stop_not_verified",
+     "flatten_failed"
+    ],
+    "worst": 1800,
+    "exc": [],
+    "crash": null,
+    "exit": false,
+    "db_says_flat": false,
+    "bad": false
+   },
+   {
+    "seed": 4916,
+    "state": "HALTED",
+    "reason": "flatten_failed",
+    "pos": 0.0,
+    "protected": true,
+    "e1": 1,
+    "live": 1,
+    "halts": [
+     "stop_not_verified",
+     "flatten_failed"
+    ],
+    "worst": 1800,
+    "exc": [],
+    "crash": null,
+    "exit": false,
+    "db_says_flat": false,
+    "bad": false
+   },
+   {
+    "seed": 1863,
+    "state": "HALTED",
+    "reason": "flatten_failed",
+    "pos": 0.016,
+    "protected": true,
+    "e1": 1,
+    "live": 1,
+    "halts": [
+     "stop_not_verified",
+     "flatten_failed"
+    ],
+    "worst": 1700,
+    "exc": [],
+    "crash": null,
+    "exit": false,
+    "db_says_flat": false,
+    "bad": false
+   }
+  ],
+  "over_5s": []
+ },
+ "with_crash": {
+  "n": 5510,
+  "worst_top": [
+   {
+    "seed": 1110,
+    "state": "FAILED_FLATTENED",
+    "reason": "flatten",
+    "pos": 0.0,
+    "protected": true,
+    "e1": 1,
+    "live": 0,
+    "halts": [
+     "restart_unprotected",
+     "flatten_failed"
+    ],
+    "worst": 7600,
+    "exc": [],
+    "crash": 12,
+    "exit": false,
+    "db_says_flat": true,
+    "bad": false
+   },
+   {
+    "seed": 3503,
+    "state": "FAILED_FLATTENED",
+    "reason": "flatten",
+    "pos": 0.0,
+    "protected": true,
+    "e1": 1,
+    "live": 0,
+    "halts": [
+     "restart_unprotected",
+     "flatten_failed"
+    ],
+    "worst": 7000,
+    "exc": [],
+    "crash": 13,
+    "exit": false,
+    "db_says_flat": true,
+    "bad": false
+   },
+   {
+    "seed": 3679,
+    "state": "FAILED_FLATTENED",
+    "reason": "flatten",
+    "pos": 0.0,
+    "protected": true,
+    "e1": 1,
+    "live": 0,
+    "halts": [
+     "restart_unprotected",
+     "flatten_failed"
+    ],
+    "worst": 7000,
+    "exc": [],
+    "crash": 14,
+    "exit": false,
+    "db_says_flat": true,
+    "bad": false
+   },
+   {
+    "seed": 4024,
+    "state": "HALTED",
+    "reason": "flatten_failed",
+    "pos": 0.016,
+    "protected": true,
+    "e1": 1,
+    "live": 1,
+    "halts": [
+     "restart_unprotected",
+     "flatten_failed"
+    ],
+    "worst": 6700,
+    "exc": [],
+    "crash": 25,
+    "exit": false,
+    "db_says_flat": false,
+    "bad": false
+   },
+   {
+    "seed": 5244,
+    "state": "FAILED_FLATTENED",
+    "reason": "restart_unprotected",
+    "pos": 0.0,
+    "protected": true,
+    "e1": 1,
+    "live": 0,
+    "halts": [
+     "restart_unprotected"
+    ],
+    "worst": 6700,
+    "exc": [],
+    "crash": 27,
+    "exit": false,
+    "db_says_flat": true,
+    "bad": false
+   },
+   {
+    "seed": 6148,
+    "state": "FAILED_FLATTENED",
+    "reason": "restart_unprotected",
+    "pos": 0.0,
+    "protected": true,
+    "e1": 1,
+    "live": 0,
+    "halts": [
+     "restart_unprotected"
+    ],
+    "worst": 6700,
+    "exc": [],
+    "crash": 28,
+    "exit": false,
+    "db_says_flat": true,
+    "bad": false
+   },
+   {
+    "seed": 9171,
+    "state": "HALTED",
+    "reason": "flatten_failed",
+    "pos": 0.016,
+    "protected": true,
+    "e1": 1,
+    "live": 1,
+    "halts": [
+     "restart_unprotected",
+     "flatten_failed"
+    ],
+    "worst": 6700,
+    "exc": [],
+    "crash": 24,
+    "exit": false,
+    "db_says_flat": false,
+    "bad": false
+   },
+   {
+    "seed": 3061,
+    "state": "FAILED_FLATTENED",
+    "reason": "restart_unprotected",
+    "pos": 0.0,
+    "protected": true,
+    "e1": 1,
+    "live": 0,
+    "halts": [
+     "restart_unprotected"
+    ],
+    "worst": 6500,
+    "exc": [],
+    "crash": 27,
+    "exit": false,
+    "db_says_flat": true,
+    "bad": false
+   },
+   {
+    "seed": 6166,
+    "state": "FAILED_FLATTENED",
+    "reason": "stop_missing",
+    "pos": 0.0,
+    "protected": true,
+    "e1": 1,
+    "live": 0,
+    "halts": [
+     "position_mismatch",
+     "stop_missing"
+    ],
+    "worst": 6500,
+    "exc": [],
+    "crash": 37,
+    "exit": false,
+    "db_says_flat": true,
+    "bad": false
+   },
+   {
+    "seed": 4381,
+    "state": "FAILED_FLATTENED",
+    "reason": "restart_unprotected",
+    "pos": 0.0,
+    "protected": true,
+    "e1": 1,
+    "live": 0,
+    "halts": [
+     "restart_unprotected"
+    ],
+    "worst": 6400,
+    "exc": [],
+    "crash": 27,
+    "exit": false,
+    "db_says_flat": true,
+    "bad": false
+   }
+  ]
+ },
+ "end_states": {
+  "STOP_VERIFIED": 1950,
+  "CLOSED": 3574,
+  "FAILED_FLATTENED": 2211,
+  "REJECTED": 783,
+  "NOT_FILLED": 394,
+  "HALTED": 50,
+  "EXITING": 38
+ }
+}

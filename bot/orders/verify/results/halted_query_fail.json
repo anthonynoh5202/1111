@@ -1,0 +1,65 @@
+[
+ {
+  "name": "exchange_recovers_fully",
+  "reconcile_interval_s": 30,
+  "state_at_halt": "HALTED",
+  "unprotected_at_halt": true,
+  "end_state": "FAILED_FLATTENED",
+  "protected_after_ms": 2300,
+  "end_position": 0.0
+ },
+ {
+  "name": "get_conditional_503",
+  "reconcile_interval_s": 30,
+  "state_at_halt": "HALTED",
+  "unprotected_at_halt": true,
+  "end_state": "FAILED_FLATTENED",
+  "protected_after_ms": 28300,
+  "end_position": 0.0
+ },
+ {
+  "name": "get_conditional_503",
+  "reconcile_interval_s": 10,
+  "state_at_halt": "HALTED",
+  "unprotected_at_halt": true,
+  "end_state": "FAILED_FLATTENED",
+  "protected_after_ms": 8300,
+  "end_position": 0.0
+ },
+ {
+  "name": "get_and_open_conditional_503",
+  "reconcile_interval_s": 30,
+  "state_at_halt": "HALTED",
+  "unprotected_at_halt": true,
+  "end_state": "FAILED_FLATTENED",
+  "protected_after_ms": 28300,
+  "end_position": 0.0
+ },
+ {
+  "name": "get_and_open_conditional_503",
+  "reconcile_interval_s": 10,
+  "state_at_halt": "HALTED",
+  "unprotected_at_halt": true,
+  "end_state": "FAILED_FLATTENED",
+  "protected_after_ms": 8300,
+  "end_position": 0.0
+ },
+ {
+  "name": "stop_placement_still_lost",
+  "reconcile_interval_s": 30,
+  "state_at_halt": "HALTED",
+  "unprotected_at_halt": true,
+  "end_state": "FAILED_FLATTENED",
+  "protected_after_ms": 2300,
+  "end_position": 0.0
+ },
+ {
+  "name": "position_503_x5",
+  "reconcile_interval_s": 30,
+  "state_at_halt": "HALTED",
+  "unprotected_at_halt": true,
+  "end_state": "FAILED_FLATTENED",
+  "protected_after_ms": 12300,
+  "end_position": 0.0
+ }
+]

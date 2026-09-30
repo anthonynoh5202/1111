@@ -1,30 +1,56 @@
 {
  "summary": {
-  "total": 1,
+  "total": 27,
   "unsafe": [],
-  "worst_unprotected_ms": 6.0,
+  "worst_unprotected_ms": 10702.6,
   "worst_by_scenario": {
-   "S00_normal_no_kill": 6.0
+   "S00_normal_no_kill": 8.7,
+   "S01_kill_before_entry_reaches": 0.0,
+   "S02_kill_after_fill_down1s": 1731.2,
+   "S02b_kill_after_fill_down5s": 5729.6,
+   "S02c_kill_after_fill_down10s": 10702.6,
+   "S03_kill_after_stop_accepted": 9.1,
+   "S04_kill_before_stop_verify_query": 1728.0,
+   "S05_kill_after_fill_then_kill_in_recovery": 3399.4,
+   "S06_kill_while_holding": 9.6,
+   "S07_kill_after_exit_x1_executed": 12.2,
+   "S08_kill_before_exit_x1_reaches": 8.3,
+   "S09_stop_rejected_kill_after_flatten_f1": 938.9,
+   "S10_stop_fires_while_b_dead": 6.4,
+   "S11_kill_before_stop_place": 1741.0,
+   "S12_kill_after_fill_then_db_tamper_refused_restart": 1745.1,
+   "random_0": 9.0,
+   "random_1": 10.2,
+   "random_2": 6.3,
+   "random_3": 7.6,
+   "random_4": 0.0,
+   "random_5": 7.6,
+   "random_6": 9.1,
+   "random_7": 7.1,
+   "random_8": 7.9,
+   "random_9": 7.5,
+   "random_10": 11.6,
+   "random_11": 6.9
   }
  },
  "results": [
   {
    "name": "S00_normal_no_kill",
    "safe": true,
-   "worst_unprotected_ms": 6.0,
+   "worst_unprotected_ms": 8.7,
    "exchange": {
     "position": 0.016,
     "protected": true,
     "mark": 60000.0,
     "active_stops": [
      [
-      "sig-2QRI2VCYHCYM3JG6-sl",
+      "sig-ESVX2ZXMP52ZRSR4-sl",
       57000.0,
       "NEW"
      ]
     ],
     "unprotected_ms": [
-     6.0
+     8.7
     ],
     "open_unprotected_ms": null,
     "posts": {
@@ -40,7 +66,7 @@
      "state": "STOP_VERIFIED",
      "reason": "stop_verified",
      "exit": null,
-     "unprotected_ms": 13
+     "unprotected_ms": 17
     }
    ],
    "halts": [],
@@ -53,7 +79,1414 @@
     "after_entry=STOP_VERIFIED"
    ],
    "params": {},
-   "elapsed_s": 8.0
+   "elapsed_s": 8.1
+  },
+  {
+   "name": "S01_kill_before_entry_reaches",
+   "safe": true,
+   "worst_unprotected_ms": 0.0,
+   "exchange": {
+    "position": 0.0,
+    "protected": true,
+    "mark": 60000.0,
+    "active_stops": [],
+    "unprotected_ms": [],
+    "open_unprotected_ms": null,
+    "posts": {},
+    "e1_posts": 0,
+    "kill_log": [
+     {
+      "t": 1790796003.985262,
+      "method": "place_order",
+      "when": "before",
+      "cid": "sig-L3NXHEQ2BA4LSWMH-e1",
+      "pid": 5644
+     }
+    ]
+   },
+   "intents": [
+    {
+     "id": 1,
+     "state": "NOT_FILLED",
+     "reason": "entry_not_found_after_deadline",
+     "exit": null,
+     "unprotected_ms": null
+    }
+   ],
+   "halts": [],
+   "b_starts": 2,
+   "b_exit_codes": [
+    -9,
+    0
+   ],
+   "db_flat_but_position": false,
+   "notes": [
+    "killed=True state_at_kill=SUBMITTING",
+    "after_entry=NOT_FILLED"
+   ],
+   "params": {
+    "kill1": [
+     [
+      "place_order",
+      "before",
+      "-e1"
+     ]
+    ]
+   },
+   "elapsed_s": 16.6
+  },
+  {
+   "name": "S02_kill_after_fill_down1s",
+   "safe": true,
+   "worst_unprotected_ms": 1731.2,
+   "exchange": {
+    "position": 0.0,
+    "protected": true,
+    "mark": 60000.0,
+    "active_stops": [],
+    "unprotected_ms": [
+     1731.2
+    ],
+    "open_unprotected_ms": null,
+    "posts": {
+     "place_order:e1": 1,
+     "place_order:f1": 1,
+     "cancel_conditional:sl": 1
+    },
+    "e1_posts": 1,
+    "kill_log": [
+     {
+      "t": 1790796020.6989312,
+      "method": "place_order",
+      "when": "after",
+      "cid": "sig-7XNFZAUBCNUAR7GJ-e1",
+      "pid": 5665
+     }
+    ]
+   },
+   "intents": [
+    {
+     "id": 1,
+     "state": "FAILED_FLATTENED",
+     "reason": "restart_unprotected",
+     "exit": "flatten",
+     "unprotected_ms": null
+    }
+   ],
+   "halts": [
+    "restart_unprotected"
+   ],
+   "b_starts": 2,
+   "b_exit_codes": [
+    -9,
+    0
+   ],
+   "db_flat_but_position": false,
+   "notes": [
+    "killed=True state_at_kill=SUBMITTING",
+    "after_entry=FAILED_FLATTENED"
+   ],
+   "params": {
+    "kill1": [
+     [
+      "place_order",
+      "after",
+      "-e1"
+     ]
+    ],
+    "down": 1.0
+   },
+   "elapsed_s": 9.5
+  },
+  {
+   "name": "S02b_kill_after_fill_down5s",
+   "safe": true,
+   "worst_unprotected_ms": 5729.6,
+   "exchange": {
+    "position": 0.0,
+    "protected": true,
+    "mark": 60000.0,
+    "active_stops": [],
+    "unprotected_ms": [
+     5729.6
+    ],
+    "open_unprotected_ms": null,
+    "posts": {
+     "place_order:e1": 1,
+     "place_order:f1": 1,
+     "cancel_conditional:sl": 1
+    },
+    "e1_posts": 1,
+    "kill_log": [
+     {
+      "t": 1790796030.1565022,
+      "method": "place_order",
+      "when": "after",
+      "cid": "sig-G7P6HFJGKC3UB4TR-e1",
+      "pid": 5686
+     }
+    ]
+   },
+   "intents": [
+    {
+     "id": 1,
+     "state": "FAILED_FLATTENED",
+     "reason": "restart_unprotected",
+     "exit": "flatten",
+     "unprotected_ms": null
+    }
+   ],
+   "halts": [
+    "restart_unprotected"
+   ],
+   "b_starts": 2,
+   "b_exit_codes": [
+    -9,
+    0
+   ],
+   "db_flat_but_position": false,
+   "notes": [
+    "killed=True state_at_kill=SUBMITTING",
+    "after_entry=FAILED_FLATTENED"
+   ],
+   "params": {
+    "kill1": [
+     [
+      "place_order",
+      "after",
+      "-e1"
+     ]
+    ],
+    "down": 5.0
+   },
+   "elapsed_s": 13.5
+  },
+  {
+   "name": "S02c_kill_after_fill_down10s",
+   "safe": true,
+   "worst_unprotected_ms": 10702.6,
+   "exchange": {
+    "position": 0.0,
+    "protected": true,
+    "mark": 60000.0,
+    "active_stops": [],
+    "unprotected_ms": [
+     10702.6
+    ],
+    "open_unprotected_ms": null,
+    "posts": {
+     "place_order:e1": 1,
+     "place_order:f1": 1,
+     "cancel_conditional:sl": 1
+    },
+    "e1_posts": 1,
+    "kill_log": [
+     {
+      "t": 1790796043.5592558,
+      "method": "place_order",
+      "when": "after",
+      "cid": "sig-UULWV2CEIOIYHRYA-e1",
+      "pid": 5709
+     }
+    ]
+   },
+   "intents": [
+    {
+     "id": 1,
+     "state": "FAILED_FLATTENED",
+     "reason": "restart_unprotected",
+     "exit": "flatten",
+     "unprotected_ms": null
+    }
+   ],
+   "halts": [
+    "restart_unprotected"
+   ],
+   "b_starts": 2,
+   "b_exit_codes": [
+    -9,
+    0
+   ],
+   "db_flat_but_position": false,
+   "notes": [
+    "killed=True state_at_kill=SUBMITTING",
+    "after_entry=FAILED_FLATTENED"
+   ],
+   "params": {
+    "kill1": [
+     [
+      "place_order",
+      "after",
+      "-e1"
+     ]
+    ],
+    "down": 10.0
+   },
+   "elapsed_s": 18.4
+  },
+  {
+   "name": "S03_kill_after_stop_accepted",
+   "safe": true,
+   "worst_unprotected_ms": 9.1,
+   "exchange": {
+    "position": 0.016,
+    "protected": true,
+    "mark": 60000.0,
+    "active_stops": [
+     [
+      "sig-56SDCQY2AAMZAYYG-sl",
+      57000.0,
+      "NEW"
+     ]
+    ],
+    "unprotected_ms": [
+     9.1
+    ],
+    "open_unprotected_ms": null,
+    "posts": {
+     "place_order:e1": 1,
+     "place_conditional:sl": 1
+    },
+    "e1_posts": 1,
+    "kill_log": [
+     {
+      "t": 1790796062.0451145,
+      "method": "place_conditional",
+      "when": "after",
+      "cid": "sig-56SDCQY2AAMZAYYG-sl",
+      "pid": 5733
+     }
+    ]
+   },
+   "intents": [
+    {
+     "id": 1,
+     "state": "STOP_VERIFIED",
+     "reason": "stop_verified_restart",
+     "exit": null,
+     "unprotected_ms": 1766
+    }
+   ],
+   "halts": [],
+   "b_starts": 2,
+   "b_exit_codes": [
+    -9,
+    0
+   ],
+   "db_flat_but_position": false,
+   "notes": [
+    "killed=True state_at_kill=ENTRY_FILLED",
+    "after_entry=STOP_VERIFIED"
+   ],
+   "params": {
+    "kill1": [
+     [
+      "place_conditional",
+      "after",
+      "-sl"
+     ]
+    ]
+   },
+   "elapsed_s": 9.2
+  },
+  {
+   "name": "S04_kill_before_stop_verify_query",
+   "safe": true,
+   "worst_unprotected_ms": 1728.0,
+   "exchange": {
+    "position": 0.0,
+    "protected": true,
+    "mark": 60000.0,
+    "active_stops": [],
+    "unprotected_ms": [
+     1728.0
+    ],
+    "open_unprotected_ms": null,
+    "posts": {
+     "place_order:e1": 1,
+     "place_order:f1": 1,
+     "cancel_conditional:sl": 1
+    },
+    "e1_posts": 1,
+    "kill_log": [
+     {
+      "t": 1790796071.1811104,
+      "method": "get_conditional",
+      "when": "before",
+      "cid": "sig-QJ33VWLM7HOBTHSP-sl",
+      "pid": 5757
+     }
+    ]
+   },
+   "intents": [
+    {
+     "id": 1,
+     "state": "FAILED_FLATTENED",
+     "reason": "restart_unprotected",
+     "exit": "flatten",
+     "unprotected_ms": null
+    }
+   ],
+   "halts": [
+    "restart_unprotected"
+   ],
+   "b_starts": 2,
+   "b_exit_codes": [
+    -9,
+    0
+   ],
+   "db_flat_but_position": false,
+   "notes": [
+    "killed=True state_at_kill=ENTRY_FILLED",
+    "after_entry=FAILED_FLATTENED"
+   ],
+   "params": {
+    "kill1": [
+     [
+      "get_conditional",
+      "before",
+      "-sl"
+     ]
+    ]
+   },
+   "elapsed_s": 9.4
+  },
+  {
+   "name": "S05_kill_after_fill_then_kill_in_recovery",
+   "safe": true,
+   "worst_unprotected_ms": 3399.4,
+   "exchange": {
+    "position": 0.0,
+    "protected": true,
+    "mark": 60000.0,
+    "active_stops": [],
+    "unprotected_ms": [
+     3399.4
+    ],
+    "open_unprotected_ms": null,
+    "posts": {
+     "place_order:e1": 1,
+     "place_order:f1": 1,
+     "cancel_conditional:sl": 1
+    },
+    "e1_posts": 1,
+    "kill_log": [
+     {
+      "t": 1790796080.5821586,
+      "method": "place_order",
+      "when": "after",
+      "cid": "sig-VVNC7PVYJEFX2YEI-e1",
+      "pid": 5783
+     },
+     {
+      "t": 1790796082.2863674,
+      "method": "position",
+      "when": "before",
+      "cid": null,
+      "pid": 5794
+     }
+    ]
+   },
+   "intents": [
+    {
+     "id": 1,
+     "state": "FAILED_FLATTENED",
+     "reason": "restart_unprotected",
+     "exit": "flatten",
+     "unprotected_ms": null
+    }
+   ],
+   "halts": [
+    "restart_unprotected"
+   ],
+   "b_starts": 3,
+   "b_exit_codes": [
+    -9,
+    -9,
+    0
+   ],
+   "db_flat_but_position": false,
+   "notes": [
+    "killed=True state_at_kill=SUBMITTING",
+    "killed_in_recovery=True",
+    "after_entry=FAILED_FLATTENED"
+   ],
+   "params": {
+    "kill1": [
+     [
+      "place_order",
+      "after",
+      "-e1"
+     ]
+    ],
+    "kill2": [
+     [
+      "position",
+      "before",
+      null
+     ]
+    ],
+    "down": 1.0
+   },
+   "elapsed_s": 11.1
+  },
+  {
+   "name": "S06_kill_while_holding",
+   "safe": true,
+   "worst_unprotected_ms": 9.6,
+   "exchange": {
+    "position": 0.016,
+    "protected": true,
+    "mark": 60000.0,
+    "active_stops": [
+     [
+      "sig-GWUYZK5YD444FIUX-sl",
+      57000.0,
+      "NEW"
+     ]
+    ],
+    "unprotected_ms": [
+     9.6
+    ],
+    "open_unprotected_ms": null,
+    "posts": {
+     "place_order:e1": 1,
+     "place_conditional:sl": 1
+    },
+    "e1_posts": 1,
+    "kill_log": []
+   },
+   "intents": [
+    {
+     "id": 1,
+     "state": "STOP_VERIFIED",
+     "reason": "stop_verified",
+     "exit": null,
+     "unprotected_ms": 23
+    }
+   ],
+   "halts": [],
+   "b_starts": 2,
+   "b_exit_codes": [
+    -9,
+    0
+   ],
+   "db_flat_but_position": false,
+   "notes": [
+    "after_entry=STOP_VERIFIED"
+   ],
+   "params": {
+    "idle_kill": true
+   },
+   "elapsed_s": 9.2
+  },
+  {
+   "name": "S07_kill_after_exit_x1_executed",
+   "safe": true,
+   "worst_unprotected_ms": 12.2,
+   "exchange": {
+    "position": 0.0,
+    "protected": true,
+    "mark": 60000.0,
+    "active_stops": [],
+    "unprotected_ms": [
+     12.2
+    ],
+    "open_unprotected_ms": null,
+    "posts": {
+     "place_order:e1": 1,
+     "place_conditional:sl": 1,
+     "place_order:x1": 1,
+     "cancel_conditional:sl": 1
+    },
+    "e1_posts": 1,
+    "kill_log": [
+     {
+      "t": 1790796101.5201006,
+      "method": "place_order",
+      "when": "after",
+      "cid": "sig-VGZCL3IFLEP37AMM-x1",
+      "pid": 5837
+     }
+    ]
+   },
+   "intents": [
+    {
+     "id": 1,
+     "state": "CLOSED",
+     "reason": "trend_exit",
+     "exit": "trend",
+     "unprotected_ms": 22
+    }
+   ],
+   "halts": [],
+   "b_starts": 2,
+   "b_exit_codes": [
+    -9,
+    0
+   ],
+   "db_flat_but_position": false,
+   "notes": [
+    "after_entry=STOP_VERIFIED",
+    "killed_in_exit=True state=EXITING",
+    "after_exit=CLOSED"
+   ],
+   "params": {
+    "exit": true,
+    "kill_exit": [
+     [
+      "place_order",
+      "after",
+      "-x1"
+     ]
+    ]
+   },
+   "elapsed_s": 9.7
+  },
+  {
+   "name": "S08_kill_before_exit_x1_reaches",
+   "safe": true,
+   "worst_unprotected_ms": 8.3,
+   "exchange": {
+    "position": 0.0,
+    "protected": true,
+    "mark": 60000.0,
+    "active_stops": [],
+    "unprotected_ms": [
+     8.3
+    ],
+    "open_unprotected_ms": null,
+    "posts": {
+     "place_order:e1": 1,
+     "place_conditional:sl": 1,
+     "place_order:x2": 1,
+     "cancel_conditional:sl": 1
+    },
+    "e1_posts": 1,
+    "kill_log": [
+     {
+      "t": 1790796111.1597314,
+      "method": "place_order",
+      "when": "before",
+      "cid": "sig-6HBMUT7ZZ3EIZOBS-x1",
+      "pid": 5861
+     }
+    ]
+   },
+   "intents": [
+    {
+     "id": 1,
+     "state": "CLOSED",
+     "reason": "trend_exit",
+     "exit": "trend",
+     "unprotected_ms": 16
+    }
+   ],
+   "halts": [],
+   "b_starts": 2,
+   "b_exit_codes": [
+    -9,
+    0
+   ],
+   "db_flat_but_position": false,
+   "notes": [
+    "after_entry=STOP_VERIFIED",
+    "killed_in_exit=True state=EXITING",
+    "after_exit=CLOSED"
+   ],
+   "params": {
+    "exit": true,
+    "kill_exit": [
+     [
+      "place_order",
+      "before",
+      "-x1"
+     ]
+    ]
+   },
+   "elapsed_s": 9.9
+  },
+  {
+   "name": "S09_stop_rejected_kill_after_flatten_f1",
+   "safe": true,
+   "worst_unprotected_ms": 938.9,
+   "exchange": {
+    "position": 0.0,
+    "protected": true,
+    "mark": 60000.0,
+    "active_stops": [],
+    "unprotected_ms": [
+     938.9
+    ],
+    "open_unprotected_ms": null,
+    "posts": {
+     "place_order:e1": 1,
+     "place_conditional:sl": 3,
+     "place_order:f1": 1,
+     "cancel_conditional:sl": 1
+    },
+    "e1_posts": 1,
+    "kill_log": [
+     {
+      "t": 1790796121.5231526,
+      "method": "place_order",
+      "when": "after",
+      "cid": "sig-SDH5XUZJISJSS26L-f1",
+      "pid": 5882
+     }
+    ]
+   },
+   "intents": [
+    {
+     "id": 1,
+     "state": "CLOSED",
+     "reason": "position_vanished",
+     "exit": "external",
+     "unprotected_ms": null
+    }
+   ],
+   "halts": [
+    "position_vanished"
+   ],
+   "b_starts": 2,
+   "b_exit_codes": [
+    -9,
+    0
+   ],
+   "db_flat_but_position": false,
+   "notes": [
+    "killed=True state_at_kill=ENTRY_FILLED",
+    "after_entry=CLOSED"
+   ],
+   "params": {
+    "stop_fail": true,
+    "kill1": [
+     [
+      "place_order",
+      "after",
+      "-f1"
+     ]
+    ]
+   },
+   "elapsed_s": 10.1
+  },
+  {
+   "name": "S10_stop_fires_while_b_dead",
+   "safe": true,
+   "worst_unprotected_ms": 6.4,
+   "exchange": {
+    "position": 0.0,
+    "protected": true,
+    "mark": 54000.0,
+    "active_stops": [],
+    "unprotected_ms": [
+     6.4
+    ],
+    "open_unprotected_ms": null,
+    "posts": {
+     "place_order:e1": 1,
+     "place_conditional:sl": 1,
+     "cancel_conditional:sl": 1
+    },
+    "e1_posts": 1,
+    "kill_log": []
+   },
+   "intents": [
+    {
+     "id": 1,
+     "state": "CLOSED",
+     "reason": "stop_fired",
+     "exit": "stop",
+     "unprotected_ms": 13
+    }
+   ],
+   "halts": [],
+   "b_starts": 2,
+   "b_exit_codes": [
+    -9,
+    0
+   ],
+   "db_flat_but_position": false,
+   "notes": [
+    "after_entry=STOP_VERIFIED",
+    "after_fire=CLOSED"
+   ],
+   "params": {
+    "idle_kill": true,
+    "fire_while_dead": true,
+    "down": 3.0
+   },
+   "elapsed_s": 11.9
+  },
+  {
+   "name": "S11_kill_before_stop_place",
+   "safe": true,
+   "worst_unprotected_ms": 1741.0,
+   "exchange": {
+    "position": 0.0,
+    "protected": true,
+    "mark": 60000.0,
+    "active_stops": [],
+    "unprotected_ms": [
+     1741.0
+    ],
+    "open_unprotected_ms": null,
+    "posts": {
+     "place_order:e1": 1,
+     "place_order:f1": 1,
+     "cancel_conditional:sl": 1
+    },
+    "e1_posts": 1,
+    "kill_log": [
+     {
+      "t": 1790796142.6375408,
+      "method": "place_conditional",
+      "when": "before",
+      "cid": "sig-FYEIDZCH3CQQLOY3-sl",
+      "pid": 5930
+     }
+    ]
+   },
+   "intents": [
+    {
+     "id": 1,
+     "state": "FAILED_FLATTENED",
+     "reason": "restart_unprotected",
+     "exit": "flatten",
+     "unprotected_ms": null
+    }
+   ],
+   "halts": [
+    "restart_unprotected"
+   ],
+   "b_starts": 2,
+   "b_exit_codes": [
+    -9,
+    0
+   ],
+   "db_flat_but_position": false,
+   "notes": [
+    "killed=True state_at_kill=ENTRY_FILLED",
+    "after_entry=FAILED_FLATTENED"
+   ],
+   "params": {
+    "kill1": [
+     [
+      "place_conditional",
+      "before",
+      "-sl"
+     ]
+    ]
+   },
+   "elapsed_s": 9.5
+  },
+  {
+   "name": "S12_kill_after_fill_then_db_tamper_refused_restart",
+   "safe": true,
+   "worst_unprotected_ms": 1745.1,
+   "exchange": {
+    "position": 0.0,
+    "protected": true,
+    "mark": 60000.0,
+    "active_stops": [],
+    "unprotected_ms": [
+     1745.1
+    ],
+    "open_unprotected_ms": null,
+    "posts": {
+     "place_order:e1": 1,
+     "place_order:f1": 1
+    },
+    "e1_posts": 1,
+    "kill_log": [
+     {
+      "t": 1790796152.0415318,
+      "method": "place_order",
+      "when": "after",
+      "cid": "sig-WFO5HRY4KA4A22CJ-e1",
+      "pid": 5952
+     }
+    ]
+   },
+   "intents": [
+    {
+     "id": 1,
+     "state": "SUBMITTING",
+     "reason": "claimed",
+     "exit": null,
+     "unprotected_ms": null
+    }
+   ],
+   "halts": [],
+   "b_starts": 3,
+   "b_exit_codes": [
+    -9,
+    3,
+    3
+   ],
+   "db_flat_but_position": false,
+   "notes": [
+    "killed=True state_at_kill=SUBMITTING",
+    "tamper_restart_exited=True code=[3]",
+    "tamper_restart2_exited=True code=[3]",
+    "posts_after_1st={'place_order:e1': 1, 'place_order:f1': 1} posts_after_2nd={'place_order:e1': 1, 'place_order:f1': 1}"
+   ],
+   "params": {
+    "kill1": [
+     [
+      "place_order",
+      "after",
+      "-e1"
+     ]
+    ],
+    "tamper": true,
+    "down": 1.0
+   },
+   "elapsed_s": 5.8
+  },
+  {
+   "name": "random_0",
+   "safe": true,
+   "worst_unprotected_ms": 9.0,
+   "exchange": {
+    "position": 0.0,
+    "protected": true,
+    "mark": 54000.0,
+    "active_stops": [],
+    "unprotected_ms": [
+     9.0
+    ],
+    "open_unprotected_ms": null,
+    "posts": {
+     "place_order:e1": 1,
+     "place_conditional:sl": 1,
+     "cancel_conditional:sl": 2
+    },
+    "e1_posts": 1,
+    "kill_log": []
+   },
+   "intents": [
+    {
+     "id": 1,
+     "state": "CLOSED",
+     "reason": "stop_fired",
+     "exit": "stop",
+     "unprotected_ms": 22
+    }
+   ],
+   "halts": [],
+   "b_starts": 4,
+   "b_exit_codes": [
+    -9,
+    -9,
+    -9,
+    0
+   ],
+   "db_flat_but_position": false,
+   "notes": [
+    "states_at_kills=['STOP_VERIFIED', 'STOP_VERIFIED', 'STOP_VERIFIED']",
+    "exit_asked=False",
+    "stop_fired=True"
+   ]
+  },
+  {
+   "name": "random_1",
+   "safe": true,
+   "worst_unprotected_ms": 10.2,
+   "exchange": {
+    "position": 0.0,
+    "protected": true,
+    "mark": 54000.0,
+    "active_stops": [],
+    "unprotected_ms": [
+     10.2
+    ],
+    "open_unprotected_ms": null,
+    "posts": {
+     "place_order:e1": 1,
+     "place_conditional:sl": 1,
+     "cancel_conditional:sl": 1
+    },
+    "e1_posts": 1,
+    "kill_log": []
+   },
+   "intents": [
+    {
+     "id": 1,
+     "state": "CLOSED",
+     "reason": "stop_fired",
+     "exit": "stop",
+     "unprotected_ms": 21
+    }
+   ],
+   "halts": [],
+   "b_starts": 3,
+   "b_exit_codes": [
+    -9,
+    -9,
+    0
+   ],
+   "db_flat_but_position": false,
+   "notes": [
+    "states_at_kills=['STOP_VERIFIED', 'CLOSED']",
+    "exit_asked=False",
+    "stop_fired=True"
+   ]
+  },
+  {
+   "name": "random_2",
+   "safe": true,
+   "worst_unprotected_ms": 6.3,
+   "exchange": {
+    "position": 0.016,
+    "protected": true,
+    "mark": 60000.0,
+    "active_stops": [
+     [
+      "sig-L5GU2HYM53USCQCX-sl",
+      57000.0,
+      "NEW"
+     ]
+    ],
+    "unprotected_ms": [
+     6.3
+    ],
+    "open_unprotected_ms": null,
+    "posts": {
+     "place_order:e1": 1,
+     "place_conditional:sl": 1
+    },
+    "e1_posts": 1,
+    "kill_log": []
+   },
+   "intents": [
+    {
+     "id": 1,
+     "state": "STOP_VERIFIED",
+     "reason": "stop_verified",
+     "exit": null,
+     "unprotected_ms": 14
+    }
+   ],
+   "halts": [],
+   "b_starts": 3,
+   "b_exit_codes": [
+    -9,
+    -9,
+    0
+   ],
+   "db_flat_but_position": false,
+   "notes": [
+    "states_at_kills=['QUEUED', 'QUEUED']",
+    "exit_asked=False",
+    "stop_fired=False"
+   ]
+  },
+  {
+   "name": "random_3",
+   "safe": true,
+   "worst_unprotected_ms": 7.6,
+   "exchange": {
+    "position": 0.0,
+    "protected": true,
+    "mark": 60000.0,
+    "active_stops": [],
+    "unprotected_ms": [
+     7.6
+    ],
+    "open_unprotected_ms": null,
+    "posts": {
+     "place_order:e1": 1,
+     "place_conditional:sl": 1,
+     "place_order:x1": 1,
+     "cancel_conditional:sl": 1
+    },
+    "e1_posts": 1,
+    "kill_log": []
+   },
+   "intents": [
+    {
+     "id": 1,
+     "state": "CLOSED",
+     "reason": "trend_exit",
+     "exit": "trend",
+     "unprotected_ms": 16
+    }
+   ],
+   "halts": [],
+   "b_starts": 3,
+   "b_exit_codes": [
+    -9,
+    -9,
+    0
+   ],
+   "db_flat_but_position": false,
+   "notes": [
+    "states_at_kills=['STOP_VERIFIED', 'EXITING']",
+    "exit_asked=True",
+    "stop_fired=False"
+   ]
+  },
+  {
+   "name": "random_4",
+   "safe": true,
+   "worst_unprotected_ms": 0.0,
+   "exchange": {
+    "position": 0.0,
+    "protected": true,
+    "mark": 60000.0,
+    "active_stops": [],
+    "unprotected_ms": [],
+    "open_unprotected_ms": null,
+    "posts": {
+     "cancel_conditional:sl": 1
+    },
+    "e1_posts": 0,
+    "kill_log": []
+   },
+   "intents": [
+    {
+     "id": 1,
+     "state": "REJECTED",
+     "reason": "restart_before_send",
+     "exit": null,
+     "unprotected_ms": null
+    }
+   ],
+   "halts": [],
+   "b_starts": 3,
+   "b_exit_codes": [
+    -9,
+    -9,
+    0
+   ],
+   "db_flat_but_position": false,
+   "notes": [
+    "states_at_kills=['SUBMITTING', 'REJECTED']",
+    "exit_asked=False",
+    "stop_fired=False"
+   ]
+  },
+  {
+   "name": "random_5",
+   "safe": true,
+   "worst_unprotected_ms": 7.6,
+   "exchange": {
+    "position": 0.0,
+    "protected": true,
+    "mark": 54000.0,
+    "active_stops": [],
+    "unprotected_ms": [
+     7.6
+    ],
+    "open_unprotected_ms": null,
+    "posts": {
+     "place_order:e1": 1,
+     "place_conditional:sl": 1,
+     "cancel_conditional:sl": 1
+    },
+    "e1_posts": 1,
+    "kill_log": []
+   },
+   "intents": [
+    {
+     "id": 1,
+     "state": "CLOSED",
+     "reason": "stop_fired",
+     "exit": "stop",
+     "unprotected_ms": 15
+    }
+   ],
+   "halts": [],
+   "b_starts": 5,
+   "b_exit_codes": [
+    -9,
+    -9,
+    -9,
+    -9,
+    0
+   ],
+   "db_flat_but_position": false,
+   "notes": [
+    "states_at_kills=['QUEUED', 'STOP_VERIFIED', 'STOP_VERIFIED', 'STOP_VERIFIED']",
+    "exit_asked=True",
+    "stop_fired=True"
+   ]
+  },
+  {
+   "name": "random_6",
+   "safe": true,
+   "worst_unprotected_ms": 9.1,
+   "exchange": {
+    "position": 0.0,
+    "protected": true,
+    "mark": 54000.0,
+    "active_stops": [],
+    "unprotected_ms": [
+     9.1
+    ],
+    "open_unprotected_ms": null,
+    "posts": {
+     "place_order:e1": 1,
+     "place_conditional:sl": 1,
+     "cancel_conditional:sl": 1
+    },
+    "e1_posts": 1,
+    "kill_log": []
+   },
+   "intents": [
+    {
+     "id": 1,
+     "state": "CLOSED",
+     "reason": "stop_fired",
+     "exit": "stop",
+     "unprotected_ms": 20
+    }
+   ],
+   "halts": [],
+   "b_starts": 5,
+   "b_exit_codes": [
+    -9,
+    -9,
+    -9,
+    -9,
+    0
+   ],
+   "db_flat_but_position": false,
+   "notes": [
+    "states_at_kills=['STOP_VERIFIED', 'CLOSED', 'CLOSED', 'CLOSED']",
+    "exit_asked=False",
+    "stop_fired=True"
+   ]
+  },
+  {
+   "name": "random_7",
+   "safe": true,
+   "worst_unprotected_ms": 7.1,
+   "exchange": {
+    "position": 0.0,
+    "protected": true,
+    "mark": 60000.0,
+    "active_stops": [],
+    "unprotected_ms": [
+     7.1
+    ],
+    "open_unprotected_ms": null,
+    "posts": {
+     "place_order:e1": 1,
+     "place_conditional:sl": 1,
+     "place_order:x1": 1,
+     "cancel_conditional:sl": 1
+    },
+    "e1_posts": 1,
+    "kill_log": []
+   },
+   "intents": [
+    {
+     "id": 1,
+     "state": "CLOSED",
+     "reason": "trend_exit",
+     "exit": "trend",
+     "unprotected_ms": 14
+    }
+   ],
+   "halts": [],
+   "b_starts": 4,
+   "b_exit_codes": [
+    -9,
+    -9,
+    -9,
+    0
+   ],
+   "db_flat_but_position": false,
+   "notes": [
+    "states_at_kills=['STOP_VERIFIED', 'CLOSED', 'CLOSED']",
+    "exit_asked=True",
+    "stop_fired=False"
+   ]
+  },
+  {
+   "name": "random_8",
+   "safe": true,
+   "worst_unprotected_ms": 7.9,
+   "exchange": {
+    "position": 0.0,
+    "protected": true,
+    "mark": 54000.0,
+    "active_stops": [],
+    "unprotected_ms": [
+     7.9
+    ],
+    "open_unprotected_ms": null,
+    "posts": {
+     "place_order:e1": 1,
+     "place_conditional:sl": 1,
+     "cancel_conditional:sl": 1
+    },
+    "e1_posts": 1,
+    "kill_log": []
+   },
+   "intents": [
+    {
+     "id": 1,
+     "state": "CLOSED",
+     "reason": "stop_fired",
+     "exit": "stop",
+     "unprotected_ms": 15
+    }
+   ],
+   "halts": [],
+   "b_starts": 3,
+   "b_exit_codes": [
+    -9,
+    -9,
+    0
+   ],
+   "db_flat_but_position": false,
+   "notes": [
+    "states_at_kills=['STOP_VERIFIED', 'STOP_VERIFIED']",
+    "exit_asked=True",
+    "stop_fired=True"
+   ]
+  },
+  {
+   "name": "random_9",
+   "safe": true,
+   "worst_unprotected_ms": 7.5,
+   "exchange": {
+    "position": 0.0,
+    "protected": true,
+    "mark": 60000.0,
+    "active_stops": [],
+    "unprotected_ms": [
+     7.5
+    ],
+    "open_unprotected_ms": null,
+    "posts": {
+     "place_order:e1": 1,
+     "place_conditional:sl": 1,
+     "place_order:x1": 1,
+     "cancel_conditional:sl": 1
+    },
+    "e1_posts": 1,
+    "kill_log": []
+   },
+   "intents": [
+    {
+     "id": 1,
+     "state": "CLOSED",
+     "reason": "trend_exit",
+     "exit": "trend",
+     "unprotected_ms": 17
+    }
+   ],
+   "halts": [],
+   "b_starts": 4,
+   "b_exit_codes": [
+    -9,
+    -9,
+    -9,
+    0
+   ],
+   "db_flat_but_position": false,
+   "notes": [
+    "states_at_kills=['STOP_VERIFIED', 'CLOSED', 'CLOSED']",
+    "exit_asked=True",
+    "stop_fired=False"
+   ]
+  },
+  {
+   "name": "random_10",
+   "safe": true,
+   "worst_unprotected_ms": 11.6,
+   "exchange": {
+    "position": 0.0,
+    "protected": true,
+    "mark": 60000.0,
+    "active_stops": [],
+    "unprotected_ms": [
+     11.6
+    ],
+    "open_unprotected_ms": null,
+    "posts": {
+     "place_order:e1": 1,
+     "place_conditional:sl": 1,
+     "place_order:x1": 1,
+     "cancel_conditional:sl": 1
+    },
+    "e1_posts": 1,
+    "kill_log": []
+   },
+   "intents": [
+    {
+     "id": 1,
+     "state": "CLOSED",
+     "reason": "trend_exit",
+     "exit": "trend",
+     "unprotected_ms": 23
+    }
+   ],
+   "halts": [],
+   "b_starts": 5,
+   "b_exit_codes": [
+    -9,
+    -9,
+    -9,
+    -9,
+    0
+   ],
+   "db_flat_but_position": false,
+   "notes": [
+    "states_at_kills=['QUEUED', 'QUEUED', 'QUEUED', 'STOP_VERIFIED']",
+    "exit_asked=True",
+    "stop_fired=False"
+   ]
+  },
+  {
+   "name": "random_11",
+   "safe": true,
+   "worst_unprotected_ms": 6.9,
+   "exchange": {
+    "position": 0.0,
+    "protected": true,
+    "mark": 60000.0,
+    "active_stops": [],
+    "unprotected_ms": [
+     6.9
+    ],
+    "open_unprotected_ms": null,
+    "posts": {
+     "place_order:e1": 1,
+     "place_conditional:sl": 1,
+     "place_order:x1": 1,
+     "cancel_conditional:sl": 1
+    },
+    "e1_posts": 1,
+    "kill_log": []
+   },
+   "intents": [
+    {
+     "id": 1,
+     "state": "CLOSED",
+     "reason": "trend_exit",
+     "exit": "trend",
+     "unprotected_ms": 14
+    }
+   ],
+   "halts": [],
+   "b_starts": 4,
+   "b_exit_codes": [
+    -9,
+    -9,
+    -9,
+    0
+   ],
+   "db_flat_but_position": false,
+   "notes": [
+    "states_at_kills=['STOP_VERIFIED', 'STOP_VERIFIED', 'EXITING']",
+    "exit_asked=True",
+    "stop_fired=False"
+   ]
   }
  ]
 }

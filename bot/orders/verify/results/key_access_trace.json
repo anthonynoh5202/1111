@@ -1,28 +1,29 @@
 {
  "A1_key_visible_to_A": {
   "exit": 2,
-  "stderr": "오류: TESTNET 프로세스 A에 거래 개인키 파일이 보인다(주문 프로세스 B에만 마운트할 것): /tmp/keytrace-3amhymxu/a_view_of_run_secrets/binance_ed25519_private_key",
+  "stderr": "오류: TESTNET 프로세스 A에 거래 개인키 파일이 보인다(주문 프로세스 B에만 마운트할 것): /tmp/keytrace-3d2fz32d/a_view_of_run_secrets/binance_ed25519_private_key",
   "trace": {
    "open_for_read": [],
    "open_for_write": [],
    "metadata_only": [
     {
      "syscall": "newfstatat",
-     "path": "/tmp/keytrace-3amhymxu/a_view_of_run_secrets/binance_api_key",
+     "path": "/tmp/keytrace-3d2fz32d/a_view_of_run_secrets/binance_api_key",
      "result": "-1 ENOENT (No such file or directory)"
     },
     {
      "syscall": "newfstatat",
-     "path": "/tmp/keytrace-3amhymxu/a_view_of_run_secrets/binance_ed25519_private_key",
+     "path": "/tmp/keytrace-3d2fz32d/a_view_of_run_secrets/binance_ed25519_private_key",
      "result": "0"
     }
    ],
+   "benign_repo_templates": [],
    "n_distinct_opened": 680
   }
  },
  "A2_check": {
   "exit": 0,
-  "stdout": "점검 통과: mode=testnet · 전략 E0-L-ENS · 설정 지문 1f7a8487\n비밀 파일: 텔레그램 있음 · Claude 있음 · 헬스체크 없음\nDB: 신호 0건 · 신규 진입 받는 중",
+  "stdout": "점검 통과: mode=testnet · 전략 E0-L-ENS · 설정 지문 a0f9aa0c\n비밀 파일: 텔레그램 있음 · Claude 있음 · 헬스체크 없음\nDB: 신호 0건 · 신규 진입 받는 중",
   "stderr": "",
   "trace": {
    "open_for_read": [],
@@ -30,31 +31,32 @@
    "metadata_only": [
     {
      "syscall": "newfstatat",
-     "path": "/tmp/keytrace-3amhymxu/a_view_of_run_secrets/binance_api_key",
+     "path": "/tmp/keytrace-3d2fz32d/a_view_of_run_secrets/binance_api_key",
      "result": "-1 ENOENT (No such file or directory)"
     },
     {
      "syscall": "newfstatat",
-     "path": "/tmp/keytrace-3amhymxu/a_view_of_run_secrets/binance_ed25519_private_key",
+     "path": "/tmp/keytrace-3d2fz32d/a_view_of_run_secrets/binance_ed25519_private_key",
      "result": "-1 ENOENT (No such file or directory)"
     },
     {
      "syscall": "newfstatat",
-     "path": "/tmp/keytrace-3amhymxu/a_view_of_run_secrets/orders_control.toml",
+     "path": "/tmp/keytrace-3d2fz32d/a_view_of_run_secrets/orders_control.toml",
      "result": "-1 ENOENT (No such file or directory)"
     },
     {
      "syscall": "newfstatat",
-     "path": "/tmp/keytrace-3amhymxu/a_view_of_run_secrets/orders_ledger.json",
+     "path": "/tmp/keytrace-3d2fz32d/a_view_of_run_secrets/orders_ledger.json",
      "result": "-1 ENOENT (No such file or directory)"
     }
    ],
+   "benign_repo_templates": [],
    "n_distinct_opened": 689
   }
  },
  "A2_run_--dry-run": {
   "exit": 0,
-  "stdout": "dry-run 통과: mode=testnet · 전략 E0-L-ENS · 설정 지문 1f7a8487 · 텔레그램 켜짐 · Claude 켜짐 · 네트워크 호출 없음",
+  "stdout": "dry-run 통과: mode=testnet · 전략 E0-L-ENS · 설정 지문 a0f9aa0c · 텔레그램 켜짐 · Claude 켜짐 · 네트워크 호출 없음",
   "stderr": "",
   "trace": {
    "open_for_read": [],
@@ -62,25 +64,26 @@
    "metadata_only": [
     {
      "syscall": "newfstatat",
-     "path": "/tmp/keytrace-3amhymxu/a_view_of_run_secrets/binance_api_key",
+     "path": "/tmp/keytrace-3d2fz32d/a_view_of_run_secrets/binance_api_key",
      "result": "-1 ENOENT (No such file or directory)"
     },
     {
      "syscall": "newfstatat",
-     "path": "/tmp/keytrace-3amhymxu/a_view_of_run_secrets/binance_ed25519_private_key",
+     "path": "/tmp/keytrace-3d2fz32d/a_view_of_run_secrets/binance_ed25519_private_key",
      "result": "-1 ENOENT (No such file or directory)"
     },
     {
      "syscall": "newfstatat",
-     "path": "/tmp/keytrace-3amhymxu/a_view_of_run_secrets/orders_control.toml",
+     "path": "/tmp/keytrace-3d2fz32d/a_view_of_run_secrets/orders_control.toml",
      "result": "-1 ENOENT (No such file or directory)"
     },
     {
      "syscall": "newfstatat",
-     "path": "/tmp/keytrace-3amhymxu/a_view_of_run_secrets/orders_ledger.json",
+     "path": "/tmp/keytrace-3d2fz32d/a_view_of_run_secrets/orders_ledger.json",
      "result": "-1 ENOENT (No such file or directory)"
     }
    ],
+   "benign_repo_templates": [],
    "n_distinct_opened": 2601
   }
  },
@@ -115,25 +118,26 @@
    "metadata_only": [
     {
      "syscall": "newfstatat",
-     "path": "/tmp/keytrace-3amhymxu/a_view_of_run_secrets/binance_api_key",
+     "path": "/tmp/keytrace-3d2fz32d/a_view_of_run_secrets/binance_api_key",
      "result": "-1 ENOENT (No such file or directory)"
     },
     {
      "syscall": "newfstatat",
-     "path": "/tmp/keytrace-3amhymxu/a_view_of_run_secrets/binance_ed25519_private_key",
+     "path": "/tmp/keytrace-3d2fz32d/a_view_of_run_secrets/binance_ed25519_private_key",
      "result": "-1 ENOENT (No such file or directory)"
     },
     {
      "syscall": "newfstatat",
-     "path": "/tmp/keytrace-3amhymxu/a_view_of_run_secrets/orders_control.toml",
+     "path": "/tmp/keytrace-3d2fz32d/a_view_of_run_secrets/orders_control.toml",
      "result": "-1 ENOENT (No such file or directory)"
     },
     {
      "syscall": "newfstatat",
-     "path": "/tmp/keytrace-3amhymxu/a_view_of_run_secrets/orders_ledger.json",
+     "path": "/tmp/keytrace-3d2fz32d/a_view_of_run_secrets/orders_ledger.json",
      "result": "-1 ENOENT (No such file or directory)"
     }
    ],
+   "benign_repo_templates": [],
    "n_distinct_opened": 893
   }
  },
@@ -142,445 +146,445 @@
    "open_for_read": [
     {
      "syscall": "openat",
-     "path": "/tmp/keytrace-3amhymxu/b_secrets/binance_api_key",
+     "path": "/tmp/keytrace-3d2fz32d/b_secrets/binance_api_key",
      "flags": "O_RDONLY|O_CLOEXEC",
      "result": "3"
     },
     {
      "syscall": "openat",
-     "path": "/tmp/keytrace-3amhymxu/b_secrets/binance_ed25519_private_key",
+     "path": "/tmp/keytrace-3d2fz32d/b_secrets/binance_ed25519_private_key",
      "flags": "O_RDONLY|O_CLOEXEC",
      "result": "3"
     },
     {
      "syscall": "openat",
-     "path": "/tmp/keytrace-3amhymxu/b_secrets",
+     "path": "/tmp/keytrace-3d2fz32d/b_secrets",
      "flags": "O_RDONLY|O_CLOEXEC",
      "result": "7"
     },
     {
      "syscall": "openat",
-     "path": "/tmp/keytrace-3amhymxu/b_secrets/orders_control.toml",
+     "path": "/tmp/keytrace-3d2fz32d/b_secrets/orders_control.toml",
      "flags": "O_RDONLY|O_CLOEXEC",
      "result": "7"
     },
     {
      "syscall": "openat",
-     "path": "/tmp/keytrace-3amhymxu/b_secrets/orders_control.toml",
+     "path": "/tmp/keytrace-3d2fz32d/b_secrets/orders_control.toml",
      "flags": "O_RDONLY|O_CLOEXEC",
      "result": "8"
     },
     {
      "syscall": "openat",
-     "path": "/tmp/keytrace-3amhymxu/b_secrets/orders_control.toml",
+     "path": "/tmp/keytrace-3d2fz32d/b_secrets/orders_control.toml",
      "flags": "O_RDONLY|O_CLOEXEC",
      "result": "8"
     },
     {
      "syscall": "openat",
-     "path": "/tmp/keytrace-3amhymxu/b_secrets/orders_control.toml",
+     "path": "/tmp/keytrace-3d2fz32d/b_secrets/orders_control.toml",
      "flags": "O_RDONLY|O_CLOEXEC",
      "result": "8"
     },
     {
      "syscall": "openat",
-     "path": "/tmp/keytrace-3amhymxu/b_secrets/orders_control.toml",
+     "path": "/tmp/keytrace-3d2fz32d/b_secrets/orders_control.toml",
      "flags": "O_RDONLY|O_CLOEXEC",
      "result": "8"
     },
     {
      "syscall": "openat",
-     "path": "/tmp/keytrace-3amhymxu/b_secrets/orders_control.toml",
+     "path": "/tmp/keytrace-3d2fz32d/b_secrets/orders_control.toml",
      "flags": "O_RDONLY|O_CLOEXEC",
      "result": "8"
     },
     {
      "syscall": "openat",
-     "path": "/tmp/keytrace-3amhymxu/b_secrets/orders_control.toml",
+     "path": "/tmp/keytrace-3d2fz32d/b_secrets/orders_control.toml",
      "flags": "O_RDONLY|O_CLOEXEC",
      "result": "8"
     },
     {
      "syscall": "openat",
-     "path": "/tmp/keytrace-3amhymxu/b_secrets/orders_control.toml",
+     "path": "/tmp/keytrace-3d2fz32d/b_secrets/orders_control.toml",
      "flags": "O_RDONLY|O_CLOEXEC",
      "result": "8"
     },
     {
      "syscall": "openat",
-     "path": "/tmp/keytrace-3amhymxu/b_secrets/orders_control.toml",
+     "path": "/tmp/keytrace-3d2fz32d/b_secrets/orders_control.toml",
      "flags": "O_RDONLY|O_CLOEXEC",
      "result": "8"
     },
     {
      "syscall": "openat",
-     "path": "/tmp/keytrace-3amhymxu/b_secrets",
+     "path": "/tmp/keytrace-3d2fz32d/b_secrets",
      "flags": "O_RDONLY|O_CLOEXEC",
      "result": "8"
     },
     {
      "syscall": "openat",
-     "path": "/tmp/keytrace-3amhymxu/b_secrets/orders_control.toml",
+     "path": "/tmp/keytrace-3d2fz32d/b_secrets/orders_control.toml",
      "flags": "O_RDONLY|O_CLOEXEC",
      "result": "8"
     },
     {
      "syscall": "openat",
-     "path": "/tmp/keytrace-3amhymxu/b_secrets",
+     "path": "/tmp/keytrace-3d2fz32d/b_secrets",
      "flags": "O_RDONLY|O_CLOEXEC",
      "result": "8"
     },
     {
      "syscall": "openat",
-     "path": "/tmp/keytrace-3amhymxu/b_secrets/orders_control.toml",
+     "path": "/tmp/keytrace-3d2fz32d/b_secrets/orders_control.toml",
      "flags": "O_RDONLY|O_CLOEXEC",
      "result": "8"
     },
     {
      "syscall": "openat",
-     "path": "/tmp/keytrace-3amhymxu/b_secrets/orders_control.toml",
+     "path": "/tmp/keytrace-3d2fz32d/b_secrets/orders_control.toml",
      "flags": "O_RDONLY|O_CLOEXEC",
      "result": "8"
     },
     {
      "syscall": "openat",
-     "path": "/tmp/keytrace-3amhymxu/b_secrets/orders_control.toml",
+     "path": "/tmp/keytrace-3d2fz32d/b_secrets/orders_control.toml",
      "flags": "O_RDONLY|O_CLOEXEC",
      "result": "8"
     },
     {
      "syscall": "openat",
-     "path": "/tmp/keytrace-3amhymxu/b_secrets/orders_control.toml",
+     "path": "/tmp/keytrace-3d2fz32d/b_secrets/orders_control.toml",
      "flags": "O_RDONLY|O_CLOEXEC",
      "result": "8"
     },
     {
      "syscall": "openat",
-     "path": "/tmp/keytrace-3amhymxu/b_secrets/orders_control.toml",
+     "path": "/tmp/keytrace-3d2fz32d/b_secrets/orders_control.toml",
      "flags": "O_RDONLY|O_CLOEXEC",
      "result": "8"
     },
     {
      "syscall": "openat",
-     "path": "/tmp/keytrace-3amhymxu/b_secrets/orders_control.toml",
+     "path": "/tmp/keytrace-3d2fz32d/b_secrets/orders_control.toml",
      "flags": "O_RDONLY|O_CLOEXEC",
      "result": "8"
     },
     {
      "syscall": "openat",
-     "path": "/tmp/keytrace-3amhymxu/b_secrets/orders_control.toml",
+     "path": "/tmp/keytrace-3d2fz32d/b_secrets/orders_control.toml",
      "flags": "O_RDONLY|O_CLOEXEC",
      "result": "8"
     },
     {
      "syscall": "openat",
-     "path": "/tmp/keytrace-3amhymxu/b_secrets/orders_control.toml",
+     "path": "/tmp/keytrace-3d2fz32d/b_secrets/orders_control.toml",
      "flags": "O_RDONLY|O_CLOEXEC",
      "result": "8"
     },
     {
      "syscall": "openat",
-     "path": "/tmp/keytrace-3amhymxu/b_secrets/orders_control.toml",
+     "path": "/tmp/keytrace-3d2fz32d/b_secrets/orders_control.toml",
      "flags": "O_RDONLY|O_CLOEXEC",
      "result": "8"
     },
     {
      "syscall": "openat",
-     "path": "/tmp/keytrace-3amhymxu/b_secrets/orders_control.toml",
+     "path": "/tmp/keytrace-3d2fz32d/b_secrets/orders_control.toml",
      "flags": "O_RDONLY|O_CLOEXEC",
      "result": "8"
     },
     {
      "syscall": "openat",
-     "path": "/tmp/keytrace-3amhymxu/b_secrets/orders_control.toml",
+     "path": "/tmp/keytrace-3d2fz32d/b_secrets/orders_control.toml",
      "flags": "O_RDONLY|O_CLOEXEC",
      "result": "8"
     },
     {
      "syscall": "openat",
-     "path": "/tmp/keytrace-3amhymxu/b_secrets/orders_control.toml",
+     "path": "/tmp/keytrace-3d2fz32d/b_secrets/orders_control.toml",
      "flags": "O_RDONLY|O_CLOEXEC",
      "result": "8"
     },
     {
      "syscall": "openat",
-     "path": "/tmp/keytrace-3amhymxu/b_secrets/orders_control.toml",
+     "path": "/tmp/keytrace-3d2fz32d/b_secrets/orders_control.toml",
      "flags": "O_RDONLY|O_CLOEXEC",
      "result": "8"
     },
     {
      "syscall": "openat",
-     "path": "/tmp/keytrace-3amhymxu/b_secrets/orders_control.toml",
+     "path": "/tmp/keytrace-3d2fz32d/b_secrets/orders_control.toml",
      "flags": "O_RDONLY|O_CLOEXEC",
      "result": "8"
     },
     {
      "syscall": "openat",
-     "path": "/tmp/keytrace-3amhymxu/b_secrets/orders_control.toml",
+     "path": "/tmp/keytrace-3d2fz32d/b_secrets/orders_control.toml",
      "flags": "O_RDONLY|O_CLOEXEC",
      "result": "8"
     },
     {
      "syscall": "openat",
-     "path": "/tmp/keytrace-3amhymxu/b_secrets/orders_control.toml",
+     "path": "/tmp/keytrace-3d2fz32d/b_secrets/orders_control.toml",
      "flags": "O_RDONLY|O_CLOEXEC",
      "result": "8"
     },
     {
      "syscall": "openat",
-     "path": "/tmp/keytrace-3amhymxu/b_secrets/orders_control.toml",
+     "path": "/tmp/keytrace-3d2fz32d/b_secrets/orders_control.toml",
      "flags": "O_RDONLY|O_CLOEXEC",
      "result": "8"
     },
     {
      "syscall": "openat",
-     "path": "/tmp/keytrace-3amhymxu/b_secrets/orders_control.toml",
+     "path": "/tmp/keytrace-3d2fz32d/b_secrets/orders_control.toml",
      "flags": "O_RDONLY|O_CLOEXEC",
      "result": "8"
     },
     {
      "syscall": "openat",
-     "path": "/tmp/keytrace-3amhymxu/b_secrets/orders_control.toml",
+     "path": "/tmp/keytrace-3d2fz32d/b_secrets/orders_control.toml",
      "flags": "O_RDONLY|O_CLOEXEC",
      "result": "8"
     },
     {
      "syscall": "openat",
-     "path": "/tmp/keytrace-3amhymxu/b_secrets/orders_control.toml",
+     "path": "/tmp/keytrace-3d2fz32d/b_secrets/orders_control.toml",
      "flags": "O_RDONLY|O_CLOEXEC",
      "result": "8"
     },
     {
      "syscall": "openat",
-     "path": "/tmp/keytrace-3amhymxu/b_secrets/orders_control.toml",
+     "path": "/tmp/keytrace-3d2fz32d/b_secrets/orders_control.toml",
      "flags": "O_RDONLY|O_CLOEXEC",
      "result": "8"
     },
     {
      "syscall": "openat",
-     "path": "/tmp/keytrace-3amhymxu/b_secrets/orders_control.toml",
+     "path": "/tmp/keytrace-3d2fz32d/b_secrets/orders_control.toml",
      "flags": "O_RDONLY|O_CLOEXEC",
      "result": "8"
     },
     {
      "syscall": "openat",
-     "path": "/tmp/keytrace-3amhymxu/b_secrets/orders_control.toml",
+     "path": "/tmp/keytrace-3d2fz32d/b_secrets/orders_control.toml",
      "flags": "O_RDONLY|O_CLOEXEC",
      "result": "8"
     },
     {
      "syscall": "openat",
-     "path": "/tmp/keytrace-3amhymxu/b_secrets/orders_control.toml",
+     "path": "/tmp/keytrace-3d2fz32d/b_secrets/orders_control.toml",
      "flags": "O_RDONLY|O_CLOEXEC",
      "result": "8"
     },
     {
      "syscall": "openat",
-     "path": "/tmp/keytrace-3amhymxu/b_secrets/orders_control.toml",
+     "path": "/tmp/keytrace-3d2fz32d/b_secrets/orders_control.toml",
      "flags": "O_RDONLY|O_CLOEXEC",
      "result": "8"
     },
     {
      "syscall": "openat",
-     "path": "/tmp/keytrace-3amhymxu/b_secrets/orders_control.toml",
+     "path": "/tmp/keytrace-3d2fz32d/b_secrets/orders_control.toml",
      "flags": "O_RDONLY|O_CLOEXEC",
      "result": "8"
     },
     {
      "syscall": "openat",
-     "path": "/tmp/keytrace-3amhymxu/b_secrets/orders_control.toml",
+     "path": "/tmp/keytrace-3d2fz32d/b_secrets/orders_control.toml",
      "flags": "O_RDONLY|O_CLOEXEC",
      "result": "8"
     },
     {
      "syscall": "openat",
-     "path": "/tmp/keytrace-3amhymxu/b_secrets/orders_control.toml",
+     "path": "/tmp/keytrace-3d2fz32d/b_secrets/orders_control.toml",
      "flags": "O_RDONLY|O_CLOEXEC",
      "result": "8"
     },
     {
      "syscall": "openat",
-     "path": "/tmp/keytrace-3amhymxu/b_secrets/orders_control.toml",
+     "path": "/tmp/keytrace-3d2fz32d/b_secrets/orders_control.toml",
      "flags": "O_RDONLY|O_CLOEXEC",
      "result": "8"
     },
     {
      "syscall": "openat",
-     "path": "/tmp/keytrace-3amhymxu/b_secrets/orders_control.toml",
+     "path": "/tmp/keytrace-3d2fz32d/b_secrets/orders_control.toml",
      "flags": "O_RDONLY|O_CLOEXEC",
      "result": "8"
     },
     {
      "syscall": "openat",
-     "path": "/tmp/keytrace-3amhymxu/b_secrets/orders_control.toml",
+     "path": "/tmp/keytrace-3d2fz32d/b_secrets/orders_control.toml",
      "flags": "O_RDONLY|O_CLOEXEC",
      "result": "8"
     },
     {
      "syscall": "openat",
-     "path": "/tmp/keytrace-3amhymxu/b_secrets/orders_control.toml",
+     "path": "/tmp/keytrace-3d2fz32d/b_secrets/orders_control.toml",
      "flags": "O_RDONLY|O_CLOEXEC",
      "result": "8"
     },
     {
      "syscall": "openat",
-     "path": "/tmp/keytrace-3amhymxu/b_secrets/orders_control.toml",
+     "path": "/tmp/keytrace-3d2fz32d/b_secrets/orders_control.toml",
      "flags": "O_RDONLY|O_CLOEXEC",
      "result": "8"
     },
     {
      "syscall": "openat",
-     "path": "/tmp/keytrace-3amhymxu/b_secrets/orders_control.toml",
+     "path": "/tmp/keytrace-3d2fz32d/b_secrets/orders_control.toml",
      "flags": "O_RDONLY|O_CLOEXEC",
      "result": "8"
     },
     {
      "syscall": "openat",
-     "path": "/tmp/keytrace-3amhymxu/b_secrets/orders_control.toml",
+     "path": "/tmp/keytrace-3d2fz32d/b_secrets/orders_control.toml",
      "flags": "O_RDONLY|O_CLOEXEC",
      "result": "8"
     },
     {
      "syscall": "openat",
-     "path": "/tmp/keytrace-3amhymxu/b_secrets/orders_control.toml",
+     "path": "/tmp/keytrace-3d2fz32d/b_secrets/orders_control.toml",
      "flags": "O_RDONLY|O_CLOEXEC",
      "result": "8"
     },
     {
      "syscall": "openat",
-     "path": "/tmp/keytrace-3amhymxu/b_secrets/orders_control.toml",
+     "path": "/tmp/keytrace-3d2fz32d/b_secrets/orders_control.toml",
      "flags": "O_RDONLY|O_CLOEXEC",
      "result": "8"
     },
     {
      "syscall": "openat",
-     "path": "/tmp/keytrace-3amhymxu/b_secrets/orders_control.toml",
+     "path": "/tmp/keytrace-3d2fz32d/b_secrets/orders_control.toml",
      "flags": "O_RDONLY|O_CLOEXEC",
      "result": "8"
     },
     {
      "syscall": "openat",
-     "path": "/tmp/keytrace-3amhymxu/b_secrets/orders_control.toml",
+     "path": "/tmp/keytrace-3d2fz32d/b_secrets/orders_control.toml",
      "flags": "O_RDONLY|O_CLOEXEC",
      "result": "8"
     },
     {
      "syscall": "openat",
-     "path": "/tmp/keytrace-3amhymxu/b_secrets/orders_control.toml",
+     "path": "/tmp/keytrace-3d2fz32d/b_secrets/orders_control.toml",
      "flags": "O_RDONLY|O_CLOEXEC",
      "result": "8"
     },
     {
      "syscall": "openat",
-     "path": "/tmp/keytrace-3amhymxu/b_secrets/orders_control.toml",
+     "path": "/tmp/keytrace-3d2fz32d/b_secrets/orders_control.toml",
      "flags": "O_RDONLY|O_CLOEXEC",
      "result": "8"
     },
     {
      "syscall": "openat",
-     "path": "/tmp/keytrace-3amhymxu/b_secrets/orders_control.toml",
+     "path": "/tmp/keytrace-3d2fz32d/b_secrets/orders_control.toml",
      "flags": "O_RDONLY|O_CLOEXEC",
      "result": "8"
     },
     {
      "syscall": "openat",
-     "path": "/tmp/keytrace-3amhymxu/b_secrets/orders_control.toml",
+     "path": "/tmp/keytrace-3d2fz32d/b_secrets/orders_control.toml",
      "flags": "O_RDONLY|O_CLOEXEC",
      "result": "8"
     },
     {
      "syscall": "openat",
-     "path": "/tmp/keytrace-3amhymxu/b_secrets/orders_control.toml",
+     "path": "/tmp/keytrace-3d2fz32d/b_secrets/orders_control.toml",
      "flags": "O_RDONLY|O_CLOEXEC",
      "result": "8"
     },
     {
      "syscall": "openat",
-     "path": "/tmp/keytrace-3amhymxu/b_secrets/orders_control.toml",
+     "path": "/tmp/keytrace-3d2fz32d/b_secrets/orders_control.toml",
      "flags": "O_RDONLY|O_CLOEXEC",
      "result": "8"
     },
     {
      "syscall": "openat",
-     "path": "/tmp/keytrace-3amhymxu/b_secrets/orders_control.toml",
+     "path": "/tmp/keytrace-3d2fz32d/b_secrets/orders_control.toml",
      "flags": "O_RDONLY|O_CLOEXEC",
      "result": "8"
     },
     {
      "syscall": "openat",
-     "path": "/tmp/keytrace-3amhymxu/b_secrets/orders_control.toml",
+     "path": "/tmp/keytrace-3d2fz32d/b_secrets/orders_control.toml",
      "flags": "O_RDONLY|O_CLOEXEC",
      "result": "8"
     },
     {
      "syscall": "openat",
-     "path": "/tmp/keytrace-3amhymxu/b_secrets/orders_control.toml",
+     "path": "/tmp/keytrace-3d2fz32d/b_secrets/orders_control.toml",
      "flags": "O_RDONLY|O_CLOEXEC",
      "result": "8"
     },
     {
      "syscall": "openat",
-     "path": "/tmp/keytrace-3amhymxu/b_secrets/orders_control.toml",
+     "path": "/tmp/keytrace-3d2fz32d/b_secrets/orders_control.toml",
      "flags": "O_RDONLY|O_CLOEXEC",
      "result": "8"
     },
     {
      "syscall": "openat",
-     "path": "/tmp/keytrace-3amhymxu/b_secrets/orders_control.toml",
+     "path": "/tmp/keytrace-3d2fz32d/b_secrets/orders_control.toml",
      "flags": "O_RDONLY|O_CLOEXEC",
      "result": "8"
     },
     {
      "syscall": "openat",
-     "path": "/tmp/keytrace-3amhymxu/b_secrets/orders_control.toml",
+     "path": "/tmp/keytrace-3d2fz32d/b_secrets/orders_control.toml",
      "flags": "O_RDONLY|O_CLOEXEC",
      "result": "8"
     },
     {
      "syscall": "openat",
-     "path": "/tmp/keytrace-3amhymxu/b_secrets/orders_control.toml",
+     "path": "/tmp/keytrace-3d2fz32d/b_secrets/orders_control.toml",
      "flags": "O_RDONLY|O_CLOEXEC",
      "result": "8"
     },
     {
      "syscall": "openat",
-     "path": "/tmp/keytrace-3amhymxu/b_secrets/orders_control.toml",
+     "path": "/tmp/keytrace-3d2fz32d/b_secrets/orders_control.toml",
      "flags": "O_RDONLY|O_CLOEXEC",
      "result": "8"
     },
     {
      "syscall": "openat",
-     "path": "/tmp/keytrace-3amhymxu/b_secrets/orders_control.toml",
+     "path": "/tmp/keytrace-3d2fz32d/b_secrets/orders_control.toml",
      "flags": "O_RDONLY|O_CLOEXEC",
      "result": "8"
     },
     {
      "syscall": "openat",
-     "path": "/tmp/keytrace-3amhymxu/b_secrets/orders_control.toml",
+     "path": "/tmp/keytrace-3d2fz32d/b_secrets/orders_control.toml",
      "flags": "O_RDONLY|O_CLOEXEC",
      "result": "8"
     },
     {
      "syscall": "openat",
-     "path": "/tmp/keytrace-3amhymxu/b_secrets/orders_control.toml",
+     "path": "/tmp/keytrace-3d2fz32d/b_secrets/orders_control.toml",
      "flags": "O_RDONLY|O_CLOEXEC",
      "result": "8"
     },
     {
      "syscall": "openat",
-     "path": "/tmp/keytrace-3amhymxu/b_secrets/orders_control.toml",
+     "path": "/tmp/keytrace-3d2fz32d/b_secrets/orders_control.toml",
      "flags": "O_RDONLY|O_CLOEXEC",
      "result": "8"
     },
     {
      "syscall": "openat",
-     "path": "/tmp/keytrace-3amhymxu/b_secrets/orders_control.toml",
+     "path": "/tmp/keytrace-3d2fz32d/b_secrets/orders_control.toml",
      "flags": "O_RDONLY|O_CLOEXEC",
      "result": "8"
     },
     {
      "syscall": "openat",
-     "path": "/tmp/keytrace-3amhymxu/b_secrets/orders_control.toml",
+     "path": "/tmp/keytrace-3d2fz32d/b_secrets/orders_control.toml",
      "flags": "O_RDONLY|O_CLOEXEC",
      "result": "8"
     }
@@ -588,19 +592,19 @@
    "open_for_write": [
     {
      "syscall": "openat",
-     "path": "/tmp/keytrace-3amhymxu/b_secrets/.ledger-mrk7ajbe",
+     "path": "/tmp/keytrace-3d2fz32d/b_secrets/.ledger-l3rukmhd",
      "flags": "O_RDWR|O_CREAT|O_EXCL|O_NOFOLLOW|O_CLOEXEC",
      "result": "7"
     },
     {
      "syscall": "openat",
-     "path": "/tmp/keytrace-3amhymxu/b_secrets/.ledger-b5oyj86w",
+     "path": "/tmp/keytrace-3d2fz32d/b_secrets/.ledger-2zrkkfsi",
      "flags": "O_RDWR|O_CREAT|O_EXCL|O_NOFOLLOW|O_CLOEXEC",
      "result": "8"
     },
     {
      "syscall": "openat",
-     "path": "/tmp/keytrace-3amhymxu/b_secrets/.ledger-cuoyt4uu",
+     "path": "/tmp/keytrace-3d2fz32d/b_secrets/.ledger-qm83umlm",
      "flags": "O_RDWR|O_CREAT|O_EXCL|O_NOFOLLOW|O_CLOEXEC",
      "result": "8"
     }
@@ -608,393 +612,409 @@
    "metadata_only": [
     {
      "syscall": "newfstatat",
-     "path": "/tmp/keytrace-3amhymxu/b_secrets/binance_api_key",
+     "path": "/tmp/keytrace-3d2fz32d/b_secrets/binance_api_key",
      "result": "0"
     },
     {
      "syscall": "newfstatat",
-     "path": "/tmp/keytrace-3amhymxu/b_secrets/binance_ed25519_private_key",
+     "path": "/tmp/keytrace-3d2fz32d/b_secrets/binance_ed25519_private_key",
      "result": "0"
     },
     {
      "syscall": "newfstatat",
-     "path": "/tmp/keytrace-3amhymxu/b_secrets/orders_ledger.json",
+     "path": "/tmp/keytrace-3d2fz32d/b_secrets/orders_ledger.json",
      "result": "-1 ENOENT (No such file or directory)"
     },
     {
      "syscall": "newfstatat",
-     "path": "/tmp/keytrace-3amhymxu/b_secrets",
+     "path": "/tmp/keytrace-3d2fz32d/b_secrets",
      "result": "0"
     },
     {
      "syscall": "rename",
-     "path": "/tmp/keytrace-3amhymxu/b_secrets/.ledger-mrk7ajbe",
+     "path": "/tmp/keytrace-3d2fz32d/b_secrets/.ledger-l3rukmhd",
      "result": "0"
     },
     {
      "syscall": "newfstatat",
-     "path": "/tmp/keytrace-3amhymxu/b_secrets/orders_control.toml",
+     "path": "/tmp/keytrace-3d2fz32d/b_secrets/orders_control.toml",
      "result": "0"
     },
     {
      "syscall": "newfstatat",
-     "path": "/tmp/keytrace-3amhymxu/b_secrets/orders_control.toml",
+     "path": "/tmp/keytrace-3d2fz32d/b_secrets/orders_control.toml",
      "result": "0"
     },
     {
      "syscall": "newfstatat",
-     "path": "/tmp/keytrace-3amhymxu/b_secrets/orders_control.toml",
+     "path": "/tmp/keytrace-3d2fz32d/b_secrets/orders_control.toml",
      "result": "0"
     },
     {
      "syscall": "newfstatat",
-     "path": "/tmp/keytrace-3amhymxu/b_secrets/orders_control.toml",
+     "path": "/tmp/keytrace-3d2fz32d/b_secrets/orders_control.toml",
      "result": "0"
     },
     {
      "syscall": "newfstatat",
-     "path": "/tmp/keytrace-3amhymxu/b_secrets/orders_control.toml",
+     "path": "/tmp/keytrace-3d2fz32d/b_secrets/orders_control.toml",
      "result": "0"
     },
     {
      "syscall": "newfstatat",
-     "path": "/tmp/keytrace-3amhymxu/b_secrets/orders_control.toml",
+     "path": "/tmp/keytrace-3d2fz32d/b_secrets/orders_control.toml",
      "result": "0"
     },
     {
      "syscall": "newfstatat",
-     "path": "/tmp/keytrace-3amhymxu/b_secrets/orders_control.toml",
+     "path": "/tmp/keytrace-3d2fz32d/b_secrets/orders_control.toml",
      "result": "0"
     },
     {
      "syscall": "newfstatat",
-     "path": "/tmp/keytrace-3amhymxu/b_secrets/orders_control.toml",
+     "path": "/tmp/keytrace-3d2fz32d/b_secrets/orders_control.toml",
      "result": "0"
     },
     {
      "syscall": "newfstatat",
-     "path": "/tmp/keytrace-3amhymxu/b_secrets/orders_control.toml",
-     "result": "0"
-    },
-    {
-     "syscall": "rename",
-     "path": "/tmp/keytrace-3amhymxu/b_secrets/.ledger-b5oyj86w",
-     "result": "0"
-    },
-    {
-     "syscall": "newfstatat",
-     "path": "/tmp/keytrace-3amhymxu/b_secrets/orders_control.toml",
+     "path": "/tmp/keytrace-3d2fz32d/b_secrets/orders_control.toml",
      "result": "0"
     },
     {
      "syscall": "rename",
-     "path": "/tmp/keytrace-3amhymxu/b_secrets/.ledger-cuoyt4uu",
+     "path": "/tmp/keytrace-3d2fz32d/b_secrets/.ledger-2zrkkfsi",
      "result": "0"
     },
     {
      "syscall": "newfstatat",
-     "path": "/tmp/keytrace-3amhymxu/b_secrets/orders_control.toml",
+     "path": "/tmp/keytrace-3d2fz32d/b_secrets/orders_control.toml",
+     "result": "0"
+    },
+    {
+     "syscall": "rename",
+     "path": "/tmp/keytrace-3d2fz32d/b_secrets/.ledger-qm83umlm",
      "result": "0"
     },
     {
      "syscall": "newfstatat",
-     "path": "/tmp/keytrace-3amhymxu/b_secrets/orders_control.toml",
+     "path": "/tmp/keytrace-3d2fz32d/b_secrets/orders_control.toml",
      "result": "0"
     },
     {
      "syscall": "newfstatat",
-     "path": "/tmp/keytrace-3amhymxu/b_secrets/orders_control.toml",
+     "path": "/tmp/keytrace-3d2fz32d/b_secrets/orders_control.toml",
      "result": "0"
     },
     {
      "syscall": "newfstatat",
-     "path": "/tmp/keytrace-3amhymxu/b_secrets/orders_control.toml",
+     "path": "/tmp/keytrace-3d2fz32d/b_secrets/orders_control.toml",
      "result": "0"
     },
     {
      "syscall": "newfstatat",
-     "path": "/tmp/keytrace-3amhymxu/b_secrets/orders_control.toml",
+     "path": "/tmp/keytrace-3d2fz32d/b_secrets/orders_control.toml",
      "result": "0"
     },
     {
      "syscall": "newfstatat",
-     "path": "/tmp/keytrace-3amhymxu/b_secrets/orders_control.toml",
+     "path": "/tmp/keytrace-3d2fz32d/b_secrets/orders_control.toml",
      "result": "0"
     },
     {
      "syscall": "newfstatat",
-     "path": "/tmp/keytrace-3amhymxu/b_secrets/orders_control.toml",
+     "path": "/tmp/keytrace-3d2fz32d/b_secrets/orders_control.toml",
      "result": "0"
     },
     {
      "syscall": "newfstatat",
-     "path": "/tmp/keytrace-3amhymxu/b_secrets/orders_control.toml",
+     "path": "/tmp/keytrace-3d2fz32d/b_secrets/orders_control.toml",
      "result": "0"
     },
     {
      "syscall": "newfstatat",
-     "path": "/tmp/keytrace-3amhymxu/b_secrets/orders_control.toml",
+     "path": "/tmp/keytrace-3d2fz32d/b_secrets/orders_control.toml",
      "result": "0"
     },
     {
      "syscall": "newfstatat",
-     "path": "/tmp/keytrace-3amhymxu/b_secrets/orders_control.toml",
+     "path": "/tmp/keytrace-3d2fz32d/b_secrets/orders_control.toml",
      "result": "0"
     },
     {
      "syscall": "newfstatat",
-     "path": "/tmp/keytrace-3amhymxu/b_secrets/orders_control.toml",
+     "path": "/tmp/keytrace-3d2fz32d/b_secrets/orders_control.toml",
      "result": "0"
     },
     {
      "syscall": "newfstatat",
-     "path": "/tmp/keytrace-3amhymxu/b_secrets/orders_control.toml",
+     "path": "/tmp/keytrace-3d2fz32d/b_secrets/orders_control.toml",
      "result": "0"
     },
     {
      "syscall": "newfstatat",
-     "path": "/tmp/keytrace-3amhymxu/b_secrets/orders_control.toml",
+     "path": "/tmp/keytrace-3d2fz32d/b_secrets/orders_control.toml",
      "result": "0"
     },
     {
      "syscall": "newfstatat",
-     "path": "/tmp/keytrace-3amhymxu/b_secrets/orders_control.toml",
+     "path": "/tmp/keytrace-3d2fz32d/b_secrets/orders_control.toml",
      "result": "0"
     },
     {
      "syscall": "newfstatat",
-     "path": "/tmp/keytrace-3amhymxu/b_secrets/orders_control.toml",
+     "path": "/tmp/keytrace-3d2fz32d/b_secrets/orders_control.toml",
      "result": "0"
     },
     {
      "syscall": "newfstatat",
-     "path": "/tmp/keytrace-3amhymxu/b_secrets/orders_control.toml",
+     "path": "/tmp/keytrace-3d2fz32d/b_secrets/orders_control.toml",
      "result": "0"
     },
     {
      "syscall": "newfstatat",
-     "path": "/tmp/keytrace-3amhymxu/b_secrets/orders_control.toml",
+     "path": "/tmp/keytrace-3d2fz32d/b_secrets/orders_control.toml",
      "result": "0"
     },
     {
      "syscall": "newfstatat",
-     "path": "/tmp/keytrace-3amhymxu/b_secrets/orders_control.toml",
+     "path": "/tmp/keytrace-3d2fz32d/b_secrets/orders_control.toml",
      "result": "0"
     },
     {
      "syscall": "newfstatat",
-     "path": "/tmp/keytrace-3amhymxu/b_secrets/orders_control.toml",
+     "path": "/tmp/keytrace-3d2fz32d/b_secrets/orders_control.toml",
      "result": "0"
     },
     {
      "syscall": "newfstatat",
-     "path": "/tmp/keytrace-3amhymxu/b_secrets/orders_control.toml",
+     "path": "/tmp/keytrace-3d2fz32d/b_secrets/orders_control.toml",
      "result": "0"
     },
     {
      "syscall": "newfstatat",
-     "path": "/tmp/keytrace-3amhymxu/b_secrets/orders_control.toml",
+     "path": "/tmp/keytrace-3d2fz32d/b_secrets/orders_control.toml",
      "result": "0"
     },
     {
      "syscall": "newfstatat",
-     "path": "/tmp/keytrace-3amhymxu/b_secrets/orders_control.toml",
+     "path": "/tmp/keytrace-3d2fz32d/b_secrets/orders_control.toml",
      "result": "0"
     },
     {
      "syscall": "newfstatat",
-     "path": "/tmp/keytrace-3amhymxu/b_secrets/orders_control.toml",
+     "path": "/tmp/keytrace-3d2fz32d/b_secrets/orders_control.toml",
      "result": "0"
     },
     {
      "syscall": "newfstatat",
-     "path": "/tmp/keytrace-3amhymxu/b_secrets/orders_control.toml",
+     "path": "/tmp/keytrace-3d2fz32d/b_secrets/orders_control.toml",
      "result": "0"
     },
     {
      "syscall": "newfstatat",
-     "path": "/tmp/keytrace-3amhymxu/b_secrets/orders_control.toml",
+     "path": "/tmp/keytrace-3d2fz32d/b_secrets/orders_control.toml",
      "result": "0"
     },
     {
      "syscall": "newfstatat",
-     "path": "/tmp/keytrace-3amhymxu/b_secrets/orders_control.toml",
+     "path": "/tmp/keytrace-3d2fz32d/b_secrets/orders_control.toml",
      "result": "0"
     },
     {
      "syscall": "newfstatat",
-     "path": "/tmp/keytrace-3amhymxu/b_secrets/orders_control.toml",
+     "path": "/tmp/keytrace-3d2fz32d/b_secrets/orders_control.toml",
      "result": "0"
     },
     {
      "syscall": "newfstatat",
-     "path": "/tmp/keytrace-3amhymxu/b_secrets/orders_control.toml",
+     "path": "/tmp/keytrace-3d2fz32d/b_secrets/orders_control.toml",
      "result": "0"
     },
     {
      "syscall": "newfstatat",
-     "path": "/tmp/keytrace-3amhymxu/b_secrets/orders_control.toml",
+     "path": "/tmp/keytrace-3d2fz32d/b_secrets/orders_control.toml",
      "result": "0"
     },
     {
      "syscall": "newfstatat",
-     "path": "/tmp/keytrace-3amhymxu/b_secrets/orders_control.toml",
+     "path": "/tmp/keytrace-3d2fz32d/b_secrets/orders_control.toml",
      "result": "0"
     },
     {
      "syscall": "newfstatat",
-     "path": "/tmp/keytrace-3amhymxu/b_secrets/orders_control.toml",
+     "path": "/tmp/keytrace-3d2fz32d/b_secrets/orders_control.toml",
      "result": "0"
     },
     {
      "syscall": "newfstatat",
-     "path": "/tmp/keytrace-3amhymxu/b_secrets/orders_control.toml",
+     "path": "/tmp/keytrace-3d2fz32d/b_secrets/orders_control.toml",
      "result": "0"
     },
     {
      "syscall": "newfstatat",
-     "path": "/tmp/keytrace-3amhymxu/b_secrets/orders_control.toml",
+     "path": "/tmp/keytrace-3d2fz32d/b_secrets/orders_control.toml",
      "result": "0"
     },
     {
      "syscall": "newfstatat",
-     "path": "/tmp/keytrace-3amhymxu/b_secrets/orders_control.toml",
+     "path": "/tmp/keytrace-3d2fz32d/b_secrets/orders_control.toml",
      "result": "0"
     },
     {
      "syscall": "newfstatat",
-     "path": "/tmp/keytrace-3amhymxu/b_secrets/orders_control.toml",
+     "path": "/tmp/keytrace-3d2fz32d/b_secrets/orders_control.toml",
      "result": "0"
     },
     {
      "syscall": "newfstatat",
-     "path": "/tmp/keytrace-3amhymxu/b_secrets/orders_control.toml",
+     "path": "/tmp/keytrace-3d2fz32d/b_secrets/orders_control.toml",
      "result": "0"
     },
     {
      "syscall": "newfstatat",
-     "path": "/tmp/keytrace-3amhymxu/b_secrets/orders_control.toml",
+     "path": "/tmp/keytrace-3d2fz32d/b_secrets/orders_control.toml",
      "result": "0"
     },
     {
      "syscall": "newfstatat",
-     "path": "/tmp/keytrace-3amhymxu/b_secrets/orders_control.toml",
+     "path": "/tmp/keytrace-3d2fz32d/b_secrets/orders_control.toml",
      "result": "0"
     },
     {
      "syscall": "newfstatat",
-     "path": "/tmp/keytrace-3amhymxu/b_secrets/orders_control.toml",
+     "path": "/tmp/keytrace-3d2fz32d/b_secrets/orders_control.toml",
      "result": "0"
     },
     {
      "syscall": "newfstatat",
-     "path": "/tmp/keytrace-3amhymxu/b_secrets/orders_control.toml",
+     "path": "/tmp/keytrace-3d2fz32d/b_secrets/orders_control.toml",
      "result": "0"
     },
     {
      "syscall": "newfstatat",
-     "path": "/tmp/keytrace-3amhymxu/b_secrets/orders_control.toml",
+     "path": "/tmp/keytrace-3d2fz32d/b_secrets/orders_control.toml",
      "result": "0"
     },
     {
      "syscall": "newfstatat",
-     "path": "/tmp/keytrace-3amhymxu/b_secrets/orders_control.toml",
+     "path": "/tmp/keytrace-3d2fz32d/b_secrets/orders_control.toml",
      "result": "0"
     },
     {
      "syscall": "newfstatat",
-     "path": "/tmp/keytrace-3amhymxu/b_secrets/orders_control.toml",
+     "path": "/tmp/keytrace-3d2fz32d/b_secrets/orders_control.toml",
      "result": "0"
     },
     {
      "syscall": "newfstatat",
-     "path": "/tmp/keytrace-3amhymxu/b_secrets/orders_control.toml",
+     "path": "/tmp/keytrace-3d2fz32d/b_secrets/orders_control.toml",
      "result": "0"
     },
     {
      "syscall": "newfstatat",
-     "path": "/tmp/keytrace-3amhymxu/b_secrets/orders_control.toml",
+     "path": "/tmp/keytrace-3d2fz32d/b_secrets/orders_control.toml",
      "result": "0"
     },
     {
      "syscall": "newfstatat",
-     "path": "/tmp/keytrace-3amhymxu/b_secrets/orders_control.toml",
+     "path": "/tmp/keytrace-3d2fz32d/b_secrets/orders_control.toml",
      "result": "0"
     },
     {
      "syscall": "newfstatat",
-     "path": "/tmp/keytrace-3amhymxu/b_secrets/orders_control.toml",
+     "path": "/tmp/keytrace-3d2fz32d/b_secrets/orders_control.toml",
      "result": "0"
     },
     {
      "syscall": "newfstatat",
-     "path": "/tmp/keytrace-3amhymxu/b_secrets/orders_control.toml",
+     "path": "/tmp/keytrace-3d2fz32d/b_secrets/orders_control.toml",
      "result": "0"
     },
     {
      "syscall": "newfstatat",
-     "path": "/tmp/keytrace-3amhymxu/b_secrets/orders_control.toml",
+     "path": "/tmp/keytrace-3d2fz32d/b_secrets/orders_control.toml",
      "result": "0"
     },
     {
      "syscall": "newfstatat",
-     "path": "/tmp/keytrace-3amhymxu/b_secrets/orders_control.toml",
+     "path": "/tmp/keytrace-3d2fz32d/b_secrets/orders_control.toml",
      "result": "0"
     },
     {
      "syscall": "newfstatat",
-     "path": "/tmp/keytrace-3amhymxu/b_secrets/orders_control.toml",
+     "path": "/tmp/keytrace-3d2fz32d/b_secrets/orders_control.toml",
      "result": "0"
     },
     {
      "syscall": "newfstatat",
-     "path": "/tmp/keytrace-3amhymxu/b_secrets/orders_control.toml",
+     "path": "/tmp/keytrace-3d2fz32d/b_secrets/orders_control.toml",
      "result": "0"
     },
     {
      "syscall": "newfstatat",
-     "path": "/tmp/keytrace-3amhymxu/b_secrets/orders_control.toml",
+     "path": "/tmp/keytrace-3d2fz32d/b_secrets/orders_control.toml",
      "result": "0"
     },
     {
      "syscall": "newfstatat",
-     "path": "/tmp/keytrace-3amhymxu/b_secrets/orders_control.toml",
+     "path": "/tmp/keytrace-3d2fz32d/b_secrets/orders_control.toml",
      "result": "0"
     },
     {
      "syscall": "newfstatat",
-     "path": "/tmp/keytrace-3amhymxu/b_secrets/orders_control.toml",
+     "path": "/tmp/keytrace-3d2fz32d/b_secrets/orders_control.toml",
      "result": "0"
     },
     {
      "syscall": "newfstatat",
-     "path": "/tmp/keytrace-3amhymxu/b_secrets/orders_control.toml",
+     "path": "/tmp/keytrace-3d2fz32d/b_secrets/orders_control.toml",
      "result": "0"
     },
     {
      "syscall": "newfstatat",
-     "path": "/tmp/keytrace-3amhymxu/b_secrets/orders_control.toml",
+     "path": "/tmp/keytrace-3d2fz32d/b_secrets/orders_control.toml",
      "result": "0"
     },
     {
      "syscall": "newfstatat",
-     "path": "/tmp/keytrace-3amhymxu/b_secrets/orders_control.toml",
+     "path": "/tmp/keytrace-3d2fz32d/b_secrets/orders_control.toml",
      "result": "0"
     },
     {
      "syscall": "newfstatat",
-     "path": "/tmp/keytrace-3amhymxu/b_secrets/orders_control.toml",
+     "path": "/tmp/keytrace-3d2fz32d/b_secrets/orders_control.toml",
+     "result": "0"
+    },
+    {
+     "syscall": "newfstatat",
+     "path": "/tmp/keytrace-3d2fz32d/b_secrets/orders_control.toml",
      "result": "0"
     }
    ],
+   "benign_repo_templates": [],
    "n_distinct_opened": 856
   },
-  "b_log_tail": "2026-09-30 18:08:06,722 INFO bot.orders.worker: 주문 프로세스 시작 복구: ok=True issues=[]\n2026-09-30 18:08:10,335 INFO bot.orders.worker: 의도 #1 → STOP_VERIFIED (stop_verified)\n"
+  "b_log_tail": "2026-09-30 19:25:54,242 INFO bot.orders.worker: 주문 프로세스 시작 복구: ok=True issues=[]\n2026-09-30 19:25:57,900 INFO bot.orders.worker: 의도 #1 → STOP_VERIFIED (stop_verified)\n"
  },
  "key_material_in_outputs": {
   "db": false,
   "a_sent_texts": false,
   "b_log": false
+ },
+ "A4_a_side_test_suite": {
+  "exit": 0,
+  "tail": [
+   "445 passed in 90.87s (0:01:30)"
+  ],
+  "trace": {
+   "open_for_read": [],
+   "n_open_for_write": 0,
+   "n_metadata_only": 0,
+   "benign_repo_templates": [
+    "/home/user/1111/config/orders_control.example.toml"
+   ],
+   "n_distinct_opened": 4491
+  }
  },
  "verdict": {
   "A1_refused": true,

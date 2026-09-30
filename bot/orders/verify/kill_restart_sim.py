@@ -284,7 +284,7 @@ class Run:
             "r_capital_usdt = 1000.0": "r_capital_usdt = 10000.0",
             "max_notional_usdt = 1000.0": "max_notional_usdt = 10000.0",
             "loop_interval_s = 2.0": "loop_interval_s = 0.5",
-            "reconcile_interval_s = 30": "reconcile_interval_s = 5",
+            "reconcile_interval_s = 10": "reconcile_interval_s = 5",
         }
         for a, b in repl.items():
             src = src.replace(a, b)
@@ -413,6 +413,21 @@ def scenario(hub, addr: str, root: Path, name: str, **kw: Any) -> dict[str, Any]
         notes.append(f"killed={died} state_at_kill={r.intent(iid)['state']}")
         if kw.get("stop_fail"):
             hub.clear_faults()
+        if kw.get("tamper"):
+            # 2차 검증(V-1 수정 확인): B가 죽은 동안 보호 트리거 1개 삭제 → 재시작은 거부(3)되어야 하고,
+            # 거부 전에 DB 없이 포지션을 청산해야 한다. compose 재시작처럼 한 번 더 띄워 추가 주문이 없는지 본다.
+            r.conn.execute("DROP TRIGGER order_events_no_delete")
+            r.conn.commit()
+            r.restart(kw.get("down", 1.0))
+            notes.append(f"tamper_restart_exited={r.wait_dead(90)} code={r.exit_codes[-1:]}")
+            posts_before = hub.status()["posts"]
+            r.restart(0.5)
+            notes.append(f"tamper_restart2_exited={r.wait_dead(90)} code={r.exit_codes[-1:]}")
+            notes.append(f"posts_after_1st={posts_before} posts_after_2nd={hub.status()['posts']}")
+            res = r.finish(1.0)
+            res["notes"] = notes
+            res["params"] = {k: v for k, v in kw.items()}
+            return res
         r.restart(kw.get("down", 1.0), kw.get("kill2"))
         if kw.get("kill2"):
             died2 = r.wait_dead(20)
@@ -493,6 +508,8 @@ SCENARIOS: list[tuple[str, dict[str, Any]]] = [
      dict(stop_fail=True, kill1=[("place_order", "after", "-f1")])),
     ("S10_stop_fires_while_b_dead", dict(idle_kill=True, fire_while_dead=True, down=3.0)),
     ("S11_kill_before_stop_place", dict(kill1=[("place_conditional", "before", "-sl")])),
+    ("S12_kill_after_fill_then_db_tamper_refused_restart",
+     dict(kill1=[("place_order", "after", "-e1")], tamper=True, down=1.0)),
 ]
 
 

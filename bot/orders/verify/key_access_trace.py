@@ -43,7 +43,7 @@ def strace_cmd(out: Path) -> list[str]:
 
 
 def parse_trace(path: Path, extra_sensitive: list[str]) -> dict[str, Any]:
-    reads, writes, meta = [], [], []
+    reads, writes, meta, benign = [], [], [], []
     opened_paths: set[str] = set()
     for line in path.read_text(errors="replace").splitlines():
         m = OPEN_RE.match(line)
@@ -51,6 +51,9 @@ def parse_trace(path: Path, extra_sensitive: list[str]) -> dict[str, Any]:
             p, flags = m.group(3), m.group(4)
             opened_paths.add(p)
             hit = SENSITIVE.search(p) or any(s and s in p for s in extra_sensitive)
+            if hit and p.startswith(str(REPO / "config")) and p.endswith(".example.toml"):
+                benign.append(p)             # 저장소의 견본 파일(비밀 아님 — A 시험의 비밀 스캔이 git 파일 전체를 읽음)
+                continue
             if hit:
                 rec = dict(syscall=m.group(2), path=p, flags=flags, result=line.rsplit("=", 1)[-1].strip())
                 (writes if ("O_WRONLY" in flags or "O_CREAT" in flags) else reads).append(rec)
@@ -58,7 +61,8 @@ def parse_trace(path: Path, extra_sensitive: list[str]) -> dict[str, Any]:
         m = ANY_RE.match(line)
         if m and (SENSITIVE.search(m.group(3)) or any(s and s in m.group(3) for s in extra_sensitive)):
             meta.append(dict(syscall=m.group(2), path=m.group(3), result=line.rsplit("=", 1)[-1].strip()))
-    return dict(open_for_read=reads, open_for_write=writes, metadata_only=meta, n_distinct_opened=len(opened_paths))
+    return dict(open_for_read=reads, open_for_write=writes, metadata_only=meta, benign_repo_templates=sorted(set(benign)),
+                n_distinct_opened=len(opened_paths))
 
 
 def write_secret(p: Path, data: bytes) -> None:
@@ -95,7 +99,7 @@ def make_env(d: Path) -> tuple[Path, Path, dict[str, str]]:
         "r_capital_usdt = 1000.0": "r_capital_usdt = 10000.0",
         "max_notional_usdt = 1000.0": "max_notional_usdt = 10000.0",
         "loop_interval_s = 2.0": "loop_interval_s = 0.5",
-        "reconcile_interval_s = 30": "reconcile_interval_s = 5",
+        "reconcile_interval_s = 10": "reconcile_interval_s = 5",
     }
 
     def render(view: Path, tg_dir: Path) -> str:
@@ -285,6 +289,7 @@ def main(argv: list[str] | None = None) -> int:
                                                trace=dict(open_for_read=tr["open_for_read"],
                                                           n_open_for_write=len(tr["open_for_write"]),
                                                           n_metadata_only=len(tr["metadata_only"]),
+                                                          benign_repo_templates=tr["benign_repo_templates"],
                                                           n_distinct_opened=tr["n_distinct_opened"]))
 
     def a_reads(k: str) -> list:
