@@ -1,0 +1,172 @@
+{
+ "1m": {
+  "rows": 1575360,
+  "from": "2023-10-01 00:00:00+00:00",
+  "to": "2026-09-28 23:59:00+00:00",
+  "duplicates": 0,
+  "gap_count": 0,
+  "missing_bars": 0,
+  "largest_gaps": [],
+  "bad_ohlc": 0,
+  "nonpositive_price": 0,
+  "zero_volume_bars": 225,
+  "taker_gt_volume": 0,
+  "max_bar_range_pct": 7.22,
+  "max_bar_range_at": "2025-10-10 21:19:00+00:00"
+ },
+ "5m": {
+  "rows": 709344,
+  "from": "2020-01-01 00:00:00+00:00",
+  "to": "2026-09-28 23:55:00+00:00",
+  "duplicates": 0,
+  "gap_count": 0,
+  "missing_bars": 0,
+  "largest_gaps": [],
+  "bad_ohlc": 0,
+  "nonpositive_price": 0,
+  "zero_volume_bars": 66,
+  "taker_gt_volume": 0,
+  "max_bar_range_pct": 31.4,
+  "max_bar_range_at": "2021-07-26 01:00:00+00:00"
+ },
+ "15m": {
+  "rows": 236448,
+  "from": "2020-01-01 00:00:00+00:00",
+  "to": "2026-09-28 23:45:00+00:00",
+  "duplicates": 0,
+  "gap_count": 0,
+  "missing_bars": 0,
+  "largest_gaps": [],
+  "bad_ohlc": 0,
+  "nonpositive_price": 0,
+  "zero_volume_bars": 15,
+  "taker_gt_volume": 0,
+  "max_bar_range_pct": 31.4,
+  "max_bar_range_at": "2021-07-26 01:00:00+00:00"
+ },
+ "1h": {
+  "rows": 59112,
+  "from": "2020-01-01 00:00:00+00:00",
+  "to": "2026-09-28 23:00:00+00:00",
+  "duplicates": 0,
+  "gap_count": 0,
+  "missing_bars": 0,
+  "largest_gaps": [],
+  "bad_ohlc": 0,
+  "nonpositive_price": 0,
+  "zero_volume_bars": 1,
+  "taker_gt_volume": 0,
+  "max_bar_range_pct": 44.35,
+  "max_bar_range_at": "2020-03-13 02:00:00+00:00"
+ },
+ "4h": {
+  "rows": 14778,
+  "from": "2020-01-01 00:00:00+00:00",
+  "to": "2026-09-28 20:00:00+00:00",
+  "duplicates": 0,
+  "gap_count": 0,
+  "missing_bars": 0,
+  "largest_gaps": [],
+  "bad_ohlc": 0,
+  "nonpositive_price": 0,
+  "zero_volume_bars": 0,
+  "taker_gt_volume": 0,
+  "max_bar_range_pct": 52.69,
+  "max_bar_range_at": "2020-03-13 00:00:00+00:00"
+ },
+ "1d": {
+  "rows": 2463,
+  "from": "2020-01-01 00:00:00+00:00",
+  "to": "2026-09-28 00:00:00+00:00",
+  "duplicates": 0,
+  "gap_count": 0,
+  "missing_bars": 0,
+  "largest_gaps": [],
+  "bad_ohlc": 0,
+  "nonpositive_price": 0,
+  "zero_volume_bars": 0,
+  "taker_gt_volume": 0,
+  "max_bar_range_pct": 83.32,
+  "max_bar_range_at": "2020-03-12 00:00:00+00:00"
+ },
+ "5m_to_1h": {
+  "compared_bars": 59112,
+  "mismatches": {
+   "open": 2,
+   "high": 2,
+   "low": 2,
+   "close": 1,
+   "volume_rel_gt_0.1pct": 6
+  }
+ },
+ "1m_to_5m": {
+  "compared_bars": 315072,
+  "mismatches": {
+   "open": 4,
+   "high": 2,
+   "low": 3,
+   "close": 0,
+   "volume_rel_gt_0.1pct": 4
+  }
+ },
+ "fundingRate": {
+  "rows": 7305,
+  "from": "2020-01-01 00:00:00+00:00",
+  "to": "2026-08-31 16:00:00+00:00",
+  "intervals_hours": {
+   "8.0": 7304
+  },
+  "rate_min_pct": -0.3,
+  "rate_max_pct": 0.3,
+  "rate_mean_pct": 0.01077
+ },
+ "metrics": {
+  "rows": 507604,
+  "columns": [
+   "sum_open_interest",
+   "sum_open_interest_value",
+   "count_toptrader_long_short_ratio",
+   "sum_toptrader_long_short_ratio",
+   "count_long_short_ratio",
+   "sum_taker_long_short_vol_ratio"
+  ],
+  "from": "2021-12-01 00:00:00+00:00",
+  "to": "2026-09-28 23:55:00+00:00",
+  "duplicates": 0,
+  "gap_count": 10,
+  "missing_points": 140,
+  "largest_gaps": [
+   [
+    "2024-02-16 13:30:00+00:00",
+    "2024-02-17 00:00:00+00:00",
+    125
+   ],
+   [
+    "2023-09-12 08:35:00+00:00",
+    "2023-09-12 08:55:00+00:00",
+    3
+   ],
+   [
+    "2025-08-29 06:15:00+00:00",
+    "2025-08-29 06:35:00+00:00",
+    3
+   ],
+   [
+    "2021-12-04 05:20:00+00:00",
+    "2021-12-04 05:35:00+00:00",
+    2
+   ],
+   [
+    "2024-10-28 16:20:00+00:00",
+    "2024-10-28 16:35:00+00:00",
+    2
+   ]
+  ],
+  "null_cells": {
+   "count_toptrader_long_short_ratio": 92215,
+   "sum_toptrader_long_short_ratio": 92181,
+   "count_long_short_ratio": 5787,
+   "sum_taker_long_short_vol_ratio": 37250
+  }
+ }
+}
