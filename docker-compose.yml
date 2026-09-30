@@ -1,0 +1,81 @@
+# BTC 추세추종 모의 운영(PAPER) — docs/RUNBOOK.md 참고
+# 보안 규칙(bot/DESIGN.md §7): ports 없음(인바운드 0, 텔레그램 롱 폴링), 비밀은 secrets 파일로만,
+# environment에 비밀 금지, 읽기 전용 루트 + /data 볼륨만 쓰기, 권한 전부 제거.
+name: btcbot
+
+services:
+  bot:
+    build: .
+    image: btcbot:paper
+    restart: unless-stopped
+    user: "10001:10001"
+    read_only: true
+    tmpfs:
+      - /tmp:size=16m,mode=1777
+    cap_drop: [ALL]
+    security_opt:
+      - no-new-privileges:true
+    pids_limit: 256
+    mem_limit: 768m
+    stop_grace_period: 150s        # 진행 중인 일일 사이클(Claude 최대 120초)을 끝낼 시간
+    environment:
+      TZ: UTC                      # 비밀 값은 여기에 절대 넣지 않는다(시작 시 거부됨)
+    volumes:
+      - ./config/bot.toml:/config/bot.toml:ro
+      - botdata:/data
+      - ./backups:/backups           # 백업은 DB 볼륨과 다른 호스트 폴더(볼륨 손상·down -v에도 남게, RUNBOOK §6)
+    # 컨테이너 상태 검사(OPS-8): 스케줄 루프가 1분마다 /tmp/bot-heartbeat를 갱신한다. 5분 넘게 멈추면 unhealthy.
+    # `docker compose ps`의 STATUS에 (healthy)/(unhealthy)로 보인다.
+    healthcheck:
+      test: ["CMD", "python", "-c", "import os,sys,time; sys.exit(0 if time.time() - os.path.getmtime('/tmp/bot-heartbeat') < 300 else 1)"]
+      interval: 60s
+      timeout: 10s
+      retries: 3
+      start_period: 180s
+    secrets:
+      - telegram_bot_token
+      - anthropic_api_key
+      # - healthcheck_ping_url     # 헬스체크(권장, RUNBOOK 2-2b): 주석 해제 + 아래 secrets에도 해제 + bot.toml [health]
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "5"
+
+  # 과거 재생(선택): docker compose --profile replay run --rm replay
+  replay:
+    profiles: ["replay"]
+    build: .
+    image: btcbot:paper
+    user: "10001:10001"
+    read_only: true
+    tmpfs:
+      - /tmp:size=16m,mode=1777
+    cap_drop: [ALL]
+    security_opt:
+      - no-new-privileges:true
+    network_mode: none             # 재생은 외부 연결이 필요 없다
+    environment:
+      TZ: UTC
+    volumes:
+      - ./config/replay.toml:/config/bot.toml:ro
+      - ./data/binance:/replay-data:ro
+      - replaydata:/data
+    command: ["replay"]
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "5"
+
+volumes:
+  botdata:
+  replaydata:
+
+secrets:
+  telegram_bot_token:
+    file: ./secrets/telegram_bot_token
+  anthropic_api_key:
+    file: ./secrets/anthropic_api_key
+  # healthcheck_ping_url:
+  #   file: ./secrets/healthcheck_ping_url
