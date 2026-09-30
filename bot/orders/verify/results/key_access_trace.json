@@ -1,0 +1,1009 @@
+{
+ "A1_key_visible_to_A": {
+  "exit": 2,
+  "stderr": "오류: TESTNET 프로세스 A에 거래 개인키 파일이 보인다(주문 프로세스 B에만 마운트할 것): /tmp/keytrace-3amhymxu/a_view_of_run_secrets/binance_ed25519_private_key",
+  "trace": {
+   "open_for_read": [],
+   "open_for_write": [],
+   "metadata_only": [
+    {
+     "syscall": "newfstatat",
+     "path": "/tmp/keytrace-3amhymxu/a_view_of_run_secrets/binance_api_key",
+     "result": "-1 ENOENT (No such file or directory)"
+    },
+    {
+     "syscall": "newfstatat",
+     "path": "/tmp/keytrace-3amhymxu/a_view_of_run_secrets/binance_ed25519_private_key",
+     "result": "0"
+    }
+   ],
+   "n_distinct_opened": 680
+  }
+ },
+ "A2_check": {
+  "exit": 0,
+  "stdout": "점검 통과: mode=testnet · 전략 E0-L-ENS · 설정 지문 1f7a8487\n비밀 파일: 텔레그램 있음 · Claude 있음 · 헬스체크 없음\nDB: 신호 0건 · 신규 진입 받는 중",
+  "stderr": "",
+  "trace": {
+   "open_for_read": [],
+   "open_for_write": [],
+   "metadata_only": [
+    {
+     "syscall": "newfstatat",
+     "path": "/tmp/keytrace-3amhymxu/a_view_of_run_secrets/binance_api_key",
+     "result": "-1 ENOENT (No such file or directory)"
+    },
+    {
+     "syscall": "newfstatat",
+     "path": "/tmp/keytrace-3amhymxu/a_view_of_run_secrets/binance_ed25519_private_key",
+     "result": "-1 ENOENT (No such file or directory)"
+    },
+    {
+     "syscall": "newfstatat",
+     "path": "/tmp/keytrace-3amhymxu/a_view_of_run_secrets/orders_control.toml",
+     "result": "-1 ENOENT (No such file or directory)"
+    },
+    {
+     "syscall": "newfstatat",
+     "path": "/tmp/keytrace-3amhymxu/a_view_of_run_secrets/orders_ledger.json",
+     "result": "-1 ENOENT (No such file or directory)"
+    }
+   ],
+   "n_distinct_opened": 689
+  }
+ },
+ "A2_run_--dry-run": {
+  "exit": 0,
+  "stdout": "dry-run 통과: mode=testnet · 전략 E0-L-ENS · 설정 지문 1f7a8487 · 텔레그램 켜짐 · Claude 켜짐 · 네트워크 호출 없음",
+  "stderr": "",
+  "trace": {
+   "open_for_read": [],
+   "open_for_write": [],
+   "metadata_only": [
+    {
+     "syscall": "newfstatat",
+     "path": "/tmp/keytrace-3amhymxu/a_view_of_run_secrets/binance_api_key",
+     "result": "-1 ENOENT (No such file or directory)"
+    },
+    {
+     "syscall": "newfstatat",
+     "path": "/tmp/keytrace-3amhymxu/a_view_of_run_secrets/binance_ed25519_private_key",
+     "result": "-1 ENOENT (No such file or directory)"
+    },
+    {
+     "syscall": "newfstatat",
+     "path": "/tmp/keytrace-3amhymxu/a_view_of_run_secrets/orders_control.toml",
+     "result": "-1 ENOENT (No such file or directory)"
+    },
+    {
+     "syscall": "newfstatat",
+     "path": "/tmp/keytrace-3amhymxu/a_view_of_run_secrets/orders_ledger.json",
+     "result": "-1 ENOENT (No such file or directory)"
+    }
+   ],
+   "n_distinct_opened": 2601
+  }
+ },
+ "A3_a_process_live_flow": {
+  "exit": 0,
+  "stderr": "",
+  "flow": [
+   "signal=APPROVED intent=QUEUED",
+   "after_entry=STOP_VERIFIED",
+   "exit_requested=True",
+   "after_exit=CLOSED"
+  ],
+  "orders_modules_loaded_in_A": [
+   "bot.orders",
+   "bot.orders.queue",
+   "bot.orders.types",
+   "bot.orders.verify"
+  ],
+  "secrets_loaded": {
+   "tg": true,
+   "claude": true
+  },
+  "exchange_posts": {
+   "place_order:e1": 1,
+   "place_conditional:sl": 1,
+   "place_order:x1": 1,
+   "cancel_conditional:sl": 1
+  },
+  "trace": {
+   "open_for_read": [],
+   "open_for_write": [],
+   "metadata_only": [
+    {
+     "syscall": "newfstatat",
+     "path": "/tmp/keytrace-3amhymxu/a_view_of_run_secrets/binance_api_key",
+     "result": "-1 ENOENT (No such file or directory)"
+    },
+    {
+     "syscall": "newfstatat",
+     "path": "/tmp/keytrace-3amhymxu/a_view_of_run_secrets/binance_ed25519_private_key",
+     "result": "-1 ENOENT (No such file or directory)"
+    },
+    {
+     "syscall": "newfstatat",
+     "path": "/tmp/keytrace-3amhymxu/a_view_of_run_secrets/orders_control.toml",
+     "result": "-1 ENOENT (No such file or directory)"
+    },
+    {
+     "syscall": "newfstatat",
+     "path": "/tmp/keytrace-3amhymxu/a_view_of_run_secrets/orders_ledger.json",
+     "result": "-1 ENOENT (No such file or directory)"
+    }
+   ],
+   "n_distinct_opened": 893
+  }
+ },
+ "B0_positive_control_b_process": {
+  "trace": {
+   "open_for_read": [
+    {
+     "syscall": "openat",
+     "path": "/tmp/keytrace-3amhymxu/b_secrets/binance_api_key",
+     "flags": "O_RDONLY|O_CLOEXEC",
+     "result": "3"
+    },
+    {
+     "syscall": "openat",
+     "path": "/tmp/keytrace-3amhymxu/b_secrets/binance_ed25519_private_key",
+     "flags": "O_RDONLY|O_CLOEXEC",
+     "result": "3"
+    },
+    {
+     "syscall": "openat",
+     "path": "/tmp/keytrace-3amhymxu/b_secrets",
+     "flags": "O_RDONLY|O_CLOEXEC",
+     "result": "7"
+    },
+    {
+     "syscall": "openat",
+     "path": "/tmp/keytrace-3amhymxu/b_secrets/orders_control.toml",
+     "flags": "O_RDONLY|O_CLOEXEC",
+     "result": "7"
+    },
+    {
+     "syscall": "openat",
+     "path": "/tmp/keytrace-3amhymxu/b_secrets/orders_control.toml",
+     "flags": "O_RDONLY|O_CLOEXEC",
+     "result": "8"
+    },
+    {
+     "syscall": "openat",
+     "path": "/tmp/keytrace-3amhymxu/b_secrets/orders_control.toml",
+     "flags": "O_RDONLY|O_CLOEXEC",
+     "result": "8"
+    },
+    {
+     "syscall": "openat",
+     "path": "/tmp/keytrace-3amhymxu/b_secrets/orders_control.toml",
+     "flags": "O_RDONLY|O_CLOEXEC",
+     "result": "8"
+    },
+    {
+     "syscall": "openat",
+     "path": "/tmp/keytrace-3amhymxu/b_secrets/orders_control.toml",
+     "flags": "O_RDONLY|O_CLOEXEC",
+     "result": "8"
+    },
+    {
+     "syscall": "openat",
+     "path": "/tmp/keytrace-3amhymxu/b_secrets/orders_control.toml",
+     "flags": "O_RDONLY|O_CLOEXEC",
+     "result": "8"
+    },
+    {
+     "syscall": "openat",
+     "path": "/tmp/keytrace-3amhymxu/b_secrets/orders_control.toml",
+     "flags": "O_RDONLY|O_CLOEXEC",
+     "result": "8"
+    },
+    {
+     "syscall": "openat",
+     "path": "/tmp/keytrace-3amhymxu/b_secrets/orders_control.toml",
+     "flags": "O_RDONLY|O_CLOEXEC",
+     "result": "8"
+    },
+    {
+     "syscall": "openat",
+     "path": "/tmp/keytrace-3amhymxu/b_secrets/orders_control.toml",
+     "flags": "O_RDONLY|O_CLOEXEC",
+     "result": "8"
+    },
+    {
+     "syscall": "openat",
+     "path": "/tmp/keytrace-3amhymxu/b_secrets",
+     "flags": "O_RDONLY|O_CLOEXEC",
+     "result": "8"
+    },
+    {
+     "syscall": "openat",
+     "path": "/tmp/keytrace-3amhymxu/b_secrets/orders_control.toml",
+     "flags": "O_RDONLY|O_CLOEXEC",
+     "result": "8"
+    },
+    {
+     "syscall": "openat",
+     "path": "/tmp/keytrace-3amhymxu/b_secrets",
+     "flags": "O_RDONLY|O_CLOEXEC",
+     "result": "8"
+    },
+    {
+     "syscall": "openat",
+     "path": "/tmp/keytrace-3amhymxu/b_secrets/orders_control.toml",
+     "flags": "O_RDONLY|O_CLOEXEC",
+     "result": "8"
+    },
+    {
+     "syscall": "openat",
+     "path": "/tmp/keytrace-3amhymxu/b_secrets/orders_control.toml",
+     "flags": "O_RDONLY|O_CLOEXEC",
+     "result": "8"
+    },
+    {
+     "syscall": "openat",
+     "path": "/tmp/keytrace-3amhymxu/b_secrets/orders_control.toml",
+     "flags": "O_RDONLY|O_CLOEXEC",
+     "result": "8"
+    },
+    {
+     "syscall": "openat",
+     "path": "/tmp/keytrace-3amhymxu/b_secrets/orders_control.toml",
+     "flags": "O_RDONLY|O_CLOEXEC",
+     "result": "8"
+    },
+    {
+     "syscall": "openat",
+     "path": "/tmp/keytrace-3amhymxu/b_secrets/orders_control.toml",
+     "flags": "O_RDONLY|O_CLOEXEC",
+     "result": "8"
+    },
+    {
+     "syscall": "openat",
+     "path": "/tmp/keytrace-3amhymxu/b_secrets/orders_control.toml",
+     "flags": "O_RDONLY|O_CLOEXEC",
+     "result": "8"
+    },
+    {
+     "syscall": "openat",
+     "path": "/tmp/keytrace-3amhymxu/b_secrets/orders_control.toml",
+     "flags": "O_RDONLY|O_CLOEXEC",
+     "result": "8"
+    },
+    {
+     "syscall": "openat",
+     "path": "/tmp/keytrace-3amhymxu/b_secrets/orders_control.toml",
+     "flags": "O_RDONLY|O_CLOEXEC",
+     "result": "8"
+    },
+    {
+     "syscall": "openat",
+     "path": "/tmp/keytrace-3amhymxu/b_secrets/orders_control.toml",
+     "flags": "O_RDONLY|O_CLOEXEC",
+     "result": "8"
+    },
+    {
+     "syscall": "openat",
+     "path": "/tmp/keytrace-3amhymxu/b_secrets/orders_control.toml",
+     "flags": "O_RDONLY|O_CLOEXEC",
+     "result": "8"
+    },
+    {
+     "syscall": "openat",
+     "path": "/tmp/keytrace-3amhymxu/b_secrets/orders_control.toml",
+     "flags": "O_RDONLY|O_CLOEXEC",
+     "result": "8"
+    },
+    {
+     "syscall": "openat",
+     "path": "/tmp/keytrace-3amhymxu/b_secrets/orders_control.toml",
+     "flags": "O_RDONLY|O_CLOEXEC",
+     "result": "8"
+    },
+    {
+     "syscall": "openat",
+     "path": "/tmp/keytrace-3amhymxu/b_secrets/orders_control.toml",
+     "flags": "O_RDONLY|O_CLOEXEC",
+     "result": "8"
+    },
+    {
+     "syscall": "openat",
+     "path": "/tmp/keytrace-3amhymxu/b_secrets/orders_control.toml",
+     "flags": "O_RDONLY|O_CLOEXEC",
+     "result": "8"
+    },
+    {
+     "syscall": "openat",
+     "path": "/tmp/keytrace-3amhymxu/b_secrets/orders_control.toml",
+     "flags": "O_RDONLY|O_CLOEXEC",
+     "result": "8"
+    },
+    {
+     "syscall": "openat",
+     "path": "/tmp/keytrace-3amhymxu/b_secrets/orders_control.toml",
+     "flags": "O_RDONLY|O_CLOEXEC",
+     "result": "8"
+    },
+    {
+     "syscall": "openat",
+     "path": "/tmp/keytrace-3amhymxu/b_secrets/orders_control.toml",
+     "flags": "O_RDONLY|O_CLOEXEC",
+     "result": "8"
+    },
+    {
+     "syscall": "openat",
+     "path": "/tmp/keytrace-3amhymxu/b_secrets/orders_control.toml",
+     "flags": "O_RDONLY|O_CLOEXEC",
+     "result": "8"
+    },
+    {
+     "syscall": "openat",
+     "path": "/tmp/keytrace-3amhymxu/b_secrets/orders_control.toml",
+     "flags": "O_RDONLY|O_CLOEXEC",
+     "result": "8"
+    },
+    {
+     "syscall": "openat",
+     "path": "/tmp/keytrace-3amhymxu/b_secrets/orders_control.toml",
+     "flags": "O_RDONLY|O_CLOEXEC",
+     "result": "8"
+    },
+    {
+     "syscall": "openat",
+     "path": "/tmp/keytrace-3amhymxu/b_secrets/orders_control.toml",
+     "flags": "O_RDONLY|O_CLOEXEC",
+     "result": "8"
+    },
+    {
+     "syscall": "openat",
+     "path": "/tmp/keytrace-3amhymxu/b_secrets/orders_control.toml",
+     "flags": "O_RDONLY|O_CLOEXEC",
+     "result": "8"
+    },
+    {
+     "syscall": "openat",
+     "path": "/tmp/keytrace-3amhymxu/b_secrets/orders_control.toml",
+     "flags": "O_RDONLY|O_CLOEXEC",
+     "result": "8"
+    },
+    {
+     "syscall": "openat",
+     "path": "/tmp/keytrace-3amhymxu/b_secrets/orders_control.toml",
+     "flags": "O_RDONLY|O_CLOEXEC",
+     "result": "8"
+    },
+    {
+     "syscall": "openat",
+     "path": "/tmp/keytrace-3amhymxu/b_secrets/orders_control.toml",
+     "flags": "O_RDONLY|O_CLOEXEC",
+     "result": "8"
+    },
+    {
+     "syscall": "openat",
+     "path": "/tmp/keytrace-3amhymxu/b_secrets/orders_control.toml",
+     "flags": "O_RDONLY|O_CLOEXEC",
+     "result": "8"
+    },
+    {
+     "syscall": "openat",
+     "path": "/tmp/keytrace-3amhymxu/b_secrets/orders_control.toml",
+     "flags": "O_RDONLY|O_CLOEXEC",
+     "result": "8"
+    },
+    {
+     "syscall": "openat",
+     "path": "/tmp/keytrace-3amhymxu/b_secrets/orders_control.toml",
+     "flags": "O_RDONLY|O_CLOEXEC",
+     "result": "8"
+    },
+    {
+     "syscall": "openat",
+     "path": "/tmp/keytrace-3amhymxu/b_secrets/orders_control.toml",
+     "flags": "O_RDONLY|O_CLOEXEC",
+     "result": "8"
+    },
+    {
+     "syscall": "openat",
+     "path": "/tmp/keytrace-3amhymxu/b_secrets/orders_control.toml",
+     "flags": "O_RDONLY|O_CLOEXEC",
+     "result": "8"
+    },
+    {
+     "syscall": "openat",
+     "path": "/tmp/keytrace-3amhymxu/b_secrets/orders_control.toml",
+     "flags": "O_RDONLY|O_CLOEXEC",
+     "result": "8"
+    },
+    {
+     "syscall": "openat",
+     "path": "/tmp/keytrace-3amhymxu/b_secrets/orders_control.toml",
+     "flags": "O_RDONLY|O_CLOEXEC",
+     "result": "8"
+    },
+    {
+     "syscall": "openat",
+     "path": "/tmp/keytrace-3amhymxu/b_secrets/orders_control.toml",
+     "flags": "O_RDONLY|O_CLOEXEC",
+     "result": "8"
+    },
+    {
+     "syscall": "openat",
+     "path": "/tmp/keytrace-3amhymxu/b_secrets/orders_control.toml",
+     "flags": "O_RDONLY|O_CLOEXEC",
+     "result": "8"
+    },
+    {
+     "syscall": "openat",
+     "path": "/tmp/keytrace-3amhymxu/b_secrets/orders_control.toml",
+     "flags": "O_RDONLY|O_CLOEXEC",
+     "result": "8"
+    },
+    {
+     "syscall": "openat",
+     "path": "/tmp/keytrace-3amhymxu/b_secrets/orders_control.toml",
+     "flags": "O_RDONLY|O_CLOEXEC",
+     "result": "8"
+    },
+    {
+     "syscall": "openat",
+     "path": "/tmp/keytrace-3amhymxu/b_secrets/orders_control.toml",
+     "flags": "O_RDONLY|O_CLOEXEC",
+     "result": "8"
+    },
+    {
+     "syscall": "openat",
+     "path": "/tmp/keytrace-3amhymxu/b_secrets/orders_control.toml",
+     "flags": "O_RDONLY|O_CLOEXEC",
+     "result": "8"
+    },
+    {
+     "syscall": "openat",
+     "path": "/tmp/keytrace-3amhymxu/b_secrets/orders_control.toml",
+     "flags": "O_RDONLY|O_CLOEXEC",
+     "result": "8"
+    },
+    {
+     "syscall": "openat",
+     "path": "/tmp/keytrace-3amhymxu/b_secrets/orders_control.toml",
+     "flags": "O_RDONLY|O_CLOEXEC",
+     "result": "8"
+    },
+    {
+     "syscall": "openat",
+     "path": "/tmp/keytrace-3amhymxu/b_secrets/orders_control.toml",
+     "flags": "O_RDONLY|O_CLOEXEC",
+     "result": "8"
+    },
+    {
+     "syscall": "openat",
+     "path": "/tmp/keytrace-3amhymxu/b_secrets/orders_control.toml",
+     "flags": "O_RDONLY|O_CLOEXEC",
+     "result": "8"
+    },
+    {
+     "syscall": "openat",
+     "path": "/tmp/keytrace-3amhymxu/b_secrets/orders_control.toml",
+     "flags": "O_RDONLY|O_CLOEXEC",
+     "result": "8"
+    },
+    {
+     "syscall": "openat",
+     "path": "/tmp/keytrace-3amhymxu/b_secrets/orders_control.toml",
+     "flags": "O_RDONLY|O_CLOEXEC",
+     "result": "8"
+    },
+    {
+     "syscall": "openat",
+     "path": "/tmp/keytrace-3amhymxu/b_secrets/orders_control.toml",
+     "flags": "O_RDONLY|O_CLOEXEC",
+     "result": "8"
+    },
+    {
+     "syscall": "openat",
+     "path": "/tmp/keytrace-3amhymxu/b_secrets/orders_control.toml",
+     "flags": "O_RDONLY|O_CLOEXEC",
+     "result": "8"
+    },
+    {
+     "syscall": "openat",
+     "path": "/tmp/keytrace-3amhymxu/b_secrets/orders_control.toml",
+     "flags": "O_RDONLY|O_CLOEXEC",
+     "result": "8"
+    },
+    {
+     "syscall": "openat",
+     "path": "/tmp/keytrace-3amhymxu/b_secrets/orders_control.toml",
+     "flags": "O_RDONLY|O_CLOEXEC",
+     "result": "8"
+    },
+    {
+     "syscall": "openat",
+     "path": "/tmp/keytrace-3amhymxu/b_secrets/orders_control.toml",
+     "flags": "O_RDONLY|O_CLOEXEC",
+     "result": "8"
+    },
+    {
+     "syscall": "openat",
+     "path": "/tmp/keytrace-3amhymxu/b_secrets/orders_control.toml",
+     "flags": "O_RDONLY|O_CLOEXEC",
+     "result": "8"
+    },
+    {
+     "syscall": "openat",
+     "path": "/tmp/keytrace-3amhymxu/b_secrets/orders_control.toml",
+     "flags": "O_RDONLY|O_CLOEXEC",
+     "result": "8"
+    },
+    {
+     "syscall": "openat",
+     "path": "/tmp/keytrace-3amhymxu/b_secrets/orders_control.toml",
+     "flags": "O_RDONLY|O_CLOEXEC",
+     "result": "8"
+    },
+    {
+     "syscall": "openat",
+     "path": "/tmp/keytrace-3amhymxu/b_secrets/orders_control.toml",
+     "flags": "O_RDONLY|O_CLOEXEC",
+     "result": "8"
+    },
+    {
+     "syscall": "openat",
+     "path": "/tmp/keytrace-3amhymxu/b_secrets/orders_control.toml",
+     "flags": "O_RDONLY|O_CLOEXEC",
+     "result": "8"
+    },
+    {
+     "syscall": "openat",
+     "path": "/tmp/keytrace-3amhymxu/b_secrets/orders_control.toml",
+     "flags": "O_RDONLY|O_CLOEXEC",
+     "result": "8"
+    },
+    {
+     "syscall": "openat",
+     "path": "/tmp/keytrace-3amhymxu/b_secrets/orders_control.toml",
+     "flags": "O_RDONLY|O_CLOEXEC",
+     "result": "8"
+    },
+    {
+     "syscall": "openat",
+     "path": "/tmp/keytrace-3amhymxu/b_secrets/orders_control.toml",
+     "flags": "O_RDONLY|O_CLOEXEC",
+     "result": "8"
+    },
+    {
+     "syscall": "openat",
+     "path": "/tmp/keytrace-3amhymxu/b_secrets/orders_control.toml",
+     "flags": "O_RDONLY|O_CLOEXEC",
+     "result": "8"
+    },
+    {
+     "syscall": "openat",
+     "path": "/tmp/keytrace-3amhymxu/b_secrets/orders_control.toml",
+     "flags": "O_RDONLY|O_CLOEXEC",
+     "result": "8"
+    }
+   ],
+   "open_for_write": [
+    {
+     "syscall": "openat",
+     "path": "/tmp/keytrace-3amhymxu/b_secrets/.ledger-mrk7ajbe",
+     "flags": "O_RDWR|O_CREAT|O_EXCL|O_NOFOLLOW|O_CLOEXEC",
+     "result": "7"
+    },
+    {
+     "syscall": "openat",
+     "path": "/tmp/keytrace-3amhymxu/b_secrets/.ledger-b5oyj86w",
+     "flags": "O_RDWR|O_CREAT|O_EXCL|O_NOFOLLOW|O_CLOEXEC",
+     "result": "8"
+    },
+    {
+     "syscall": "openat",
+     "path": "/tmp/keytrace-3amhymxu/b_secrets/.ledger-cuoyt4uu",
+     "flags": "O_RDWR|O_CREAT|O_EXCL|O_NOFOLLOW|O_CLOEXEC",
+     "result": "8"
+    }
+   ],
+   "metadata_only": [
+    {
+     "syscall": "newfstatat",
+     "path": "/tmp/keytrace-3amhymxu/b_secrets/binance_api_key",
+     "result": "0"
+    },
+    {
+     "syscall": "newfstatat",
+     "path": "/tmp/keytrace-3amhymxu/b_secrets/binance_ed25519_private_key",
+     "result": "0"
+    },
+    {
+     "syscall": "newfstatat",
+     "path": "/tmp/keytrace-3amhymxu/b_secrets/orders_ledger.json",
+     "result": "-1 ENOENT (No such file or directory)"
+    },
+    {
+     "syscall": "newfstatat",
+     "path": "/tmp/keytrace-3amhymxu/b_secrets",
+     "result": "0"
+    },
+    {
+     "syscall": "rename",
+     "path": "/tmp/keytrace-3amhymxu/b_secrets/.ledger-mrk7ajbe",
+     "result": "0"
+    },
+    {
+     "syscall": "newfstatat",
+     "path": "/tmp/keytrace-3amhymxu/b_secrets/orders_control.toml",
+     "result": "0"
+    },
+    {
+     "syscall": "newfstatat",
+     "path": "/tmp/keytrace-3amhymxu/b_secrets/orders_control.toml",
+     "result": "0"
+    },
+    {
+     "syscall": "newfstatat",
+     "path": "/tmp/keytrace-3amhymxu/b_secrets/orders_control.toml",
+     "result": "0"
+    },
+    {
+     "syscall": "newfstatat",
+     "path": "/tmp/keytrace-3amhymxu/b_secrets/orders_control.toml",
+     "result": "0"
+    },
+    {
+     "syscall": "newfstatat",
+     "path": "/tmp/keytrace-3amhymxu/b_secrets/orders_control.toml",
+     "result": "0"
+    },
+    {
+     "syscall": "newfstatat",
+     "path": "/tmp/keytrace-3amhymxu/b_secrets/orders_control.toml",
+     "result": "0"
+    },
+    {
+     "syscall": "newfstatat",
+     "path": "/tmp/keytrace-3amhymxu/b_secrets/orders_control.toml",
+     "result": "0"
+    },
+    {
+     "syscall": "newfstatat",
+     "path": "/tmp/keytrace-3amhymxu/b_secrets/orders_control.toml",
+     "result": "0"
+    },
+    {
+     "syscall": "newfstatat",
+     "path": "/tmp/keytrace-3amhymxu/b_secrets/orders_control.toml",
+     "result": "0"
+    },
+    {
+     "syscall": "rename",
+     "path": "/tmp/keytrace-3amhymxu/b_secrets/.ledger-b5oyj86w",
+     "result": "0"
+    },
+    {
+     "syscall": "newfstatat",
+     "path": "/tmp/keytrace-3amhymxu/b_secrets/orders_control.toml",
+     "result": "0"
+    },
+    {
+     "syscall": "rename",
+     "path": "/tmp/keytrace-3amhymxu/b_secrets/.ledger-cuoyt4uu",
+     "result": "0"
+    },
+    {
+     "syscall": "newfstatat",
+     "path": "/tmp/keytrace-3amhymxu/b_secrets/orders_control.toml",
+     "result": "0"
+    },
+    {
+     "syscall": "newfstatat",
+     "path": "/tmp/keytrace-3amhymxu/b_secrets/orders_control.toml",
+     "result": "0"
+    },
+    {
+     "syscall": "newfstatat",
+     "path": "/tmp/keytrace-3amhymxu/b_secrets/orders_control.toml",
+     "result": "0"
+    },
+    {
+     "syscall": "newfstatat",
+     "path": "/tmp/keytrace-3amhymxu/b_secrets/orders_control.toml",
+     "result": "0"
+    },
+    {
+     "syscall": "newfstatat",
+     "path": "/tmp/keytrace-3amhymxu/b_secrets/orders_control.toml",
+     "result": "0"
+    },
+    {
+     "syscall": "newfstatat",
+     "path": "/tmp/keytrace-3amhymxu/b_secrets/orders_control.toml",
+     "result": "0"
+    },
+    {
+     "syscall": "newfstatat",
+     "path": "/tmp/keytrace-3amhymxu/b_secrets/orders_control.toml",
+     "result": "0"
+    },
+    {
+     "syscall": "newfstatat",
+     "path": "/tmp/keytrace-3amhymxu/b_secrets/orders_control.toml",
+     "result": "0"
+    },
+    {
+     "syscall": "newfstatat",
+     "path": "/tmp/keytrace-3amhymxu/b_secrets/orders_control.toml",
+     "result": "0"
+    },
+    {
+     "syscall": "newfstatat",
+     "path": "/tmp/keytrace-3amhymxu/b_secrets/orders_control.toml",
+     "result": "0"
+    },
+    {
+     "syscall": "newfstatat",
+     "path": "/tmp/keytrace-3amhymxu/b_secrets/orders_control.toml",
+     "result": "0"
+    },
+    {
+     "syscall": "newfstatat",
+     "path": "/tmp/keytrace-3amhymxu/b_secrets/orders_control.toml",
+     "result": "0"
+    },
+    {
+     "syscall": "newfstatat",
+     "path": "/tmp/keytrace-3amhymxu/b_secrets/orders_control.toml",
+     "result": "0"
+    },
+    {
+     "syscall": "newfstatat",
+     "path": "/tmp/keytrace-3amhymxu/b_secrets/orders_control.toml",
+     "result": "0"
+    },
+    {
+     "syscall": "newfstatat",
+     "path": "/tmp/keytrace-3amhymxu/b_secrets/orders_control.toml",
+     "result": "0"
+    },
+    {
+     "syscall": "newfstatat",
+     "path": "/tmp/keytrace-3amhymxu/b_secrets/orders_control.toml",
+     "result": "0"
+    },
+    {
+     "syscall": "newfstatat",
+     "path": "/tmp/keytrace-3amhymxu/b_secrets/orders_control.toml",
+     "result": "0"
+    },
+    {
+     "syscall": "newfstatat",
+     "path": "/tmp/keytrace-3amhymxu/b_secrets/orders_control.toml",
+     "result": "0"
+    },
+    {
+     "syscall": "newfstatat",
+     "path": "/tmp/keytrace-3amhymxu/b_secrets/orders_control.toml",
+     "result": "0"
+    },
+    {
+     "syscall": "newfstatat",
+     "path": "/tmp/keytrace-3amhymxu/b_secrets/orders_control.toml",
+     "result": "0"
+    },
+    {
+     "syscall": "newfstatat",
+     "path": "/tmp/keytrace-3amhymxu/b_secrets/orders_control.toml",
+     "result": "0"
+    },
+    {
+     "syscall": "newfstatat",
+     "path": "/tmp/keytrace-3amhymxu/b_secrets/orders_control.toml",
+     "result": "0"
+    },
+    {
+     "syscall": "newfstatat",
+     "path": "/tmp/keytrace-3amhymxu/b_secrets/orders_control.toml",
+     "result": "0"
+    },
+    {
+     "syscall": "newfstatat",
+     "path": "/tmp/keytrace-3amhymxu/b_secrets/orders_control.toml",
+     "result": "0"
+    },
+    {
+     "syscall": "newfstatat",
+     "path": "/tmp/keytrace-3amhymxu/b_secrets/orders_control.toml",
+     "result": "0"
+    },
+    {
+     "syscall": "newfstatat",
+     "path": "/tmp/keytrace-3amhymxu/b_secrets/orders_control.toml",
+     "result": "0"
+    },
+    {
+     "syscall": "newfstatat",
+     "path": "/tmp/keytrace-3amhymxu/b_secrets/orders_control.toml",
+     "result": "0"
+    },
+    {
+     "syscall": "newfstatat",
+     "path": "/tmp/keytrace-3amhymxu/b_secrets/orders_control.toml",
+     "result": "0"
+    },
+    {
+     "syscall": "newfstatat",
+     "path": "/tmp/keytrace-3amhymxu/b_secrets/orders_control.toml",
+     "result": "0"
+    },
+    {
+     "syscall": "newfstatat",
+     "path": "/tmp/keytrace-3amhymxu/b_secrets/orders_control.toml",
+     "result": "0"
+    },
+    {
+     "syscall": "newfstatat",
+     "path": "/tmp/keytrace-3amhymxu/b_secrets/orders_control.toml",
+     "result": "0"
+    },
+    {
+     "syscall": "newfstatat",
+     "path": "/tmp/keytrace-3amhymxu/b_secrets/orders_control.toml",
+     "result": "0"
+    },
+    {
+     "syscall": "newfstatat",
+     "path": "/tmp/keytrace-3amhymxu/b_secrets/orders_control.toml",
+     "result": "0"
+    },
+    {
+     "syscall": "newfstatat",
+     "path": "/tmp/keytrace-3amhymxu/b_secrets/orders_control.toml",
+     "result": "0"
+    },
+    {
+     "syscall": "newfstatat",
+     "path": "/tmp/keytrace-3amhymxu/b_secrets/orders_control.toml",
+     "result": "0"
+    },
+    {
+     "syscall": "newfstatat",
+     "path": "/tmp/keytrace-3amhymxu/b_secrets/orders_control.toml",
+     "result": "0"
+    },
+    {
+     "syscall": "newfstatat",
+     "path": "/tmp/keytrace-3amhymxu/b_secrets/orders_control.toml",
+     "result": "0"
+    },
+    {
+     "syscall": "newfstatat",
+     "path": "/tmp/keytrace-3amhymxu/b_secrets/orders_control.toml",
+     "result": "0"
+    },
+    {
+     "syscall": "newfstatat",
+     "path": "/tmp/keytrace-3amhymxu/b_secrets/orders_control.toml",
+     "result": "0"
+    },
+    {
+     "syscall": "newfstatat",
+     "path": "/tmp/keytrace-3amhymxu/b_secrets/orders_control.toml",
+     "result": "0"
+    },
+    {
+     "syscall": "newfstatat",
+     "path": "/tmp/keytrace-3amhymxu/b_secrets/orders_control.toml",
+     "result": "0"
+    },
+    {
+     "syscall": "newfstatat",
+     "path": "/tmp/keytrace-3amhymxu/b_secrets/orders_control.toml",
+     "result": "0"
+    },
+    {
+     "syscall": "newfstatat",
+     "path": "/tmp/keytrace-3amhymxu/b_secrets/orders_control.toml",
+     "result": "0"
+    },
+    {
+     "syscall": "newfstatat",
+     "path": "/tmp/keytrace-3amhymxu/b_secrets/orders_control.toml",
+     "result": "0"
+    },
+    {
+     "syscall": "newfstatat",
+     "path": "/tmp/keytrace-3amhymxu/b_secrets/orders_control.toml",
+     "result": "0"
+    },
+    {
+     "syscall": "newfstatat",
+     "path": "/tmp/keytrace-3amhymxu/b_secrets/orders_control.toml",
+     "result": "0"
+    },
+    {
+     "syscall": "newfstatat",
+     "path": "/tmp/keytrace-3amhymxu/b_secrets/orders_control.toml",
+     "result": "0"
+    },
+    {
+     "syscall": "newfstatat",
+     "path": "/tmp/keytrace-3amhymxu/b_secrets/orders_control.toml",
+     "result": "0"
+    },
+    {
+     "syscall": "newfstatat",
+     "path": "/tmp/keytrace-3amhymxu/b_secrets/orders_control.toml",
+     "result": "0"
+    },
+    {
+     "syscall": "newfstatat",
+     "path": "/tmp/keytrace-3amhymxu/b_secrets/orders_control.toml",
+     "result": "0"
+    },
+    {
+     "syscall": "newfstatat",
+     "path": "/tmp/keytrace-3amhymxu/b_secrets/orders_control.toml",
+     "result": "0"
+    },
+    {
+     "syscall": "newfstatat",
+     "path": "/tmp/keytrace-3amhymxu/b_secrets/orders_control.toml",
+     "result": "0"
+    },
+    {
+     "syscall": "newfstatat",
+     "path": "/tmp/keytrace-3amhymxu/b_secrets/orders_control.toml",
+     "result": "0"
+    },
+    {
+     "syscall": "newfstatat",
+     "path": "/tmp/keytrace-3amhymxu/b_secrets/orders_control.toml",
+     "result": "0"
+    },
+    {
+     "syscall": "newfstatat",
+     "path": "/tmp/keytrace-3amhymxu/b_secrets/orders_control.toml",
+     "result": "0"
+    },
+    {
+     "syscall": "newfstatat",
+     "path": "/tmp/keytrace-3amhymxu/b_secrets/orders_control.toml",
+     "result": "0"
+    },
+    {
+     "syscall": "newfstatat",
+     "path": "/tmp/keytrace-3amhymxu/b_secrets/orders_control.toml",
+     "result": "0"
+    },
+    {
+     "syscall": "newfstatat",
+     "path": "/tmp/keytrace-3amhymxu/b_secrets/orders_control.toml",
+     "result": "0"
+    },
+    {
+     "syscall": "newfstatat",
+     "path": "/tmp/keytrace-3amhymxu/b_secrets/orders_control.toml",
+     "result": "0"
+    }
+   ],
+   "n_distinct_opened": 856
+  },
+  "b_log_tail": "2026-09-30 18:08:06,722 INFO bot.orders.worker: 주문 프로세스 시작 복구: ok=True issues=[]\n2026-09-30 18:08:10,335 INFO bot.orders.worker: 의도 #1 → STOP_VERIFIED (stop_verified)\n"
+ },
+ "key_material_in_outputs": {
+  "db": false,
+  "a_sent_texts": false,
+  "b_log": false
+ },
+ "verdict": {
+  "A1_refused": true,
+  "A2_no_key_reads": true,
+  "A3_no_key_reads": true,
+  "A3_flow_completed": true,
+  "A3_no_binance_client_module": true,
+  "B0_reads_both_keys": true,
+  "A4_no_key_reads": true,
+  "no_key_material_in_outputs": true
+ }
+}

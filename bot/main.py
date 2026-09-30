@@ -17,8 +17,10 @@
    replay: FakeClock + Replay(파일) + 기록용 가짜 전송 + DisabledAnalyst. 자동 승인 = 판단 + L분에 [승인]·[확인]
 5) SIGTERM/SIGINT → 진행 중 사이클 끝내고 DB 닫기
 
-이 모듈에는 거래소 키·주문 코드가 없다(모의 운영 전용). 외부 호출은 공개 시세(LiveBinance), 텔레그램(롱 폴링),
-Claude(분석), healthchecks 핑(선택)뿐이다.
+이 모듈에는 거래소 키·주문 코드가 없다. 외부 호출은 공개 시세(LiveBinance), 텔레그램(롱 폴링),
+Claude(분석), healthchecks 핑(선택)뿐이다. mode=testnet도 `run`으로 같은 경로를 탄다(프로세스 A): 승인된 신호는
+주문 큐(order_intents)에 들어가고, 실제 주문은 별도 프로세스 B(`python -m bot.orders.worker`, compose 서비스 orders)가 한다.
+testnet에서 A에 거래 키·제어 파일이 보이면 load_secrets가 시작을 거부한다(config.check_no_trading_keys).
 """
 from __future__ import annotations
 
@@ -437,8 +439,8 @@ def build_paper_runtime(cfg: BotConfig, secrets: Secrets, *, clock=None, http_cl
     from bot.engine import Engine
     from bot.marketdata import LiveBinance
 
-    if cfg.mode != Mode.PAPER:
-        raise ConfigError("run 명령은 mode = \"paper\" 설정에서만 쓴다")
+    if cfg.mode not in (Mode.PAPER, Mode.TESTNET):
+        raise ConfigError("run 명령은 mode = \"paper\" 또는 \"testnet\" 설정에서만 쓴다")
     clock = clock or SystemClock()
     conn = open_db(cfg, ns_to_ms(clock.now_ns()))
     try:
@@ -770,8 +772,8 @@ def main(argv: list[str] | None = None, *, environ=None) -> int:
         if args.command == "check":
             return cmd_check(cfg, secrets)
         if args.command == "run":
-            if cfg.mode != Mode.PAPER:
-                _err("run 명령은 mode = \"paper\" 설정에서만 쓴다(재생은 replay 명령)")
+            if cfg.mode not in (Mode.PAPER, Mode.TESTNET):
+                _err("run 명령은 mode = \"paper\" 또는 \"testnet\" 설정에서만 쓴다(재생은 replay 명령)")
                 return EXIT_CONFIG
             return cmd_run(cfg, secrets, args)
         if args.command == "replay":

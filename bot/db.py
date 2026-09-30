@@ -61,7 +61,7 @@ CREATE TABLE IF NOT EXISTS analyses (
 
 CREATE TABLE IF NOT EXISTS signals (
     signal_id            TEXT PRIMARY KEY CHECK (length(signal_id) = 16),
-    mode                 TEXT NOT NULL CHECK (mode IN ('replay', 'paper')),
+    mode                 TEXT NOT NULL CHECK (mode IN ('replay', 'paper', 'testnet')),
     strategy_key         TEXT NOT NULL,
     spec_version         TEXT NOT NULL,
     subsystem_n          INTEGER NOT NULL CHECK (subsystem_n IN (20, 55, 100)),
@@ -284,6 +284,15 @@ def connect(path: str | os.PathLike[str], *, mode: Mode, now_ms: int) -> sqlite3
     # REPLACE 충돌 처리의 행 삭제도 BEFORE DELETE 트리거를 거치게 한다(감사 로그 덮어쓰기 차단, V-1)
     conn.execute("PRAGMA recursive_triggers = ON")
     init_schema(conn, mode=mode, now_ms=now_ms)
+    if mode == Mode.TESTNET:
+        # 주문 큐(A→B) 표·보호 트리거(bot/orders/DESIGN.md §2). A·B 둘 다 연결 때 한 번(멱등, 변조면 DbError).
+        from bot.orders import queue as order_queue  # 지역 import: queue가 이 모듈을 import한다(순환 방지)
+
+        try:
+            order_queue.ensure_schema(conn)
+        except BaseException:
+            conn.close()
+            raise
     return conn
 
 

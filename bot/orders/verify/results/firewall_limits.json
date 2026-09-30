@@ -1,0 +1,940 @@
+{
+ "baseline": {
+  "state": "STOP_VERIFIED",
+  "e1_posts": 1,
+  "position": 0.016,
+  "stop_posts": 1,
+  "filled_qty": 0.016,
+  "limit_price": 60060.0,
+  "planned_stop": 57060.0
+ },
+ "gateway": [
+  {
+   "name": "qty_over_abs_0.2BTC",
+   "what": "수량 0.25 BTC(절대 상한 0.2 초과)",
+   "state": "REJECTED",
+   "reason": "firewall",
+   "e1_posts": 0,
+   "e1_reached": 0,
+   "any_order_posts": 0,
+   "stop_posts": 0,
+   "position": 0.0,
+   "halts": [
+    {
+     "id": 1,
+     "reason": "firewall"
+    }
+   ],
+   "fw_violations": [
+    "FW-NOTIONAL",
+    "FW-QTY-ABS",
+    "FW-RISK"
+   ],
+   "tamper": null,
+   "blocked": true,
+   "position_before": 0.0
+  },
+  {
+   "name": "notional_over_cap",
+   "what": "명목 6,000 USDT(R자본×0.2=2,000 초과)",
+   "state": "REJECTED",
+   "reason": "firewall",
+   "e1_posts": 0,
+   "e1_reached": 0,
+   "any_order_posts": 0,
+   "stop_posts": 0,
+   "position": 0.0,
+   "halts": [
+    {
+     "id": 1,
+     "reason": "firewall"
+    }
+   ],
+   "fw_violations": [
+    "FW-NOTIONAL",
+    "FW-RISK"
+   ],
+   "tamper": null,
+   "blocked": true,
+   "position_before": 0.0
+  },
+  {
+   "name": "risk_over_r",
+   "what": "명목 한도 안이지만 위험 > R×0.5%(qty 0.03, 손절 3,000 아래)",
+   "state": "REJECTED",
+   "reason": "firewall",
+   "e1_posts": 0,
+   "e1_reached": 0,
+   "any_order_posts": 0,
+   "stop_posts": 0,
+   "position": 0.0,
+   "halts": [
+    {
+     "id": 1,
+     "reason": "firewall"
+    }
+   ],
+   "fw_violations": [
+    "FW-RISK"
+   ],
+   "tamper": null,
+   "blocked": true,
+   "position_before": 0.0
+  },
+  {
+   "name": "price_band_+1.5pct",
+   "what": "상한가 = 마크 +1.5%(±1%·IOC 폭 초과)",
+   "state": "REJECTED",
+   "reason": "firewall",
+   "e1_posts": 0,
+   "e1_reached": 0,
+   "any_order_posts": 0,
+   "stop_posts": 0,
+   "position": 0.0,
+   "halts": [
+    {
+     "id": 1,
+     "reason": "firewall"
+    }
+   ],
+   "fw_violations": [
+    "FW-PRICE-BAND"
+   ],
+   "tamper": null,
+   "blocked": true,
+   "position_before": 0.0
+  },
+  {
+   "name": "price_below_mark",
+   "what": "매수 상한가 < 마크",
+   "state": "REJECTED",
+   "reason": "firewall",
+   "e1_posts": 0,
+   "e1_reached": 0,
+   "any_order_posts": 0,
+   "stop_posts": 0,
+   "position": 0.0,
+   "halts": [
+    {
+     "id": 1,
+     "reason": "firewall"
+    }
+   ],
+   "fw_violations": [
+    "FW-PRICE-BAND"
+   ],
+   "tamper": null,
+   "blocked": true,
+   "position_before": 0.0
+  },
+  {
+   "name": "price_not_tick",
+   "what": "가격이 틱(0.1) 배수 아님",
+   "state": "REJECTED",
+   "reason": "firewall",
+   "e1_posts": 0,
+   "e1_reached": 0,
+   "any_order_posts": 0,
+   "stop_posts": 0,
+   "position": 0.0,
+   "halts": [
+    {
+     "id": 1,
+     "reason": "firewall"
+    }
+   ],
+   "fw_violations": [
+    "FW-PRICE-TICK"
+   ],
+   "tamper": null,
+   "blocked": true,
+   "position_before": 0.0
+  },
+  {
+   "name": "qty_not_step",
+   "what": "수량이 0.001 배수 아님",
+   "state": "REJECTED",
+   "reason": "firewall",
+   "e1_posts": 0,
+   "e1_reached": 0,
+   "any_order_posts": 0,
+   "stop_posts": 0,
+   "position": 0.0,
+   "halts": [
+    {
+     "id": 1,
+     "reason": "firewall"
+    }
+   ],
+   "fw_violations": [
+    "FW-QTY-STEP"
+   ],
+   "tamper": null,
+   "blocked": true,
+   "position_before": 0.0
+  },
+  {
+   "name": "qty_zero",
+   "what": "수량 0",
+   "state": "REJECTED",
+   "reason": "firewall",
+   "e1_posts": 0,
+   "e1_reached": 0,
+   "any_order_posts": 0,
+   "stop_posts": 0,
+   "position": 0.0,
+   "halts": [
+    {
+     "id": 1,
+     "reason": "firewall"
+    }
+   ],
+   "fw_violations": [
+    "FW-QTY"
+   ],
+   "tamper": null,
+   "blocked": true,
+   "position_before": 0.0
+  },
+  {
+   "name": "no_stop_plan",
+   "what": "계획 손절 없음(0)",
+   "state": "REJECTED",
+   "reason": "firewall",
+   "e1_posts": 0,
+   "e1_reached": 0,
+   "any_order_posts": 0,
+   "stop_posts": 0,
+   "position": 0.0,
+   "halts": [
+    {
+     "id": 1,
+     "reason": "firewall"
+    }
+   ],
+   "fw_violations": [
+    "FW-STOP-PLAN"
+   ],
+   "tamper": null,
+   "blocked": true,
+   "position_before": 0.0
+  },
+  {
+   "name": "stop_above_entry",
+   "what": "계획 손절 ≥ 진입가",
+   "state": "REJECTED",
+   "reason": "firewall",
+   "e1_posts": 0,
+   "e1_reached": 0,
+   "any_order_posts": 0,
+   "stop_posts": 0,
+   "position": 0.0,
+   "halts": [
+    {
+     "id": 1,
+     "reason": "firewall"
+    }
+   ],
+   "fw_violations": [
+    "FW-STOP-PLAN"
+   ],
+   "tamper": null,
+   "blocked": true,
+   "position_before": 0.0
+  },
+  {
+   "name": "forged_huge_atr_stop_33pct",
+   "what": "A가 위조한 ATR20=10,000 → 손절 거리 33%(>25%)",
+   "state": "REJECTED",
+   "reason": "firewall",
+   "e1_posts": 0,
+   "e1_reached": 0,
+   "any_order_posts": 0,
+   "stop_posts": 0,
+   "position": 0.0,
+   "halts": [
+    {
+     "id": 1,
+     "reason": "firewall"
+    }
+   ],
+   "fw_violations": [
+    "FW-STOP-DIST"
+   ],
+   "tamper": null,
+   "blocked": true,
+   "position_before": 0.0
+  },
+  {
+   "name": "forged_tiny_atr_stop_0.05pct",
+   "what": "A가 위조한 ATR20=15 → 손절 거리 0.05%(<0.2%)",
+   "state": "REJECTED",
+   "reason": "firewall",
+   "e1_posts": 0,
+   "e1_reached": 0,
+   "any_order_posts": 0,
+   "stop_posts": 0,
+   "position": 0.0,
+   "halts": [
+    {
+     "id": 1,
+     "reason": "firewall"
+    }
+   ],
+   "fw_violations": [
+    "FW-STOP-DIST"
+   ],
+   "tamper": null,
+   "blocked": true,
+   "position_before": 0.0
+  },
+  {
+   "name": "insufficient_balance",
+   "what": "가용 잔고 300 USDT(필요 증거금 부족)",
+   "state": "REJECTED",
+   "reason": "firewall",
+   "e1_posts": 0,
+   "e1_reached": 0,
+   "any_order_posts": 0,
+   "stop_posts": 0,
+   "position": 0.0,
+   "halts": [
+    {
+     "id": 1,
+     "reason": "firewall"
+    }
+   ],
+   "fw_violations": [
+    "FW-BALANCE"
+   ],
+   "tamper": null,
+   "blocked": true,
+   "position_before": 0.0
+  },
+  {
+   "name": "leverage_5x",
+   "what": "거래소 레버리지 5배(>3·설정과 다름)",
+   "state": "REJECTED",
+   "reason": "leverage_margin",
+   "e1_posts": 0,
+   "e1_reached": 0,
+   "any_order_posts": 0,
+   "stop_posts": 0,
+   "position": 0.0,
+   "halts": [
+    {
+     "id": 1,
+     "reason": "leverage_margin"
+    }
+   ],
+   "fw_violations": [],
+   "tamper": null,
+   "blocked": true,
+   "position_before": 0.0
+  },
+  {
+   "name": "cross_margin",
+   "what": "교차(cross) 마진",
+   "state": "REJECTED",
+   "reason": "leverage_margin",
+   "e1_posts": 0,
+   "e1_reached": 0,
+   "any_order_posts": 0,
+   "stop_posts": 0,
+   "position": 0.0,
+   "halts": [
+    {
+     "id": 1,
+     "reason": "leverage_margin"
+    }
+   ],
+   "fw_violations": [],
+   "tamper": null,
+   "blocked": true,
+   "position_before": 0.0
+  },
+  {
+   "name": "hedge_mode",
+   "what": "Hedge 모드(dualSidePosition=true)",
+   "state": "REJECTED",
+   "reason": "account_mode",
+   "e1_posts": 0,
+   "e1_reached": 0,
+   "any_order_posts": 0,
+   "stop_posts": 0,
+   "position": 0.0,
+   "halts": [
+    {
+     "id": 1,
+     "reason": "account_mode"
+    }
+   ],
+   "fw_violations": [],
+   "tamper": null,
+   "blocked": true,
+   "position_before": 0.0
+  },
+  {
+   "name": "multi_assets",
+   "what": "Multi-Asset 마진",
+   "state": "REJECTED",
+   "reason": "account_mode",
+   "e1_posts": 0,
+   "e1_reached": 0,
+   "any_order_posts": 0,
+   "stop_posts": 0,
+   "position": 0.0,
+   "halts": [
+    {
+     "id": 1,
+     "reason": "account_mode"
+    }
+   ],
+   "fw_violations": [],
+   "tamper": null,
+   "blocked": true,
+   "position_before": 0.0
+  },
+  {
+   "name": "withdraw_enabled_key",
+   "what": "출금 권한 있는 키",
+   "state": "REJECTED",
+   "reason": "account_mode",
+   "e1_posts": 0,
+   "e1_reached": 0,
+   "any_order_posts": 0,
+   "stop_posts": 0,
+   "position": 0.0,
+   "halts": [
+    {
+     "id": 1,
+     "reason": "account_mode"
+    }
+   ],
+   "fw_violations": [],
+   "tamper": null,
+   "blocked": true,
+   "position_before": 0.0
+  },
+  {
+   "name": "live_host_client",
+   "what": "클라이언트 주소가 실서버 fapi.binance.com",
+   "state": "REJECTED",
+   "reason": "firewall",
+   "e1_posts": 0,
+   "e1_reached": 0,
+   "any_order_posts": 0,
+   "stop_posts": 0,
+   "position": 0.0,
+   "halts": [
+    {
+     "id": 1,
+     "reason": "firewall"
+    }
+   ],
+   "fw_violations": [
+    "FW-ENV"
+   ],
+   "tamper": null,
+   "blocked": true,
+   "position_before": 0.0
+  },
+  {
+   "name": "forged_short_signal",
+   "what": "A가 신호를 숏(side=-1)으로 위조",
+   "state": "REJECTED",
+   "reason": "signal_mismatch",
+   "e1_posts": 0,
+   "e1_reached": 0,
+   "any_order_posts": 0,
+   "stop_posts": 0,
+   "position": 0.0,
+   "halts": [],
+   "fw_violations": [],
+   "tamper": "UPDATE 성공(트리거 없음) — B의 재확인이 막아야 함",
+   "blocked": true,
+   "position_before": 0.0
+  },
+  {
+   "name": "position_already_open",
+   "what": "거래소에 포지션이 이미 있음(1포지션 한도)",
+   "state": "REJECTED",
+   "reason": "unknown_position",
+   "e1_posts": 0,
+   "e1_reached": 0,
+   "any_order_posts": 0,
+   "stop_posts": 0,
+   "position": 0.01,
+   "halts": [
+    {
+     "id": 1,
+     "reason": "unknown_position"
+    }
+   ],
+   "fw_violations": [],
+   "tamper": null,
+   "blocked": true,
+   "position_before": 0.01
+  },
+  {
+   "name": "foreign_open_order",
+   "what": "거래소에 우리 것이 아닌 미체결 주문",
+   "state": "REJECTED",
+   "reason": "unknown_order",
+   "e1_posts": 0,
+   "e1_reached": 0,
+   "any_order_posts": 0,
+   "stop_posts": 0,
+   "position": 0.0,
+   "halts": [
+    {
+     "id": 1,
+     "reason": "unknown_order"
+    }
+   ],
+   "fw_violations": [],
+   "tamper": null,
+   "blocked": true,
+   "position_before": 0.0
+  },
+  {
+   "name": "symbol_rules_changed",
+   "what": "심볼 규칙 변경(tick 1.0)",
+   "state": "REJECTED",
+   "reason": "symbol_rules",
+   "e1_posts": 0,
+   "e1_reached": 0,
+   "any_order_posts": 0,
+   "stop_posts": 0,
+   "position": 0.0,
+   "halts": [
+    {
+     "id": 1,
+     "reason": "symbol_rules"
+    }
+   ],
+   "fw_violations": [],
+   "tamper": null,
+   "blocked": true,
+   "position_before": 0.0
+  },
+  {
+   "name": "t0_active",
+   "what": "풀리지 않은 킬 스위치 T0",
+   "state": "REJECTED",
+   "reason": "halted",
+   "e1_posts": 0,
+   "e1_reached": 0,
+   "any_order_posts": 0,
+   "stop_posts": 0,
+   "position": 0.0,
+   "halts": [
+    {
+     "id": 1,
+     "reason": "order_error"
+    }
+   ],
+   "fw_violations": [],
+   "tamper": null,
+   "blocked": true,
+   "position_before": 0.0
+  },
+  {
+   "name": "manual_halt",
+   "what": "제어 파일 수동 정지",
+   "state": "REJECTED",
+   "reason": "halted",
+   "e1_posts": 0,
+   "e1_reached": 0,
+   "any_order_posts": 0,
+   "stop_posts": 0,
+   "position": 0.0,
+   "halts": [],
+   "fw_violations": [],
+   "tamper": null,
+   "blocked": true,
+   "position_before": 0.0
+  },
+  {
+   "name": "daily_entry_cap",
+   "what": "UTC 하루 진입 3회 이미 기록(B 원장)",
+   "state": "REJECTED",
+   "reason": "daily_entry_cap",
+   "e1_posts": 0,
+   "e1_reached": 0,
+   "any_order_posts": 0,
+   "stop_posts": 0,
+   "position": 0.0,
+   "halts": [],
+   "fw_violations": [],
+   "tamper": null,
+   "blocked": true,
+   "position_before": 0.0
+  },
+  {
+   "name": "stale_approval",
+   "what": "승인 6분 전(claim_max_age 5분 초과)",
+   "state": "REJECTED",
+   "reason": "stale_approval",
+   "e1_posts": 0,
+   "e1_reached": 0,
+   "any_order_posts": 0,
+   "stop_posts": 0,
+   "position": 0.0,
+   "halts": [],
+   "fw_violations": [],
+   "tamper": null,
+   "blocked": true,
+   "position_before": 0.0
+  },
+  {
+   "name": "future_approval",
+   "what": "미래 시각 승인(위조)",
+   "state": "REJECTED",
+   "reason": "future_approval",
+   "e1_posts": 0,
+   "e1_reached": 0,
+   "any_order_posts": 0,
+   "stop_posts": 0,
+   "position": 0.0,
+   "halts": [],
+   "fw_violations": [],
+   "tamper": null,
+   "blocked": true,
+   "position_before": 0.0
+  },
+  {
+   "name": "clock_skew_2s",
+   "what": "서버 시각 오차 2초",
+   "state": "REJECTED",
+   "reason": "clock_skew",
+   "e1_posts": 0,
+   "e1_reached": 0,
+   "any_order_posts": 0,
+   "stop_posts": 0,
+   "position": 0.0,
+   "halts": [
+    {
+     "id": 1,
+     "reason": "clock_skew"
+    }
+   ],
+   "fw_violations": [],
+   "tamper": null,
+   "blocked": true,
+   "position_before": 0.0
+  },
+  {
+   "name": "resend_after_unknown",
+   "what": "진입 결과 모름 뒤 재시작 — 두 번째 진입 POST 시도 금지",
+   "state": "NOT_FILLED",
+   "reason": "entry_not_found_after_deadline",
+   "e1_posts": 1,
+   "e1_reached": 0,
+   "any_order_posts": 1,
+   "stop_posts": 0,
+   "position": 0.0,
+   "halts": [],
+   "fw_violations": [],
+   "tamper": null,
+   "blocked": true
+  },
+  {
+   "name": "second_signal_while_holding",
+   "what": "보유 중 두 번째 승인 신호",
+   "state": "STOP_VERIFIED",
+   "reason": "stop_verified",
+   "e1_posts": 1,
+   "e1_reached": 1,
+   "any_order_posts": 1,
+   "stop_posts": 1,
+   "position": 0.016,
+   "halts": [],
+   "fw_violations": [],
+   "tamper": null,
+   "second_intent_state": "REJECTED",
+   "second_reason": "position_exists",
+   "second_e1_posts": 0,
+   "blocked": true
+  }
+ ],
+ "direct": [
+  {
+   "name": "BASE entry(통과해야 함)",
+   "kind": "entry",
+   "ok": true,
+   "violations": []
+  },
+  {
+   "name": "BASE stop(통과해야 함)",
+   "kind": "stop",
+   "ok": true,
+   "violations": []
+  },
+  {
+   "name": "BASE exit(통과해야 함)",
+   "kind": "exit",
+   "ok": true,
+   "violations": []
+  },
+  {
+   "name": "BASE flatten(통과해야 함)",
+   "kind": "flatten",
+   "ok": true,
+   "violations": []
+  },
+  {
+   "name": "entry symbol ETHUSDT",
+   "kind": "entry",
+   "ok": false,
+   "violations": [
+    "FW-SYMBOL"
+   ]
+  },
+  {
+   "name": "entry SELL(숏 진입)",
+   "kind": "entry",
+   "ok": false,
+   "violations": [
+    "FW-SIDE"
+   ]
+  },
+  {
+   "name": "entry MARKET",
+   "kind": "entry",
+   "ok": false,
+   "violations": [
+    "FW-TYPE",
+    "FW-PRICE-BAND"
+   ]
+  },
+  {
+   "name": "entry GTC(대기 지정가)",
+   "kind": "entry",
+   "ok": false,
+   "violations": [
+    "FW-TIF"
+   ]
+  },
+  {
+   "name": "entry clientOrderId 'manual-1'",
+   "kind": "entry",
+   "ok": false,
+   "violations": [
+    "FW-CLIENT-ID"
+   ]
+  },
+  {
+   "name": "entry 다른 신호의 ID",
+   "kind": "entry",
+   "ok": false,
+   "violations": [
+    "FW-CLIENT-ID"
+   ]
+  },
+  {
+   "name": "entry 실서버 주소",
+   "kind": "entry",
+   "ok": false,
+   "violations": [
+    "FW-ENV"
+   ]
+  },
+  {
+   "name": "entry http(비 TLS)",
+   "kind": "entry",
+   "ok": false,
+   "violations": [
+    "FW-ENV"
+   ]
+  },
+  {
+   "name": "entry 두 번째(entry_already_sent)",
+   "kind": "entry",
+   "ok": false,
+   "violations": [
+    "FW-ENTRY-ONCE"
+   ]
+  },
+  {
+   "name": "entry reduceOnly=True",
+   "kind": "entry",
+   "ok": false,
+   "violations": [
+    "FW-REDUCE-ONLY"
+   ]
+  },
+  {
+   "name": "entry NaN 수량",
+   "kind": "entry",
+   "ok": false,
+   "violations": [
+    "FW-QTY"
+   ]
+  },
+  {
+   "name": "entry 마크 모름",
+   "kind": "entry",
+   "ok": false,
+   "violations": [
+    "FW-MARK"
+   ]
+  },
+  {
+   "name": "stop BUY",
+   "kind": "stop",
+   "ok": false,
+   "violations": [
+    "FW-SIDE"
+   ]
+  },
+  {
+   "name": "stop closePosition=false",
+   "kind": "stop",
+   "ok": false,
+   "violations": [
+    "FW-CLOSE-POSITION"
+   ]
+  },
+  {
+   "name": "stop CONTRACT_PRICE",
+   "kind": "stop",
+   "ok": false,
+   "violations": [
+    "FW-WORKING-TYPE"
+   ]
+  },
+  {
+   "name": "stop priceProtect=true",
+   "kind": "stop",
+   "ok": false,
+   "violations": [
+    "FW-PRICE-PROTECT"
+   ]
+  },
+  {
+   "name": "stop 지정가형(LIMIT)",
+   "kind": "stop",
+   "ok": false,
+   "violations": [
+    "FW-TYPE"
+   ]
+  },
+  {
+   "name": "stop 트리거 ≥ 마크",
+   "kind": "stop",
+   "ok": false,
+   "violations": [
+    "FW-TRIGGER-MARK",
+    "FW-STOP-DIST"
+   ]
+  },
+  {
+   "name": "stop 트리거 ≠ 계획 손절",
+   "kind": "stop",
+   "ok": false,
+   "violations": [
+    "FW-TRIGGER"
+   ]
+  },
+  {
+   "name": "stop 거리 30%",
+   "kind": "stop",
+   "ok": false,
+   "violations": [
+    "FW-STOP-DIST"
+   ]
+  },
+  {
+   "name": "stop 포지션 없음(post_fill)",
+   "kind": "stop",
+   "ok": false,
+   "violations": [
+    "FW-POSITION"
+   ]
+  },
+  {
+   "name": "stop 숏 포지션",
+   "kind": "stop",
+   "ok": false,
+   "violations": [
+    "FW-POSITION"
+   ]
+  },
+  {
+   "name": "stop ID 용도 e1",
+   "kind": "stop",
+   "ok": false,
+   "violations": [
+    "FW-CLIENT-ID"
+   ]
+  },
+  {
+   "name": "exit reduceOnly=False",
+   "kind": "exit",
+   "ok": false,
+   "violations": [
+    "FW-REDUCE-ONLY"
+   ]
+  },
+  {
+   "name": "exit BUY",
+   "kind": "exit",
+   "ok": false,
+   "violations": [
+    "FW-SIDE"
+   ]
+  },
+  {
+   "name": "exit 수량 > 포지션",
+   "kind": "exit",
+   "ok": false,
+   "violations": [
+    "FW-QTY-OVER-POSITION"
+   ]
+  },
+  {
+   "name": "exit 포지션 0",
+   "kind": "exit",
+   "ok": false,
+   "violations": [
+    "FW-POSITION"
+   ]
+  },
+  {
+   "name": "exit LIMIT",
+   "kind": "exit",
+   "ok": false,
+   "violations": [
+    "FW-TYPE"
+   ]
+  },
+  {
+   "name": "exit ID가 f1(용도 불일치)",
+   "kind": "exit",
+   "ok": false,
+   "violations": [
+    "FW-CLIENT-ID"
+   ]
+  },
+  {
+   "name": "flatten reduceOnly=False",
+   "kind": "flatten",
+   "ok": false,
+   "violations": [
+    "FW-REDUCE-ONLY"
+   ]
+  },
+  {
+   "name": "flatten 수량 > 포지션",
+   "kind": "flatten",
+   "ok": false,
+   "violations": [
+    "FW-QTY-OVER-POSITION"
+   ]
+  }
+ ],
+ "gateway_blocked": 31,
+ "gateway_total": 31,
+ "direct_wrong": []
+}

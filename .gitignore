@@ -17,3 +17,4 @@ bot.toml
 config/bot.toml
 config/replay.toml
 config/*.local.toml
+config/orders_control.toml

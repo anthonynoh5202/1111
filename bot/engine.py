@@ -4,6 +4,10 @@
 전송 성공 뒤 main/telegram_ui가 mark_card_sent를 부른다. 모든 상태 변경은 bot.db의 원자적 함수로만 한다.
 현재 시각은 반드시 주입된 Clock에서만 읽는다(재생 모드에서 가짜 시계로 과거를 흘려보낼 수 있게).
 
+TESTNET 모드(bot/orders/DESIGN.md §14): 모의 체결(paper)을 쓰지 않는다. [확인]의 APPROVED 전이와 같은 트랜잭션에서
+주문 의도를 큐에 넣고(queue.enqueue), 보유 판정은 order_intents, 추세 청산은 queue.request_exit로 B에 요청한다.
+거래소 호출·거래 키는 이 프로세스(A)에 없다. B의 체결·청산·경고는 outbox로 들어와 A가 텔레그램으로 보낸다.
+
 스레드 규칙: 한 sqlite3 연결을 여러 스레드가 쓰면 db.transaction의 '중첩 합류'가 다른 스레드의 트랜잭션에
 잘못 합류할 수 있다. 그래서 엔진의 모든 DB 작업은 self.lock(RLock) 안에서 한다. Claude 호출(최대 120초)만
 락 밖에서 하므로 그동안에도 버튼·tick이 돈다. 같은 연결을 쓰는 다른 모듈(telegram_ui 등)도 engine.lock을 잡고 써야 한다.
@@ -66,6 +70,7 @@ MAX_PRESS_LAG_MS = 300_000
 CATCHUP_WINDOW_NS = 30 * NS_PER_DAY
 CATCHUP_MAX_CHUNKS = 16
 DISK_FREE_WARN_BYTES = 1 << 30          # 1 GiB 미만이면 경고(OPS-7)
+ORDERS_HEARTBEAT_STALE_MS = 5 * 60 * 1000   # TESTNET: B 심장 박동이 이보다 오래되면 경고
 
 SKIP_REASON_KO = {
     "late_start": "늦은 시작(판단 뒤 승인 창 2시간이 이미 지남)",
@@ -180,6 +185,9 @@ class Engine:
         self._last_cycle_alert: tuple[str, str] | None = None   # (날짜, 오류 종류) — 같은 실패 경고 반복 방지(R-3)
         self._disk_warned_day: str | None = None
         self.unauthorized = None            # telegram_ui.UnauthorizedTracker(처음 쓸 때 만든다)
+        self._testnet = cfg.mode == Mode.TESTNET
+        self._b_down_alerted = False        # TESTNET: 주문 프로세스(B) 심장 박동 끊김 경고(끊길 때 한 번)
+        self._started_ms = self.now_ms()    # 시작 직후(B가 아직 복구 중) 경고를 피하는 유예의 기준
 
     # --- 시간 ----------------------------------------------------------------------------
     def now_ns(self) -> int:
@@ -249,12 +257,27 @@ class Engine:
         except Exception:  # 렌더러 오류로 카드가 안 나가면 안 된다 — 최소 카드로
             log.exception("카드 렌더링 실패, 최소 카드 사용")
             msg = fallback_card(signal, analysis, self.cfg)
-        return OutgoingMessage(text=msg.text, buttons=msg.buttons, signal_id=signal["signal_id"], kind="card",
+        text = msg.text
+        if self._testnet and signal["state"] in (S.NEW.value, S.CARD_SENT.value, S.CONFIRM_PENDING.value):
+            from bot.orders import queue as oq
+
+            live = oq.live_intent(self.conn)
+            if live is not None and live["signal_id"] != signal["signal_id"]:
+                # O-3: 거래소 포지션은 동시에 1개. 승인해도 주문 프로세스가 REJECTED('position_exists')로 끝낸다.
+                text += (f"\n※ 보유 중(1포지션): {int(live['subsystem_n'])}일 신호의 주문이 {live['state']} 상태 — "
+                         "승인해도 주문하지 않는다(position_exists)")
+        return OutgoingMessage(text=text, buttons=msg.buttons, signal_id=signal["signal_id"], kind="card",
                                edit_message_id=edit_message_id)
 
     def _open_position_dicts(self, frame, decision_ms: int) -> list[dict[str, Any]]:
         close = float(frame["close"].iloc[-1])
         out = []
+        if self._testnet:
+            for r in self._holding_intents():
+                out.append(dict(n=int(r["subsystem_n"]), entry_price=float(r["avg_fill_price"]),
+                                stop=None if r["stop_price"] is None else float(r["stop_price"]), unrealized_r=None,
+                                days_held=(int(decision_ms) - int(r["entry_fill_ms"] or decision_ms)) / MS_PER_DAY))
+            return out
         for p in db.open_positions(self.conn):
             rpu = float(p["risk_per_unit"])
             out.append(dict(n=int(p["subsystem_n"]), entry_price=float(p["entry_price"]), stop=float(p["stop"]),
@@ -367,6 +390,8 @@ class Engine:
         """until_ns까지 모의 체결(fill_approved)·감시(monitor). 시세 조회는 락 밖, DB 반영은 락 안(OPS-4).
         결과는 한 번에 부른 것과 같다(paper는 커서 기반). 오래 멈췄다 켜지면 30일씩 나눠 따라잡는다.
         할 일(체결 대기·열린 포지션)이 없으면 시세를 조회하지 않는다."""
+        if self._testnet:
+            return []                              # TESTNET: 체결·손절·청산은 거래소(프로세스 B)가 한다
         out: list[OutgoingMessage] = []
         until_ns = int(until_ns)
         prev_lo: int | None = None
@@ -397,7 +422,7 @@ class Engine:
         decision_ms = ns_to_ms(decision_ns)
         cycle_day = _day_str(decision_ms)
         check = getattr(self.market, "check_clock", None)
-        if self.cfg.mode == Mode.PAPER and callable(check):
+        if self.cfg.mode in (Mode.PAPER, Mode.TESTNET) and callable(check):
             try:
                 skew = check()
             except MarketDataError as exc:
@@ -446,7 +471,14 @@ class Engine:
 
     def _open_at(self, decision_ms: int) -> dict[int, bool]:
         """판단 시각에 보유 중이던 하위 시스템: 판단 전에 진입했고 (아직 열림 또는 청산 봉 마감이 판단 뒤).
-        tick이 사이클보다 먼저 판단 뒤 손절을 반영했어도 백테스트(T-2)와 같은 판단을 하게 한다(R-2)."""
+        tick이 사이클보다 먼저 판단 뒤 손절을 반영했어도 백테스트(T-2)와 같은 판단을 하게 한다(R-2).
+        TESTNET: order_intents 기준 — 판단 전에 체결됐고 (아직 보유·정지(HALTED) 또는 판단 뒤 종료)."""
+        if self._testnet:
+            rows = self.conn.execute(
+                "SELECT subsystem_n FROM order_intents WHERE filled_qty > 0 AND entry_fill_ms < ? AND"
+                " (state IN ('ENTRY_FILLED', 'STOP_PLACED', 'STOP_VERIFIED', 'EXITING', 'HALTED')"
+                "  OR closed_ms > ?)", (int(decision_ms), int(decision_ms))).fetchall()
+            return {int(r["subsystem_n"]): True for r in rows}
         rows = self.conn.execute(
             "SELECT subsystem_n FROM paper_positions WHERE entry_ms < ? AND"
             " (state = 'OPEN' OR exit_bar_close_ms > ?)", (int(decision_ms), int(decision_ms))).fetchall()
@@ -467,7 +499,9 @@ class Engine:
         if missed:
             db.begin_cycle(self.conn, day, decision_ms=d_ms, now_ms=now_ms)
         for s in sigs:
-            if s.action == SubsystemAction.EXIT:
+            if s.action == SubsystemAction.EXIT and self._testnet:
+                self._request_exit_testnet(report, s, d_ms, now_ms=now_ms, missed=missed)
+            elif s.action == SubsystemAction.EXIT:
                 pos = db.open_position_for_subsystem(self.conn, s.n)
                 if pos is None or int(pos["entry_ms"]) >= d_ms:
                     continue                                   # 판단 뒤 이미 닫힘(손절) 또는 판단 뒤 진입
@@ -508,6 +542,78 @@ class Engine:
         if missed:
             db.finish_cycle(self.conn, day, ok=True, now_ms=now_ms, note="recovered_missed")
         return sigs
+
+    # --- TESTNET: 주문 의도(order_intents) 쪽 ------------------------------------------------
+    _HOLDING_SQL = "('ENTRY_FILLED', 'STOP_PLACED', 'STOP_VERIFIED', 'EXITING')"
+
+    def _holding_intents(self) -> list[sqlite3.Row]:
+        return list(self.conn.execute(
+            f"SELECT * FROM order_intents WHERE state IN {self._HOLDING_SQL} ORDER BY intent_id"))
+
+    def _request_exit_testnet(self, report: CycleReport, s, d_ms: int, *, now_ms: int, missed: bool) -> None:
+        """EXIT 판단 → B에 추세 청산 요청(queue.request_exit, due = 판단 + L분). 판단 전에 체결된 보유 의도만.
+        HALTED 등 요청을 받을 수 없는 상태면 감사 기록만(손절은 거래소에 있고, 사람이 처리한다)."""
+        from bot.orders import queue as oq
+
+        row = self.conn.execute(
+            "SELECT * FROM order_intents WHERE subsystem_n = ? AND filled_qty > 0 AND entry_fill_ms < ?"
+            " AND state IN ('ENTRY_FILLED', 'STOP_PLACED', 'STOP_VERIFIED', 'EXITING', 'HALTED')"
+            " ORDER BY intent_id DESC LIMIT 1", (int(s.n), int(d_ms))).fetchone()
+        if row is None:
+            return                                         # 판단 뒤 이미 닫힘(손절) 또는 판단 뒤 진입
+        due_ms = ns_to_ms(ST.trend_exit_due_ns(s.decision_ns, self.trend))
+        if oq.request_exit(self.conn, row["signal_id"], exit_signal_close_ms=ns_to_ms(s.signal_close_ns),
+                           exit_due_ms=due_ms, now_ms=now_ms):
+            report.exit_position_ids.append(int(row["intent_id"]))
+            if missed or now_ms > due_ms:
+                db.audit(self.conn, ts_ms=now_ms, actor=Actor.ENGINE, event=AuditEvent.ALERT,
+                         entity_type="order_intent", entity_id=int(row["intent_id"]),
+                         payload=dict(reason="exit_plan_late", exit_due_ms=due_ms, missed_day=missed))
+        elif row["exit_due_ms"] is None:
+            db.audit(self.conn, ts_ms=now_ms, actor=Actor.ENGINE, event=AuditEvent.ALERT,
+                     entity_type="order_intent", entity_id=int(row["intent_id"]),
+                     payload=dict(reason="exit_request_refused", intent_state=row["state"]))
+
+    def _orders_alerts(self) -> list[OutgoingMessage]:
+        """TESTNET: 주문 프로세스(B)의 심장 박동이 끊기면 경고(끊길 때 한 번, 돌아오면 다시 무장)."""
+        if not self._testnet:
+            return []
+        from bot.orders import queue as oq
+
+        with self.lock:
+            hb = oq.get_runtime(self.conn, "b_heartbeat_ms")
+            now_ms = self.now_ms()
+        ref = int(hb["value"]) if hb is not None else self._started_ms   # 기록이 없으면 A 시작부터 잰다
+        stale = now_ms - ref > ORDERS_HEARTBEAT_STALE_MS
+        if not stale:
+            self._b_down_alerted = False
+            return []
+        if self._b_down_alerted:
+            return []
+        self._b_down_alerted = True
+        return [self._alert("주문 프로세스(B) 심장 박동 없음 — 승인해도 주문되지 않는다. 서버에서"
+                            " `docker compose --profile testnet ps orders`·로그 확인(RUNBOOK 테스트넷 §T8)")]
+
+    def _orders_status_lines(self) -> list[str]:
+        from bot.orders import queue as oq
+
+        now_ms = self.now_ms()
+        hb = oq.get_runtime(self.conn, "b_heartbeat_ms")
+        rec = oq.get_runtime(self.conn, "last_reconcile_ms")
+        rec_ok = oq.get_runtime(self.conn, "last_reconcile_ok")
+        released = {int(r["halt_id"]) for r in self.conn.execute("SELECT halt_id FROM order_halt_releases")}
+        open_halts = [r for r in oq.halts(self.conn) if int(r["halt_id"]) not in released]
+        live = oq.live_intent(self.conn)
+        age = "없음" if hb is None else f"{max(0, now_ms - int(hb['value'])) // 1000}초 전"
+        lines = [f"주문 프로세스(B) 심장 박동: {age}"
+                 + ("" if rec is None else f" · 마지막 대조 {kst_str(int(rec['value']), '%H:%M:%S KST')}"
+                    f" {'정상' if rec_ok is not None and rec_ok['value'] == '1' else '문제'}"),
+                 f"보유 주문 의도: {'없음' if live is None else str(int(live['subsystem_n'])) + '일 ' + live['state']}"]
+        if open_halts:
+            lines.append("킬 스위치 T0(해제 기록 없음): " + ", ".join(f"#{int(r['halt_id'])} {r['reason']}"
+                                                            for r in open_halts[-5:])
+                         + " — 해제는 서버 제어 파일에서만(/resume은 T0에 영향 없음)")
+        return lines
 
     def _skip_notices(self, skipped: list[tuple[sqlite3.Row, str]]) -> list[OutgoingMessage]:
         """생성 즉시 건너뛴 신호 알림(OPS-9): 어느 하위 시스템이 왜 건너뛰어졌는지."""
@@ -552,6 +658,8 @@ class Engine:
     def _daily_report(self) -> list[OutgoingMessage]:
         """일일 리포트(모의 매매 담당). 실패해도 사이클은 성공(보고용)."""
         try:
+            if self._testnet:
+                return [self._testnet_daily_report()]
             with self.lock:
                 return [paper.daily_report(self.conn, self.cfg, self.now_ns())]
         except NotImplementedError:
@@ -559,6 +667,26 @@ class Engine:
         except Exception:
             log.exception("일일 리포트 실패")
             return []
+
+    def _testnet_daily_report(self) -> OutgoingMessage:
+        """TESTNET 일일 리포트: 거래소(데모) 보유·지난 24시간 주문 의도 결과·B 상태(값은 order_intents 기록)."""
+        with self.lock:
+            now_ms = self.now_ms()
+            since = now_ms - MS_PER_DAY
+            done = list(self.conn.execute(
+                "SELECT subsystem_n, state, state_reason, exit_reason, avg_fill_price, exit_price FROM order_intents"
+                " WHERE updated_ms >= ? AND state IN ('CLOSED', 'FAILED_FLATTENED', 'NOT_FILLED', 'REJECTED', 'HALTED')"
+                " ORDER BY intent_id", (since,)))
+            status = self._orders_status_lines()
+        lines = [f"{self.cfg.mode_tag} 일일 리포트 · {kst_str(now_ms)}", self.positions_text(),
+                 f"■ 지난 24시간 끝난 주문 의도 {len(done)}건"]
+        for r in done:
+            px = "" if r["exit_price"] is None else f" · 청산 {float(r['exit_price']):,.1f}"
+            fill = "" if r["avg_fill_price"] is None else f" · 체결 {float(r['avg_fill_price']):,.1f}"
+            lines.append(f"- {int(r['subsystem_n'])}일 {r['state']}({r['exit_reason'] or r['state_reason'] or '-'})"
+                         f"{fill}{px}")
+        lines.extend(status)
+        return OutgoingMessage(text="\n".join(lines), kind="report")
 
     def mark_card_sent(self, signal_id: str, message_id: int) -> bool:
         """NEW → CARD_SENT (card_sent_ms, tg_message_id, analysis_id 기록). 만료 뒤면 False(tick이 만료 처리)."""
@@ -613,10 +741,16 @@ class Engine:
                 return False
             if db.is_paused(self.conn):
                 return False
-            return db.transition_signal(
+            ok = db.transition_signal(
                 self.conn, signal_id, S.CONFIRM_PENDING, S.APPROVED, now_ms=now_ms, actor=Actor.TELEGRAM_USER,
                 reason="confirm", fields=dict(approved_ms=now_ms,
                                               approval_latency_ms=now_ms - int(sig["decision_ms"])))
+            if ok and self._testnet:
+                # 같은 트랜잭션: APPROVED와 QUEUED가 함께 생기거나 함께 없다(B는 이 행만 가져간다)
+                from bot.orders import queue as oq
+
+                oq.enqueue(self.conn, signal_id=signal_id, now_ms=now_ms)
+            return ok
 
     def cancel_confirm(self, signal_id: str, *, at_ms: int | None = None) -> bool:
         """확인 화면 [취소]: CONFIRM_PENDING → CARD_SENT (승인 창 안이면 다시 [승인] 가능)."""
@@ -681,6 +815,7 @@ class Engine:
                              entity_type="tick", payload=dict(error=err))
                 out.append(self._alert("1분 감시 중 시세 이상 — 체결·손절 감시 보류, 다음 주기에 재시도"))
         out.extend(self._gap_alerts())
+        out.extend(self._orders_alerts())
         # e. 미전송 카드
         out.extend(self.unsent_cards())
         return out
@@ -727,6 +862,16 @@ class Engine:
             now_ms = self.now_ms()
             db.set_paused(self.conn, True, now_ms=now_ms, actor=act)
             for sig in db.signals_in_states(self.conn, PAUSE_SKIP_STATES):
+                if self._testnet and sig["state"] == S.APPROVED.value:
+                    from bot.orders import queue as oq
+
+                    if oq.intent_for_signal(self.conn, sig["signal_id"]) is not None:
+                        # B가 이미 가져갔으면(False) 신호를 건드리지 않는다 — B가 거래소 사실로 끝낸다.
+                        # 아직 QUEUED면 REJECTED('paused')와 신호 SKIPPED가 같은 트랜잭션에서 된다(queue._sync_signal).
+                        if oq.cancel_queued(self.conn, sig["signal_id"], now_ms=now_ms, reason="paused",
+                                            actor=str(getattr(act, "value", act))):
+                            skipped.append(sig["signal_id"])
+                        continue
                 if db.transition_signal(self.conn, sig["signal_id"], sig["state"], S.SKIPPED, now_ms=now_ms,
                                         actor=act, reason="paused"):
                     skipped.append(sig["signal_id"])
@@ -743,8 +888,9 @@ class Engine:
             last = self.conn.execute("SELECT * FROM cycles ORDER BY cycle_day DESC LIMIT 1").fetchone()
             counts = {r["state"]: int(r["c"]) for r in
                       self.conn.execute("SELECT state, COUNT(*) AS c FROM signals GROUP BY state")}
-            n_open = len(db.open_positions(self.conn))
+            n_open = len(self._holding_intents()) if self._testnet else len(db.open_positions(self.conn))
             paused = db.is_paused(self.conn)
+            orders_lines = self._orders_status_lines() if self._testnet else []
         pending = sum(counts.get(s.value, 0) for s in PENDING_APPROVAL_STATES) + counts.get(S.APPROVED.value, 0)
         next_dec = self.decision_ns_for(ms_to_ns(now_ms))
         if ms_to_ns(now_ms) >= next_dec:
@@ -754,12 +900,27 @@ class Engine:
             f"전략 {self.cfg.strategy_key} · 신규 진입 {'일시정지' if paused else '받는 중'}",
             f"마지막 사이클: " + (f"{last['cycle_day']} {last['status']}" if last is not None else "없음"),
             f"다음 판단: {kst_str(ns_to_ms(next_dec))}",
-            f"승인 대기·체결 대기 신호 {pending}건 · 열린 모의 포지션 {n_open}개",
+            f"승인 대기·체결 대기 신호 {pending}건 · "
+            + (f"거래소(데모) 보유 {n_open}개" if self._testnet else f"열린 모의 포지션 {n_open}개"),
             "누적: " + ", ".join(f"{k} {v}" for k, v in sorted(counts.items())) if counts else "누적: 신호 없음",
+            *orders_lines,
         ]
         return "\n".join(lines)
 
     def positions_text(self) -> str:
+        if self._testnet:
+            with self.lock:
+                rows = self._holding_intents()
+            if not rows:
+                return f"{self.cfg.mode_tag} 거래소(데모) 보유 포지션 없음"
+            lines = [f"{self.cfg.mode_tag} 거래소(데모) 보유 {len(rows)}개 (값은 주문 프로세스 기록)"]
+            for r in rows:
+                due = f" · 추세 청산 예정 {kst_str(r['exit_due_ms'])}" if r["exit_due_ms"] is not None else ""
+                stop = "-" if r["stop_price"] is None else f"{float(r['stop_price']):,.1f}"
+                lines.append(f"- {int(r['subsystem_n'])}일: 체결 {float(r['avg_fill_price']):,.1f}"
+                             f" ({kst_str(r['entry_fill_ms'])}) · 손절 {stop} · 수량 {float(r['filled_qty']):.3f} BTC"
+                             f" · {r['state']}{due}")
+            return "\n".join(lines)
         with self.lock:
             rows = db.open_positions(self.conn)
         if not rows:

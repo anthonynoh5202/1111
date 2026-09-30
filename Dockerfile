@@ -13,8 +13,9 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
     TZ=UTC
 
 RUN useradd --uid 10001 --user-group --no-create-home --home-dir /nonexistent --shell /usr/sbin/nologin bot \
- && mkdir -p /app /data /config \
- && chown bot:bot /data
+ && mkdir -p /app /data /config /state \
+ && chown bot:bot /data \
+ && chown bot:bot /state && chmod 0700 /state   # 주문 B 전용 원장 볼륨(named volume은 이 소유·권한을 이어받는다)
 
 WORKDIR /app
 
@@ -24,7 +25,7 @@ RUN pip install --no-cache-dir --require-hashes --only-binary=:all: -r /app/requ
 # 코드: root 소유 읽기 전용(실행 사용자가 코드를 고칠 수 없게)
 COPY bot/ /app/bot/
 COPY backtest/*.py /app/backtest/
-RUN rm -rf /app/bot/tests && find /app -name '__pycache__' -prune -exec rm -rf {} + \
+RUN rm -rf /app/bot/tests /app/bot/orders/tests && find /app -name '__pycache__' -prune -exec rm -rf {} + \
  && chmod -R a-w /app
 
 USER 10001:10001
