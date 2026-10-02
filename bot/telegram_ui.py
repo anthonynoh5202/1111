@@ -8,6 +8,7 @@
   가격·수량은 callback_data에 없다. 모든 값은 DB에서 꺼낸다.
 - 중복 클릭: db.record_button(callback_query_id 고유)으로 거르고, 상태 전이는 engine(→ db 원자적 UPDATE)만 한다.
 - 모든 메시지는 평문(parse_mode 없음), 링크 미리보기 끔, protect_content 켬, 첫 줄 모드 머리표 [PAPER]/[REPLAY].
+  예외: [상세]에 덧붙는 'Claude 앱에 붙여넣을 질문'만 복사 허용(검증된 수치 JSON뿐, 버튼·비밀 없음).
   Claude 텍스트는 sanitize_text(URL·마크업·제어 문자 제거, 길이 제한).
 - 명령: /status /positions /pause /resume /help 만. 설정 변경 명령 없음. 나머지 문장은 무시(감사 로그).
 
@@ -416,6 +417,35 @@ def render_state_message(signal: sqlite3.Row, analysis: sqlite3.Row | None, cfg:
     return OutgoingMessage(text=text, buttons=buttons, signal_id=sid, kind=kind, edit_message_id=message_id)
 
 
+_PASTE_HEADER = (
+    "[Claude 앱에 붙여넣을 질문] 이 메시지를 길게 눌러 복사한 뒤 Claude 앱에 붙여넣으세요.\n\n"
+    "너는 BTC/USDT 무기한 선물 일봉 추세추종(돈치안 20·55·100일, 롱만, 2×ATR20 손절) 신호를 검토하는 분석가야. "
+    "아래 JSON은 코드가 계산한 수치이고, 여기 없는 가격이나 사실을 지어내지 마. 한국어로 답해줘.\n"
+    "1) 한 줄 요약 2) 반대 근거 3가지 3) 이 판단이 틀렸다고 볼 조건 "
+    "4) 승인/보류 의견(참고용일 뿐, 결정은 내가 한다)\n\n"
+)
+
+
+def render_paste_prompt(analysis: sqlite3.Row | None) -> str | None:
+    """[상세]에 덧붙일 'Claude 앱에 붙여넣을 질문'. API 없이 사람이 앱에서 직접 묻게 하기 위한 것.
+
+    본문은 analyses.input_json(코드가 계산한 수치 JSON)뿐이고, validate_input을 통과해야만 만든다
+    (자유 텍스트·비밀이 섞일 길 차단). 실패하거나 너무 길면 None — 상세 메시지만 보낸다.
+    """
+    from bot.analyst import validate_input
+
+    if analysis is None:
+        return None
+    try:
+        payload = json.loads(analysis["input_json"] or "")
+    except (TypeError, ValueError, IndexError, KeyError):
+        return None
+    if validate_input(payload) is not None:
+        return None
+    text = _PASTE_HEADER + json.dumps(payload, ensure_ascii=False, sort_keys=True, separators=(",", ":"))
+    return text if len(text) <= MAX_TEXT else None
+
+
 # ---------------------------------------------------------------------------
 # 콜백 처리
 # ---------------------------------------------------------------------------
@@ -600,8 +630,11 @@ def handle_callback(engine, conn: sqlite3.Connection, cfg: BotConfig, ctx: Callb
         return CallbackOutcome(answer=False, result="duplicate")
 
     if pre == "DETAIL":
-        return CallbackOutcome(send=[OutgoingMessage(text=render_detail(sig, analysis, cfg), signal_id=sid,
-                                                     kind="info")], result="detail")
+        send = [OutgoingMessage(text=render_detail(sig, analysis, cfg), signal_id=sid, kind="info")]
+        paste = render_paste_prompt(analysis)
+        if paste is not None:
+            send.append(OutgoingMessage(text=paste, signal_id=sid, kind="info", copyable=True))
+        return CallbackOutcome(send=send, result="detail")
 
     if pre != "ACCEPTED":
         _reject(conn, now_ms, ctx, pre.lower(), signal_id=sid,
@@ -764,10 +797,10 @@ class PtbTransport:
 
         return LinkPreviewOptions(is_disabled=True)
 
-    async def send(self, text: str, buttons: tuple[tuple[Button, ...], ...] = ()) -> int:
+    async def send(self, text: str, buttons: tuple[tuple[Button, ...], ...] = (), *, protect: bool = True) -> int:
         msg = await self._bot.send_message(chat_id=self._chat_id, text=_outbound(text),
                                            parse_mode=None, reply_markup=_markup(buttons),
-                                           link_preview_options=self._link_opts(), protect_content=True)
+                                           link_preview_options=self._link_opts(), protect_content=bool(protect))
         return int(msg.message_id)
 
     async def edit(self, message_id: int, text: str, buttons: tuple[tuple[Button, ...], ...] = ()) -> None:
@@ -800,14 +833,14 @@ async def apply_outcome(transport, ctx: CallbackContext, outcome: CallbackOutcom
     if outcome.edit is not None and outcome.edit.edit_message_id is not None:
         await transport.edit(outcome.edit.edit_message_id, outcome.edit.text, outcome.edit.buttons)
     for msg in outcome.send:
-        await transport.send(msg.text, msg.buttons)
+        await transport.send(msg.text, msg.buttons, protect=not msg.copyable)
 
 
 async def _deliver_one(transport, msg: OutgoingMessage) -> int | None:
     if msg.edit_message_id is not None:
         await transport.edit(msg.edit_message_id, msg.text, msg.buttons)
         return None
-    return await transport.send(msg.text, msg.buttons)
+    return await transport.send(msg.text, msg.buttons, protect=not msg.copyable)
 
 
 async def send_outgoing(transport, engine, messages: list[OutgoingMessage]) -> list[tuple[OutgoingMessage, bool]]:

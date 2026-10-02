@@ -141,6 +141,7 @@ class SentMessage:
     message_id: int
     text: str
     buttons: tuple[tuple[Button, ...], ...]
+    protect: bool = True
 
 
 @dataclass
@@ -153,12 +154,12 @@ class FakeTransport:
     fail_next: int = 0
     _next_id: int = 1000
 
-    async def send(self, text: str, buttons: tuple[tuple[Button, ...], ...] = ()) -> int:
+    async def send(self, text: str, buttons: tuple[tuple[Button, ...], ...] = (), *, protect: bool = True) -> int:
         if self.fail_next > 0:
             self.fail_next -= 1
             raise ConnectionError("가짜 전송 실패")
         self._next_id += 1
-        self.sent.append(SentMessage(self._next_id, text, buttons))
+        self.sent.append(SentMessage(self._next_id, text, buttons, protect))
         return self._next_id
 
     async def edit(self, message_id: int, text: str, buttons: tuple[tuple[Button, ...], ...] = ()) -> None:

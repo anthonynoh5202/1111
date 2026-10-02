@@ -297,6 +297,7 @@ class OutgoingMessage:
     signal_id: str | None = None        # 카드면 신호 ID (전송 성공 후 CARD_SENT 전이에 쓴다)
     kind: str = "info"                  # 'card'|'confirm'|'fill'|'exit'|'expired'|'report'|'alert'|'info'
     edit_message_id: int | None = None  # 값이 있으면 새로 보내지 않고 그 메시지를 고친다(만료·처리 완료 표시, 버튼 제거)
+    copyable: bool = False              # True면 protect_content를 끈다(Claude 앱에 붙여넣을 질문 전용, 비밀·버튼 없음)
 
 
 # ---------------------------------------------------------------------------
@@ -364,8 +365,8 @@ class MarketData(Protocol):
 class ChatTransport(Protocol):
     """텔레그램 전송 계층(비동기). 구현: telegram_ui의 PTB 어댑터 / 테스트용 가짜. 받는 쪽은 허용 채팅 하나뿐."""
 
-    async def send(self, text: str, buttons: tuple[tuple[Button, ...], ...] = ()) -> int:
-        """허용 채팅에 평문 전송, message_id 반환. 실패하면 예외."""
+    async def send(self, text: str, buttons: tuple[tuple[Button, ...], ...] = (), *, protect: bool = True) -> int:
+        """허용 채팅에 평문 전송, message_id 반환. 실패하면 예외. protect=False는 복사 허용(붙여넣기용 질문만)."""
         ...
 
     async def edit(self, message_id: int, text: str, buttons: tuple[tuple[Button, ...], ...] = ()) -> None: ...

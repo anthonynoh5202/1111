@@ -71,7 +71,7 @@ class RecTransport:
     answers: list[tuple[str, str | None]] = field(default_factory=list)
     _id: int = 5000
 
-    async def send(self, text, buttons=()):
+    async def send(self, text, buttons=(), *, protect=True):
         self._id += 1
         self.sent.append((self._id, text, buttons))
         return self._id

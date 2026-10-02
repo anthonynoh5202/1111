@@ -149,7 +149,7 @@ def test_startup_telegram_outage_keeps_monitoring(tmp_path, trend_market_small, 
 
 
 class _DeadTransport(FakeTransport):
-    async def send(self, text, buttons=()):
+    async def send(self, text, buttons=(), *, protect=True):
         raise ConnectionError("telegram down")
 
     async def edit(self, message_id, text, buttons=()):
@@ -207,7 +207,7 @@ class _CardsOnlyTransport(FakeTransport):
 
     down: bool = True
 
-    async def send(self, text, buttons=()):
+    async def send(self, text, buttons=(), *, protect=True):
         if self.down and not buttons:
             raise ConnectionError("telegram flaky")
         return await super().send(text, buttons)

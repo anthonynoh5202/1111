@@ -233,7 +233,7 @@ class RecordingTransport:
     keep_text: bool = False           # 전체 재생에서 메모리 절약: 기본은 본문을 버리고 개수만
     _next_id: int = 0
 
-    async def send(self, text: str, buttons: tuple[tuple[Button, ...], ...] = ()) -> int:
+    async def send(self, text: str, buttons: tuple[tuple[Button, ...], ...] = (), *, protect: bool = True) -> int:
         self._next_id += 1
         self.sent.append((self._next_id, text if self.keep_text else text[:80], buttons))
         return self._next_id
