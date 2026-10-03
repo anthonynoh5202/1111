@@ -1683,6 +1683,8 @@ def render_cover_png(blocks: list, out: pathlib.Path) -> pathlib.Path | None:
             browser.close()
     html_path.unlink(missing_ok=True)
     return png
+UNAVAILABLE_MARKS = {"Private video": "비공개", "Video unavailable": "삭제·차단", "This video has been removed": "삭제",
+                     "members-only": "회원 전용"}
 MARK_RE = re.compile(r"@@(\d+)@@")
 marker_ids: dict = {}   # 제목 id → 표식 번호(PDF 글자 추출이 '-' 같은 기호를 흘리지 않도록 숫자만 쓴다)
 
@@ -1811,10 +1813,11 @@ def main(argv: list | None = None) -> int:
                     lacking.append((vid, len(secs) - len(miss), len(secs)))
             print(f"[{vol}권] {cfg['title']}: 캡처 {have}/{total}장 (영상 {len(vids)}편 중 덜 된 영상 {len(lacking)}편)")
             for vid, h, t in lacking:
-                print(f"  - {lessons[vid]['title'][:40]}  {h}/{t}  ({vid})")
+                gone = manifest.get(vid, {}).get("unavailable")
+                print(f"  - {lessons[vid]['title'][:40]}  {h}/{t}  ({vid})" + (f"  ※ 유튜브 {gone} 영상" if gone else ""))
             for name in (base + ".pdf", base + ".docx"):
                 print(f"  {name}: {'있음' if (out / name).exists() else '없음'}")
-            any_lacking = any_lacking or bool(lacking)
+            any_lacking = any_lacking or any(not manifest.get(v, {}).get("unavailable") for v, _, _ in lacking)
         print("모두 완료" if not any_lacking else "덜 된 영상은 같은 명령을 다시 실행하면 이어서 받습니다.")
         return 0
 
@@ -1831,6 +1834,10 @@ def main(argv: list | None = None) -> int:
         for i, vid in enumerate(targets, 1):
             secs = capture_points(lessons[vid])
             entry = manifest.setdefault(vid, {})
+            if entry.get("unavailable") and args.recapture != "all":
+                print(f"[{i}/{len(targets)}] {lessons[vid]['title'][:40]} — 건너뜀 (유튜브에서 볼 수 없는 영상: "
+                      f"{entry['unavailable']})", flush=True)
+                continue
             redo = {s for s in secs if (img_dir / shot_name(vid, s)).exists()
                     and needs_recapture(s, entry, args.recapture)}
             need = [s for s in secs if s in redo or not (img_dir / shot_name(vid, s)).exists()]
@@ -1840,7 +1847,12 @@ def main(argv: list | None = None) -> int:
             note = f", 같은 화면 {len(dups)}장 생략" if dups else ""
             print(f"[{i}/{len(targets)}] {lessons[vid]['title'][:40]} — 캡처 {ok}/{len(secs)}"
                   + (f" (새로 {len(need)})" if need else "") + note + (f"  ({err})" if err else ""), flush=True)
-            if err:
+            gone = next((k for k in UNAVAILABLE_MARKS if err and k in err), None)
+            if gone:                       # 비공개·삭제 영상: 기억해 두고 다음부터 건너뛴다(--recapture all 이면 다시 시도)
+                entry["unavailable"] = UNAVAILABLE_MARKS[gone]
+                save_manifest(out, manifest)
+                print("    → 유튜브에서 볼 수 없는 영상이라 다음부터 건너뜁니다. 책에는 글만 들어갑니다.", flush=True)
+            elif err:
                 failed.append(vid)
             if need:
                 time.sleep(1)
