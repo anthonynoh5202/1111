@@ -53,7 +53,9 @@ MIN_GAP_S = 10           # 이보다 가까운 시각은 같은 화면으로 보
 SIG_W, SIG_H = 32, 18    # 중복 판정용 축소 크기(흑백)
 DUP_MAD = 2.0            # 축소 화면의 평균 밝기 차이(0~255)가 이보다 작으면 같은 화면
 
-TS_RE = re.compile(r"\[(\d{1,2}):(\d{2})\]")
+# 영상 시각 표기: [03:12] · (03:12) · [03:12~03:40] · [03:12–03:40] (노트마다 모양이 조금 다르다)
+_TS1 = r"[\[(](\d{1,2}):(\d{2})(?:\s*[~–-]\s*\d{1,2}:\d{2})?[\])]"
+TS_RE = re.compile(_TS1)
 HEAD_RE = re.compile(r"^### (.+?)\s*\(https://youtu\.be/([\w-]{11})\)\s*$")
 NOTE_SEC_RE = re.compile(r"^- (핵심|규칙|용어|예시|봇 적용|기타)(?:\([^)]*\))?\s*(?::\s*(.*))?$")
 SUP_SEC_RE = re.compile(r"^- (빠진 내용|보강 설명|바로잡기)\s*(?::\s*(.*))?$")
@@ -338,7 +340,8 @@ def mark_duplicates(vid: str, seconds: list, img_dir: pathlib.Path, entry: dict,
 # 글 조각(run): ("text"|"bold"|"guess", 글) 또는 ("link", 글, url) 또는 ("anchor", 글, id)
 # 책에는 영상 시각([mm:ss])을 싣지 않는다. 시각은 캡처 위치를 정하는 데만 쓴다.
 
-TS_GROUP_RE = re.compile(r"\[\d{1,2}:\d{2}\](?:\s*(?:~|–|-|,|·|/)?\s*\[\d{1,2}:\d{2}\])*")
+_TS0 = r"[\[(]\d{1,2}:\d{2}(?:\s*[~–-]\s*\d{1,2}:\d{2})?[\])]"
+TS_GROUP_RE = re.compile(_TS0 + r"(?:\s*(?:~|–|-|,|·|/)?\s*" + _TS0 + r")*")
 
 
 def strip_ts(text: str) -> str:
