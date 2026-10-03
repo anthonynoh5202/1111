@@ -25,8 +25,28 @@ VENV="$HOME/.chartpro_textbook_venv"
 [ -x "$VENV/bin/python" ] || "$PY" -m venv "$VENV"
 echo "도구 설치·업데이트 중 (처음엔 몇 분 걸려요)..."
 "$VENV/bin/python" -m pip install -q -U pip
-"$VENV/bin/python" -m pip install -q -U "yt-dlp[default]" imageio-ffmpeg python-docx playwright pymupdf
+"$VENV/bin/python" -m pip install -q -U "yt-dlp[default]" imageio-ffmpeg python-docx playwright pymupdf fonttools
 "$VENV/bin/python" -m pip install -q -U deno || echo "(deno 설치 실패 — 그래도 계속 진행)"
+
+# 책 글꼴(모두 무료 OFL 글꼴): 본명조(Noto Serif KR), 프리텐다드, Instrument Serif, DM Mono
+FONTS="$HOME/.chartpro_textbook_fonts"
+mkdir -p "$FONTS"
+fetch() {
+  [ -s "$FONTS/$1" ] && return 0
+  if curl -fsSL --retry 2 -o "$FONTS/$1.part" "$2"; then
+    mv -f "$FONTS/$1.part" "$FONTS/$1"
+  else
+    rm -f "$FONTS/$1.part"
+    echo "(글꼴 $1 받기 실패 — 기본 글꼴로 계속)"
+  fi
+}
+echo "책 글꼴 확인 중 (처음엔 약 40MB를 받아요)..."
+GF=https://raw.githubusercontent.com/google/fonts/main/ofl
+PT=https://raw.githubusercontent.com/orioncactus/pretendard/main/packages/pretendard/dist/public/static/alternative
+fetch NotoSerifKR-VF.ttf "$GF/notoserifkr/NotoSerifKR%5Bwght%5D.ttf"
+for w in Light Regular SemiBold Bold; do fetch "Pretendard-$w.ttf" "$PT/Pretendard-$w.ttf"; done
+fetch InstrumentSerif-Regular.ttf "$GF/instrumentserif/InstrumentSerif-Regular.ttf"
+fetch DMMono-Regular.ttf "$GF/dmmono/DMMono-Regular.ttf"
 
 # PDF를 만들 브라우저: 구글 크롬이 있으면 그것을 쓰고, 없으면 Playwright용 크로미움을 한 번 받아 둔다.
 if [ ! -d "/Applications/Google Chrome.app" ]; then
@@ -34,3 +54,9 @@ if [ ! -d "/Applications/Google Chrome.app" ]; then
 fi
 
 PATH="$VENV/bin:$PATH" "$VENV/bin/python" research/tools/build_chartpro_textbook.py --open "$@"
+
+# 워드에서도 같은 글꼴이 보이도록 내 계정 글꼴 폴더에 복사(관리자 권한 필요 없음, 이미 있으면 건너뜀)
+mkdir -p "$HOME/Library/Fonts"
+for f in "$FONTS"/NotoSerifKR-Regular.ttf "$FONTS"/NotoSerifKR-SemiBold.ttf "$FONTS"/NotoSerifKR-Bold.ttf "$FONTS"/Pretendard-*.ttf; do
+  [ -f "$f" ] && [ ! -f "$HOME/Library/Fonts/$(basename "$f")" ] && cp "$f" "$HOME/Library/Fonts/" || true
+done
