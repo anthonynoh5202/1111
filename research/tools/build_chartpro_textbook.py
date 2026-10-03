@@ -1212,6 +1212,7 @@ def main(argv: list | None = None) -> int:
     ap.add_argument("--no-docx", action="store_true", help="워드(DOCX) 파일을 만들지 않는다")
     ap.add_argument("--no-pdf", action="store_true", help="PDF 파일을 만들지 않는다")
     ap.add_argument("--open", action="store_true", help="끝나면 PDF(없으면 HTML)를 연다(맥)")
+    ap.add_argument("--check", action="store_true", help="영상을 받지 않고 캡처가 다 됐는지만 확인한다")
     # 영상 ID는 '-'로 시작할 수 있어(예: -vFKpVjo7vE) --only 뒤의 값은 직접 모은다
     argv = list(sys.argv[1:] if argv is None else argv)
     only, rest, i = None, [], 0
@@ -1239,6 +1240,24 @@ def main(argv: list | None = None) -> int:
     n_sup = load_supplements(lessons, args.supplements_dir.expanduser())
     vids = list(dict.fromkeys(v for ch in cfg["chapters"] for v in ch["videos"] if v in lessons))
     manifest = load_manifest(out)
+
+    if args.check:
+        total = have = 0
+        lacking = []
+        for vid in vids:
+            secs = capture_points(lessons[vid])
+            miss = [s for s in secs if not (img_dir / shot_name(vid, s)).exists()]
+            total += len(secs)
+            have += len(secs) - len(miss)
+            if miss:
+                lacking.append((vid, len(secs) - len(miss), len(secs)))
+        print(f"캡처 {have}/{total}장 (영상 {len(vids)}편 중 덜 된 영상 {len(lacking)}편)")
+        for vid, h, t in lacking:
+            print(f"  - {lessons[vid]['title'][:40]}  {h}/{t}  ({vid})")
+        for name in (PDF_NAME, DOCX_NAME):
+            print(f"{name}: {'있음' if (out / name).exists() else '없음'}")
+        print("모두 완료" if not lacking else "덜 된 영상은 같은 명령을 다시 실행하면 이어서 받습니다.")
+        return 0
 
     failed = []
     if not args.no_video:
