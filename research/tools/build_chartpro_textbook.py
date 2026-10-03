@@ -332,26 +332,33 @@ def mark_duplicates(vid: str, seconds: list, img_dir: pathlib.Path, entry: dict,
 
 
 # ---------------------------------------------------------------------------
-# 문서 모델 (HTML과 DOCX가 같은 내용을 쓰도록 한 번만 만든다)
+# 문서 모델 (HTML·PDF와 DOCX가 같은 내용을 쓰도록 한 번만 만든다)
 # ---------------------------------------------------------------------------
-# 글 조각(run): ("text"|"bold"|"guess", 글) 또는 ("ts", "mm:ss", url) 또는 ("link", 글, url) 또는 ("anchor", 글, id)
+# 글 조각(run): ("text"|"bold"|"guess", 글) 또는 ("link", 글, url) 또는 ("anchor", 글, id)
+# 책에는 영상 시각([mm:ss])을 싣지 않는다. 시각은 캡처 위치를 정하는 데만 쓴다.
+
+TS_GROUP_RE = re.compile(r"\[\d{1,2}:\d{2}\](?:\s*(?:~|–|-|,|·|/)?\s*\[\d{1,2}:\d{2}\])*")
 
 
-def runs(text: str, vid: str | None) -> list:
+def strip_ts(text: str) -> str:
+    t = TS_GROUP_RE.sub("", text)
+    t = re.sub(r"\(\s*[,~·/]*\s*\)", "", t)            # 시각만 들어 있던 괄호
+    t = re.sub(r"\s+([,.:;)\]」』])", r"\1", t)
+    t = re.sub(r"([(\[「『])\s+", r"\1", t)
+    t = re.sub(r",\s*([)\]])", r"\1", t)
+    t = re.sub(r"[ \t]{2,}", " ", t).strip()
+    return re.sub(r"\s*[,~·/]\s*$", "", t)
+
+
+def runs(text: str, vid: str | None = None) -> list:
+    text = strip_ts(text)
     out, pos = [], 0
     for m in INLINE_RE.finditer(text):
         if m.start() > pos:
             out.append(("text", text[pos:m.start()]))
         if m.group(1) is not None:
             out.append(("bold", m.group(1)))
-        elif m.group(2) is not None:
-            label = f"{m.group(2)}:{m.group(3)}"
-            if vid:
-                sec = int(m.group(2)) * 60 + int(m.group(3))
-                out.append(("ts", label, f"https://youtu.be/{vid}?t={sec}"))
-            else:
-                out.append(("text", f"[{label}]"))
-        else:
+        elif m.group(4) is not None:
             out.append(("guess", m.group(4)))
         pos = m.end()
     if pos < len(text):
@@ -359,8 +366,16 @@ def runs(text: str, vid: str | None) -> list:
     return out
 
 
-def mmss(sec: int) -> str:
-    return f"{sec // 60:02d}:{sec % 60:02d}"
+def plain(text: str) -> str:
+    return re.sub(r"\[추정[^\]]*\]", "", strip_ts(text)).replace("**", "").strip()
+
+
+def short_caption(text: str, limit: int = 46) -> str:
+    t = plain(text)
+    for sep in (". ", " — ", ": ", " → "):
+        if sep in t and 8 <= t.index(sep) <= limit:
+            return t[:t.index(sep)].rstrip(".")
+    return t if len(t) <= limit else t[:limit].rstrip() + "…"
 
 
 def parse_mmss(t) -> int | None:
@@ -398,17 +413,25 @@ def jpeg_size(path: pathlib.Path) -> tuple | None:
     return None
 
 
-def figure_block(vid: str, sec: int, img_dir: pathlib.Path, dups: set) -> dict:
-    name = shot_name(vid, sec)
-    path = img_dir / name
-    fig = {"t": "figure", "label": mmss(sec), "url": f"https://youtu.be/{vid}?t={sec}", "img": None, "note": ""}
-    if sec in dups:
-        fig["note"] = "앞 화면과 같아 생략"
-    elif path.exists():
-        fig["img"] = path
-        fig["rel"] = f"img/{name}"
-        fig["size"] = jpeg_size(path)
-    return fig
+class FigCounter:
+    def __init__(self):
+        self.chapter, self.n = "", 0
+
+    def start(self, chapter: str):
+        self.chapter, self.n = chapter, 0
+
+    def next(self) -> str:
+        self.n += 1
+        return f"{self.chapter}-{self.n}" if self.chapter else str(self.n)
+
+
+def figure_block(vid: str, sec: int, img_dir: pathlib.Path, dups: set, caption: str, figs: FigCounter) -> dict | None:
+    """캡처가 있고 앞 화면과 다를 때만 그림을 싣는다(책에는 '영상 보기' 링크를 넣지 않는다)."""
+    path = img_dir / shot_name(vid, sec)
+    if sec in dups or not path.exists():
+        return None
+    return {"t": "figure", "num": figs.next(), "caption": caption, "img": path,
+            "rel": f"img/{path.name}", "size": jpeg_size(path)}
 
 
 HANGUL_INITIALS = "ㄱㄲㄴㄷㄸㄹㅁㅂㅃㅅㅆㅇㅈㅉㅊㅋㅌㅍㅎ"
@@ -431,11 +454,12 @@ def term_initial(term: str) -> str:
 
 
 def split_term(text: str) -> tuple | None:
-    """'용어 = 뜻 [mm:ss]' 또는 '용어: 뜻' → (용어, 뜻). 형식이 아니면 None."""
+    """'용어 = 뜻' 또는 '용어: 뜻' → (용어, 뜻). 형식이 아니면 None."""
+    text = strip_ts(text)
     for sep in (" = ", ": "):
         if sep in text:
             term, rest = text.split(sep, 1)
-            term = TS_RE.sub("", term).replace("**", "").strip()
+            term = term.replace("**", "").strip()
             if 0 < len(term) <= 30 and rest.strip():
                 return term, rest.strip()
     return None
@@ -459,7 +483,7 @@ def build_glossary(cfg: dict, lessons: dict, nums: dict) -> list:
                         if vid not in entries[key]["vids"]:
                             entries[key]["vids"].append(vid)
                     else:
-                        entries[key] = {"term": sp[0], "def": sp[1], "vid": vid, "vids": [vid]}
+                        entries[key] = {"term": sp[0], "def": sp[1], "vids": [vid]}
 
     def sort_key(e):
         t = re.sub(r"^[\s\"'“‘(\[]+", "", e["term"])
@@ -477,65 +501,84 @@ def build_glossary(cfg: dict, lessons: dict, nums: dict) -> list:
                 if refs:
                     refs.append(("text", ", "))
                 refs.append(("anchor", f"{nums[v]}강", f"v-{v}"))
-            rows.append([[("bold", e["term"])], runs(e["def"], e["vid"]), refs])
+            rows.append([[("bold", e["term"])], runs(e["def"]), refs])
         blocks.append({"t": "h3", "text": ini})
-        blocks.append({"t": "table", "cls": "gloss", "head": ["용어", "뜻", "나온 강의"], "rows": rows,
-                       "widths": [3.6, 9.6, 2.8]})
+        blocks.append({"t": "table", "cls": "gloss", "head": ["용어", "뜻", "강의"], "rows": rows,
+                       "widths": [3.2, 9.0, 2.0]})
     return blocks
 
 
-def lesson_blocks(vid: str, lesson: dict, num: str, img_dir: pathlib.Path, dups: set) -> list:
+SECTION_LABELS = {"핵심": "핵심 내용", "규칙": "매매 규칙", "용어": "용어", "예시": "강의 예시", "기타": "덧붙임",
+                  "빠진 내용": "강의에서 더 나온 내용", "보강 설명": "쉽게 풀어 보기"}
+
+
+def lesson_blocks(vid: str, lesson: dict, num: str, img_dir: pathlib.Path, dups: set, figs: FigCounter) -> list:
     shots = set(capture_points(lesson))
-    out = [{"t": "lesson", "id": f"v-{vid}", "num": num, "title": lesson["title"],
-            "url": f"https://youtu.be/{vid}"}]
+    ltitle, series = lesson_title(lesson["title"])
+    out = [{"t": "lesson", "id": f"v-{vid}", "num": num, "title": ltitle, "series": series,
+            "src": f"youtu.be/{vid}"}]
+    leftover: list = []
     for name, head, items in merged_sections(lesson):
-        if name == "바로잡기":
-            paras = ([runs(head, vid)] if head else []) + [runs(t, vid) for _, t in items]
-            out.append({"t": "box", "kind": "fix", "title": "바로잡기 (노트 수정)", "paras": paras})
+        if name in ("바로잡기", "봇 적용"):
+            paras = ([runs(head)] if head else []) + [runs(t) for _, t in items]
+            paras = [p for p in paras if p]
+            if name == "봇 적용" and paras and paras[0] and paras[0][0][0] == "text":
+                first = paras[0][0][1]
+                for sym, label in (("◎", "코드로 옮기기 쉬움"), ("○", "비슷하게 옮길 수 있음"), ("×", "사람의 판단 필요")):
+                    if first.lstrip().startswith(sym):
+                        rest = first.lstrip()[1:].lstrip(" —-:")
+                        paras[0] = [("bold", label), ("text", (" — " + rest) if rest else "")] + paras[0][1:]
+                        break
+            if paras:
+                out.append({"t": "box", "kind": "fix" if name == "바로잡기" else "bot",
+                            "title": "바로잡기" if name == "바로잡기" else "BTC 노트",
+                            "paras": paras, "bullets": len(paras) > 1})
             continue
-        out.append({"t": "h4", "text": SECTION_TITLES[name], "kind": name})
-        if head:
-            out.append({"t": "para", "runs": runs(head, vid), "cls": "sec-head"})
+        out.append({"t": "h4", "text": SECTION_LABELS.get(name, name), "kind": name})
+        if head and plain(head):
+            out.append({"t": "para", "runs": runs(head), "cls": "sec-head"})
         lst = []
         for d, text in items:
             fig = None
             ts = first_ts(text)
             if name in FIG_SECTIONS and d == 0 and ts in shots:
-                fig = figure_block(vid, ts, img_dir, dups)
+                fig = figure_block(vid, ts, img_dir, dups, short_caption(text), figs)
                 shots.discard(ts)
-            lst.append((d, runs(text, vid), fig))
+            if plain(text):
+                lst.append((d, runs(text), fig))
         if lst:
             out.append({"t": "list", "items": lst, "kind": name})
         if name == "예시":
             for t in sorted(shots):
-                out.append(figure_block(vid, t, img_dir, dups))
+                f = figure_block(vid, t, img_dir, dups, "강의 예시 화면", figs)
+                if f:
+                    out.append(f)
             shots.clear()
     for t in sorted(shots):       # 예시 구역이 없을 때 남은 캡처
-        out.append(figure_block(vid, t, img_dir, dups))
-    return out
+        f = figure_block(vid, t, img_dir, dups, "강의 화면", figs)
+        if f:
+            leftover.append(f)
+    return out + leftover
 
 
-def review_blocks(review: list, lessons: dict, nums: dict) -> dict:
-    items = []
-    for r in review:
-        if isinstance(r, str):
-            items.append({"q": runs(r, None), "a": None, "refs": []})
-            continue
-        if not isinstance(r, dict) or not r.get("q"):
-            continue
-        ref = r.get("ref") or {}
-        vid = ref.get("vid") if isinstance(ref, dict) else None
-        refs = []
-        if vid:
-            sec = parse_mmss(ref.get("t", "")) if ref.get("t") else None
-            url = f"https://youtu.be/{vid}" + (f"?t={sec}" if sec is not None else "")
-            refs.append(("link", f"▶ 영상 {mmss(sec)}" if sec is not None else "▶ 영상 보기", url))
-            if vid in nums:
-                refs.append(("text", " · "))
-                refs.append(("anchor", f"본문 {nums[vid]}강 다시 읽기", f"v-{vid}"))
-        items.append({"q": runs(str(r["q"]), None), "a": runs(str(r.get("a") or ""), vid) or None,
-                      "refs": refs})
-    return {"t": "review", "items": items}
+SERIES_RE = re.compile(r"^\s*【([^】]+)】\s*")
+
+
+def lesson_title(title: str) -> tuple:
+    """'【초급-차트편#1】 캔들 기초강의 ①' → ('캔들 기초강의 ①', '초급 차트편 #1')."""
+    m = SERIES_RE.match(title)
+    if not m:
+        return title, ""
+    series = m.group(1).replace("-", " ").replace("#", " #").replace("  ", " ").strip()
+    if series.startswith("초급 #"):
+        series = "초급 차트편 " + series[3:]
+    return title[m.end():].strip(), series
+
+
+def chapter_parts(title: str) -> tuple:
+    """'1장. 캔들의 기초' → ('01', '캔들의 기초'). 번호가 없으면 ('', 제목)."""
+    m = re.match(r"^\s*(\d+)\s*장\.?\s*(.+)$", title)
+    return (f"{int(m.group(1)):02d}", m.group(2).strip()) if m else ("", title)
 
 
 def build_model(cfg: dict, lessons: dict, img_dir: pathlib.Path, manifest: dict) -> tuple:
@@ -551,55 +594,80 @@ def build_model(cfg: dict, lessons: dict, img_dir: pathlib.Path, manifest: dict)
 
     toc: list = []
     body: list = []
+    answers: list = []
+    figs = FigCounter()
     for ci, ch in enumerate(cfg["chapters"], 1):
         cid = f"ch{ci}"
-        toc.append((1, ch["title"], cid))
-        body.append({"t": "chapter", "id": cid, "title": ch["title"]})
-        if ch.get("intro"):
-            body.append({"t": "para", "runs": runs(ch["intro"], None), "cls": "intro"})
-        if ch.get("btc_note"):
-            body.append({"t": "box", "kind": "btc", "title": "BTC에 쓸 때", "paras": [runs(ch["btc_note"], None)]})
-        for vid in ch["videos"]:
-            if vid not in lessons:
-                continue
-            toc.append((2, f'{nums[vid]}. {lessons[vid]["title"]}', f"v-{vid}"))
+        cnum, cname = chapter_parts(ch["title"])
+        figs.start(str(int(cnum)) if cnum else str(ci))
+        toc.append((1, cnum, cname, cid))
+        vids = [v for v in ch["videos"] if v in lessons]
+        body.append({"t": "chapter", "id": cid, "num": cnum, "title": cname,
+                     "intro": runs(ch.get("intro", "")) if ch.get("intro") else None,
+                     "lessons": [(nums[v], lesson_title(lessons[v]["title"])[0], f"v-{v}") for v in vids],
+                     "btc": runs(ch["btc_note"]) if ch.get("btc_note") else None})
+        for vid in vids:
+            toc.append((2, nums[vid], lesson_title(lessons[vid]["title"])[0], f"v-{vid}"))
             dups = set(manifest.get(vid, {}).get("dup", []))
-            body += lesson_blocks(vid, lessons[vid], nums[vid], img_dir, dups)
-        if ch.get("review"):
-            body.append(review_blocks(ch["review"], lessons, nums))
-
-    gloss = build_glossary(cfg, lessons, nums)
-    typos = parse_typos()
-    if gloss or typos:
-        toc.append((1, "용어 사전", "glossary"))
-        body.append({"t": "chapter", "id": "glossary", "title": "용어 사전"})
-        body.append({"t": "para", "cls": "intro", "runs": [(
-            "text", "강의 노트의 '용어'를 모아 가나다순으로 정리했다. 같은 용어가 여러 강의에 나오면 처음 나온 뜻을 싣고, "
-                    "나온 강의 번호를 모두 적었다.")]})
-        body += gloss
-        if typos:
-            body.append({"t": "h2", "text": "자막 오타 표", "id": "typos"})
-            body.append({"t": "para", "runs": [("text", "자동 자막에 자주 나오는 잘못된 표기와 바로잡은 말이다. "
-                                                       "영상 자막을 직접 볼 때 참고한다.")]})
-            body.append({"t": "table", "cls": "typo", "head": ["자막 표기", "바로잡은 말"],
-                         "rows": [[runs(a, None), runs(b, None)] for a, b in typos], "widths": [7.0, 9.0]})
+            body += lesson_blocks(vid, lessons[vid], nums[vid], img_dir, dups, figs)
+        qs, ans = [], []
+        for r in ch.get("review") or []:
+            if isinstance(r, str):
+                qs.append(runs(r))
+                continue
+            if not isinstance(r, dict) or not r.get("q"):
+                continue
+            qs.append(runs(str(r["q"])))
+            ref = r.get("ref") if isinstance(r.get("ref"), dict) else {}
+            refs = [("anchor", f"→ 본문 {nums[ref['vid']]}강", f"v-{ref['vid']}")] if ref.get("vid") in nums else []
+            ans.append((runs(str(r["q"])), runs(str(r.get("a") or "")), refs))
+        if qs:
+            body.append({"t": "review", "items": qs, "has_answers": bool(ans)})
+        if ans:
+            answers.append((cnum, cname, ans))
 
     app = cfg.get("project_appendix")
     if isinstance(app, dict) and app.get("title"):
-        toc.append((1, app["title"], "appendix"))
-        body.append({"t": "chapter", "id": "appendix", "title": app["title"]})
+        title = re.sub(r"^\s*부록\.?\s*", "", app["title"])
+        toc.append((1, "부록", title, "appendix"))
+        body.append({"t": "back", "id": "appendix", "label": "부록", "title": title})
         for p in app.get("paragraphs") or []:
-            body.append({"t": "para", "runs": runs(str(p), None)})
+            body.append({"t": "para", "runs": runs(str(p))})
 
-    front = [{"t": "cover", "title": cfg["title"], "subtitle": cfg.get("subtitle", ""),
-              "meta": f"만든 날 {time.strftime('%Y-%m-%d')} · 강의 {n}편"},
-             {"t": "box", "kind": "warn", "title": "", "paras": [
-                 [("text", "개인 학습용입니다. 강의와 화면의 저작권은 차트프로(@chart_pro)에 있습니다. 공유·게시하지 마세요.")],
-                 [("text", "본문은 자동 자막을 바탕으로 정리한 노트라 오타를 고친 곳은 "), ("guess", "[추정]"),
-                  ("text", "으로 표시했습니다. 시각 표시(예: 03:12)를 누르면 원본 영상의 그 장면부터 재생됩니다.")]]}]
+    if answers:
+        toc.append((1, "", "정답과 해설", "answers"))
+        body.append({"t": "back", "id": "answers", "label": "", "title": "정답과 해설"})
+        body.append({"t": "answers", "groups": answers})
+
+    gloss = build_glossary(cfg, lessons, nums)
+    typos = parse_typos()
+    if gloss:
+        toc.append((1, "", "용어 사전", "glossary"))
+        body.append({"t": "back", "id": "glossary", "label": "", "title": "용어 사전"})
+        body.append({"t": "para", "cls": "note", "runs": [(
+            "text", "강의 노트의 용어를 가나다순으로 모았다. 같은 용어가 여러 강의에 나오면 처음 나온 뜻을 싣고 "
+                    "나온 강의 번호를 모두 적었다.")]})
+        body += gloss
+    if typos:
+        toc.append((1, "", "자막 오타 표", "typos"))
+        body.append({"t": "back", "id": "typos", "label": "", "title": "자막 오타 표"})
+        body.append({"t": "para", "cls": "note", "runs": [(
+            "text", "자동 자막에 자주 나오는 잘못된 표기와 바로잡은 말이다. 본문에서 이렇게 고친 곳은 [추정]으로 표시했다.")]})
+        body.append({"t": "table", "cls": "typo", "head": ["자막 표기", "바로잡은 말"],
+                     "rows": [[runs(a), runs(b)] for a, b in typos], "widths": [6.4, 7.8]})
+
+    today = time.strftime("%Y년 %-m월 %-d일") if sys.platform != "win32" else time.strftime("%Y-%m-%d")
+    front = [{"t": "cover", "title": cfg["title"], "subtitle": cfg.get("subtitle", ""), "lessons": n},
+             {"t": "notice", "title": cfg["title"], "paras": [
+                 f"만든 날  {today}",
+                 f"구성  강의 {n}편 · {len(cfg['chapters'])}개 장",
+                 "원작  차트프로(@chart_pro) 유튜브 초급 강의",
+                 "이 책은 강의 자동 자막을 바탕으로 정리한 개인 학습용 노트입니다. 강의 내용과 화면의 저작권은 "
+                 "차트프로에 있습니다. 복제·공유·게시하지 마세요.",
+                 "자동 자막의 오타를 문맥으로 고친 말에는 [추정]을 붙였습니다. 투자 판단의 근거로 쓰기 전에 "
+                 "반드시 원본 강의로 확인하세요."]}]
     if cfg.get("how_to_study"):
-        front.append({"t": "box", "kind": "study", "title": "이 교재로 공부하는 법",
-                      "paras": [runs(str(s), None) for s in cfg["how_to_study"]], "bullets": True})
+        front.append({"t": "study", "title": "이 책으로 공부하는 법", "items": [runs(str(s)) for s in cfg["how_to_study"]]})
     front.append({"t": "toc", "entries": toc})
     return front + body, n, missing
 
@@ -607,6 +675,11 @@ def build_model(cfg: dict, lessons: dict, img_dir: pathlib.Path, manifest: dict)
 # ---------------------------------------------------------------------------
 # HTML (인쇄·PDF용 정적 페이지, 스크립트 없음)
 # ---------------------------------------------------------------------------
+
+BOOK_W, BOOK_H = 182, 257          # B5(mm)
+SERIF = ('"AppleMyungjo","Nanum Myeongjo","NanumMyeongjo","Noto Serif KR","Noto Serif CJK KR","Batang",'
+         '"WenQuanYi Zen Hei",serif')
+SANS = ('"Apple SD Gothic Neo","Noto Sans KR","Noto Sans CJK KR","Malgun Gothic","WenQuanYi Zen Hei",sans-serif')
 
 
 def h_runs(rs: list) -> str:
@@ -617,8 +690,6 @@ def h_runs(rs: list) -> str:
             out.append(f"<strong>{text}</strong>")
         elif k == "guess":
             out.append(f'<span class="guess">{text}</span>')
-        elif k == "ts":
-            out.append(f'<a class="ts" href="{html.escape(r[2])}">{text}</a>')
         elif k == "link":
             out.append(f'<a href="{html.escape(r[2])}">{text}</a>')
         elif k == "anchor":
@@ -629,26 +700,22 @@ def h_runs(rs: list) -> str:
 
 
 def h_figure(f: dict) -> str:
-    url = html.escape(f["url"])
-    if f["img"] is None:
-        note = f' ({f["note"]})' if f["note"] else ""
-        return f'<p class="noshot"><a href="{url}">▶ 영상 {f["label"]} 화면 보기</a>{note}</p>'
     wh = f' width="{f["size"][0]}" height="{f["size"][1]}"' if f.get("size") else ""
-    return (f'<figure><img src="{html.escape(f["rel"])}"{wh} alt="강의 화면 {f["label"]}">'
-            f'<figcaption>영상 {f["label"]} 화면 · <a href="{url}">유튜브에서 이 장면 보기</a></figcaption></figure>')
+    return (f'<figure><img src="{html.escape(f["rel"])}"{wh} alt="">'
+            f'<figcaption><b>그림 {f["num"]}</b>{html.escape(f["caption"])}</figcaption></figure>')
 
 
-def h_list(items: list) -> str:
+def h_list(items: list, cls: str) -> str:
     out, depth = [], -1
     for d, rs, fig in items:
         d = min(d, depth + 1)
         while depth < d:
-            out.append("<ul>")
+            out.append(f'<ul class="{cls}">' if depth < 0 else "<ul>")
             depth += 1
         while depth > d:
             out.append("</li></ul>")
             depth -= 1
-        if out[-1] != "<ul>":
+        if not out[-1].startswith("<ul"):
             out.append("</li>")
         out.append(f"<li>{h_runs(rs)}")
         if fig:
@@ -659,168 +726,267 @@ def h_list(items: list) -> str:
     return "".join(out)
 
 
-CSS = """
-:root{--bg:#fbfaf7;--fg:#1d1d1f;--muted:#66666c;--line:#dedcd5;--card:#fff;--accent:#b23c0b;--soft:#fff4ec;
- --note:#eef4ff;--fix:#f3f7ec;--fixline:#6b8e23}
-@media (prefers-color-scheme:dark){:root{--bg:#161616;--fg:#ececec;--muted:#a0a0a6;--line:#333336;--card:#1f1f21;
- --accent:#fb923c;--soft:#2a1d14;--note:#17202e;--fix:#1c2416;--fixline:#9acd32}}
-*{box-sizing:border-box}
-html{-webkit-text-size-adjust:100%}
-body{margin:0;background:var(--bg);color:var(--fg);
- font:16px/1.75 -apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Noto Sans KR","Noto Sans CJK KR","Malgun Gothic","WenQuanYi Zen Hei",sans-serif;
- word-break:keep-all;overflow-wrap:anywhere}
-main{max-width:820px;margin:0 auto;padding:24px 16px 64px}
-a{color:inherit}
-.cover{padding:56px 0 24px;border-bottom:2px solid var(--fg);margin-bottom:24px}
-.cover h1{font-size:34px;line-height:1.3;margin:0 0 8px;letter-spacing:-.02em}
-.cover p{margin:4px 0;color:var(--muted)}
-.box{border-radius:8px;padding:10px 16px;margin:16px 0;font-size:14px}
-.box p{margin:4px 0}.box ul{margin:4px 0}
-.box .bt{font-weight:700;margin:0 0 4px}
-.box-warn{background:var(--soft);border-left:4px solid var(--accent)}
-.box-study{background:var(--note);border-left:4px solid #3b6fd6}
-.box-btc{background:var(--note)}
-.box-fix{background:var(--fix);border-left:4px solid var(--fixline);font-size:13.5px}
-nav.toc h2{font-size:22px;margin:32px 0 8px}
-nav.toc ol{list-style:none;padding-left:0;margin:0}
-nav.toc li.l1{font-weight:700;margin:12px 0 2px}
-nav.toc li.l2{font-size:14px;margin:1px 0 1px 1.2em;color:var(--muted);font-weight:400}
-nav.toc a{text-decoration:none}
-section.chapter > h2{font-size:27px;line-height:1.35;margin:56px 0 10px;padding-top:16px;border-top:2px solid var(--fg);letter-spacing:-.01em}
-h2.sub{font-size:21px;margin:36px 0 8px}
-.intro{font-size:16.5px}
-.lesson{border-top:1px solid var(--line);margin:32px 0 0;padding-top:12px}
-.lesson h3{margin:0 0 2px;font-size:20px;line-height:1.45}
-.num{color:var(--accent);font-variant-numeric:tabular-nums;margin-right:.3em}
-.src{margin:0 0 6px;font-size:13px;color:var(--muted)}
-h4{margin:16px 0 4px;font-size:15px;color:var(--accent)}
-h4.k-봇{color:var(--muted)}
-.sec-봇 + .sec-head, h4.k-봇 ~ ul.k-봇{color:var(--muted);font-size:14px}
-ul{padding-left:20px;margin:4px 0}li{margin:3px 0}
-a.ts{font-size:12px;color:var(--muted);text-decoration:none;border:1px solid var(--line);border-radius:4px;padding:0 4px;margin:0 2px;white-space:nowrap}
-.guess{font-size:12px;color:var(--muted)}
-figure{margin:8px 0 14px;break-inside:avoid;page-break-inside:avoid}
-figure img{width:100%;height:auto;border-radius:6px;border:1px solid var(--line);display:block}
-figcaption{font-size:12px;color:var(--muted);margin-top:3px}
-.noshot{font-size:13px;color:var(--muted);margin:4px 0 10px}
-.review{background:var(--soft);border-radius:10px;padding:12px 18px;margin:28px 0}
-.review h4{margin-top:4px}
-.review ol{padding-left:22px}.review li{margin:10px 0}
-.review .q{font-weight:700}
-.review .a{margin:2px 0 0;padding-left:10px;border-left:3px solid var(--line)}
-.review .a b{color:var(--accent)}
-.review .ref{font-size:13px;color:var(--muted);margin:2px 0 0 13px}
-.tw{overflow-x:auto;margin:8px 0 16px}
-table{border-collapse:collapse;width:100%;font-size:14px}
-th,td{border:1px solid var(--line);padding:5px 8px;text-align:left;vertical-align:top}
-th{background:var(--soft)}
-table.gloss td:first-child{white-space:nowrap;width:24%}
-table.gloss td:last-child{width:15%;font-size:13px}
-@media (max-width:600px){table.gloss td:first-child{white-space:normal;width:30%}th,td{padding:4px 6px}}
-h3.ini{font-size:18px;margin:20px 0 4px;color:var(--accent)}
-footer{margin-top:56px;font-size:13px;color:var(--muted);border-top:1px solid var(--line);padding-top:16px}
-@page{size:A4;margin:16mm 15mm 18mm}
-@media print{
- :root{--bg:#fff;--fg:#000;--muted:#555;--line:#ccc;--card:#fff;--accent:#a3360a;--soft:#fff4ec;--note:#eef4ff;--fix:#f3f7ec}
- body{font-size:10.5pt;line-height:1.6;-webkit-print-color-adjust:exact;print-color-adjust:exact}
- main{max-width:none;padding:0}
- .cover{padding-top:60mm;border:none}
- nav.toc{break-before:page}
- section.chapter{break-before:page}
- section.chapter > h2{margin-top:0;border-top:none}
- h2,h3,h4{break-after:avoid;page-break-after:avoid}
- .lesson{margin-top:18px}
- a{text-decoration:none}
- a.ts{border:none;padding:0}
- figure img{max-height:105mm;width:auto;max-width:100%;margin:0 auto}
- table.gloss td:first-child,table.gloss td:last-child{white-space:normal}
- tr{break-inside:avoid}
- .review{break-inside:auto}
- footer{display:none}
-}
+def book_css(title: str) -> str:
+    head = html.escape(title).replace('"', "")
+    return f"""
+:root{{--ink:#1b1b1b;--muted:#6a6a6a;--rule:#cfcac0;--accent:#1f4e5f;--accent2:#c0603a;--tint:#eef3f4;
+ --warm:#f7f1e8;--fix:#f1f5ea;--fixline:#6b8a3a;--navy:#14283a;--gold:#d9a35a}}
+*{{box-sizing:border-box}}
+html{{background:#e9e7e2}}
+body{{margin:0;color:var(--ink);font-family:{SERIF};font-size:10pt;line-height:1.78;word-break:keep-all;
+ overflow-wrap:break-word;-webkit-print-color-adjust:exact;print-color-adjust:exact}}
+main{{background:#fff;max-width:{BOOK_W}mm;margin:0 auto}}
+a{{color:inherit;text-decoration:none}}
+h1,h2,h3,h4,.sans,figcaption,.box,.toc,table,.lesson-head,.opener,.back-head,.review,.answers,.notice{{font-family:{SANS}}}
+p{{margin:0 0 .55em;text-align:justify}}
+strong{{font-family:{SANS};font-weight:700}}
+.guess{{font-family:{SANS};font-size:7.5pt;color:var(--muted);vertical-align:1px}}
+
+/* 쪽 설정: B5, 안쪽 여백을 넓게, 바깥쪽에 쪽 번호와 머리글 */
+@page{{size:{BOOK_W}mm {BOOK_H}mm;margin:21mm 17mm 22mm 19mm}}
+@page :left{{margin-left:17mm;margin-right:19mm;
+ @top-left{{content:"{head}";font-family:{SANS};font-size:7.5pt;color:#8a8a8a;letter-spacing:.06em;vertical-align:bottom;padding-bottom:4mm}}
+ @bottom-left{{content:counter(page);font-family:{SANS};font-size:8.5pt;color:#555;vertical-align:top;padding-top:5mm}}}}
+@page :right{{margin-left:19mm;margin-right:17mm;
+ @top-right{{content:"차트프로 강의 노트";font-family:{SANS};font-size:7.5pt;color:#8a8a8a;letter-spacing:.06em;vertical-align:bottom;padding-bottom:4mm}}
+ @bottom-right{{content:counter(page);font-family:{SANS};font-size:8.5pt;color:#555;vertical-align:top;padding-top:5mm}}}}
+@page bare{{@top-left{{content:none}}@top-right{{content:none}}@bottom-left{{content:none}}@bottom-right{{content:none}}}}
+@page cover{{margin:0;@top-left{{content:none}}@top-right{{content:none}}@bottom-left{{content:none}}@bottom-right{{content:none}}}}
+
+/* 표지 */
+.cover{{page:cover;height:{BOOK_H - 1}mm;background:var(--navy);color:#fff;position:relative;overflow:hidden;
+ padding:42mm 20mm 0 22mm;font-family:{SANS}}}
+.cover .series{{font-size:9pt;letter-spacing:.35em;color:var(--gold);margin:0 0 14mm}}
+.cover h1{{font-size:34pt;line-height:1.22;margin:0;font-weight:800;letter-spacing:-.02em}}
+.cover .bar{{width:22mm;height:2.2mm;background:var(--gold);margin:9mm 0 7mm}}
+.cover .sub{{font-size:11pt;line-height:1.6;color:#d6dde3;max-width:120mm;text-align:left}}
+.cover .chart{{position:absolute;left:0;right:0;bottom:34mm;height:62mm;opacity:.9}}
+.cover .foot{{position:absolute;left:22mm;right:20mm;bottom:16mm;font-size:8.5pt;color:#9fb0bf;
+ border-top:1px solid #3a5065;padding-top:4mm;display:flex;justify-content:space-between}}
+
+/* 판권·공부법·차례 */
+.notice{{page:bare;break-before:page;min-height:200mm;display:flex;flex-direction:column;justify-content:flex-end;
+ font-size:8.5pt;color:#444;line-height:1.75}}
+.notice h2{{font-size:13pt;margin:0 0 5mm;color:var(--ink)}}
+.notice p{{margin:0 0 2.5mm;text-align:left}}
+.notice .rule{{border-top:1px solid var(--rule);margin:4mm 0}}
+.study{{break-before:page}}
+.study h2,.toc h2,.back-head h1{{font-size:20pt;font-weight:800;margin:6mm 0 9mm;letter-spacing:-.01em}}
+.study ol{{margin:0;padding:0;list-style:none;counter-reset:s}}
+.study li{{counter-increment:s;position:relative;padding:0 0 4mm 12mm;margin:0 0 4mm;border-bottom:1px solid #ebe7df;
+ font-family:{SERIF};font-size:10.5pt;line-height:1.8}}
+.study li::before{{content:counter(s,decimal-leading-zero);position:absolute;left:0;top:0;font-family:{SANS};
+ font-weight:800;color:var(--accent2);font-size:12pt}}
+.toc{{break-before:page}}
+.toc ol{{list-style:none;margin:0;padding:0}}
+.toc li{{display:flex;align-items:baseline;gap:2mm}}
+.toc li .t{{flex:1;min-width:0}}
+.toc li .dots{{flex:1 1 6mm;border-bottom:1px dotted #b9b3a8;transform:translateY(-1.2mm);min-width:6mm}}
+.toc li .pg{{width:9mm;text-align:right;font-variant-numeric:tabular-nums}}
+.toc li.l1{{font-weight:800;font-size:10.5pt;margin:5mm 0 1.2mm;break-after:avoid}}
+.toc li.l1 .n{{color:var(--accent2);width:9mm;flex:none}}
+.toc li.l2{{font-size:8.6pt;color:#3a3a3a;margin:0 0 .6mm 9mm;font-weight:400}}
+.toc li.l2 .n{{color:var(--muted);width:7mm;flex:none;font-variant-numeric:tabular-nums}}
+.toc li.l2 .t{{flex:0 1 auto;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}}
+
+/* 장 시작 페이지 */
+.opener{{page:bare;break-before:page;min-height:205mm;position:relative;padding-top:18mm}}
+.opener .label{{font-size:9pt;letter-spacing:.4em;color:var(--accent2);font-weight:700;margin:0}}
+.opener .big{{font-size:64pt;line-height:1;font-weight:800;color:var(--accent);margin:2mm 0 4mm;letter-spacing:-.03em}}
+.opener h1{{font-size:24pt;line-height:1.3;margin:0 0 9mm;font-weight:800;letter-spacing:-.02em;
+ padding-bottom:6mm;border-bottom:2px solid var(--ink)}}
+.opener .intro{{font-family:{SERIF};font-size:10.5pt;line-height:1.85;margin:0 0 8mm;text-align:justify}}
+.opener .inside{{font-size:8.6pt;margin:0 0 8mm}}
+.opener .inside p{{font-weight:700;letter-spacing:.2em;color:var(--muted);font-size:7.5pt;margin:0 0 2mm}}
+.opener .inside ol{{list-style:none;margin:0;padding:0;columns:1}}
+.opener .inside li{{padding:1.2mm 0;border-bottom:1px solid #ece8e0;display:flex;gap:3mm}}
+.opener .inside li b{{color:var(--accent2);font-variant-numeric:tabular-nums}}
+.back-head{{break-before:page;padding-top:10mm;margin-bottom:6mm}}
+.back-head .label{{font-size:9pt;letter-spacing:.4em;color:var(--accent2);font-weight:700;margin:0}}
+.back-head h1{{padding-bottom:5mm;border-bottom:2px solid var(--ink)}}
+.back-body{{break-before:page}}
+.back-body.cont{{break-before:auto}}
+
+/* 강의 */
+.lesson-head{{break-before:page;margin:0 0 6mm}}
+.lesson-head .k{{display:flex;align-items:center;gap:3mm;font-size:7.8pt;font-weight:700;letter-spacing:.28em;
+ color:var(--accent2);margin:0 0 2mm}}
+.lesson-head .k::after{{content:"";flex:1;border-top:1px solid var(--rule)}}
+.lesson-head h2{{font-size:15.5pt;line-height:1.38;margin:0 0 1.5mm;font-weight:800;letter-spacing:-.015em}}
+.lesson-head .src{{font-size:7.5pt;color:#9a9a9a;margin:0;letter-spacing:.02em}}
+h4{{font-size:10pt;margin:6mm 0 2mm;color:var(--accent);font-weight:800;display:flex;align-items:center;gap:2mm;
+ break-after:avoid}}
+h4::before{{content:"";width:2.2mm;height:2.2mm;background:var(--accent);display:inline-block}}
+h4.k-빠진내용,h4.k-보강설명{{color:var(--accent2)}}
+h4.k-빠진내용::before,h4.k-보강설명::before{{background:var(--accent2)}}
+.sec-head{{margin-bottom:1.5mm}}
+ul{{margin:0 0 2mm;padding-left:4.5mm}}
+li{{margin:0 0 1.4mm;text-align:justify}}
+li::marker{{color:var(--accent)}}
+ul ul{{margin-top:1mm;font-size:9.4pt;color:#333}}
+ul.k-용어 li,ul.k-기타 li{{font-size:9.3pt}}
+figure{{margin:3.5mm 0 4.5mm;break-inside:avoid;text-align:center}}
+figure img{{display:block;max-width:100%;max-height:78mm;width:auto;height:auto;margin:0 auto;border:.3mm solid #d8d3c9}}
+figcaption{{font-size:7.8pt;color:#555;margin-top:1.8mm;line-height:1.5;text-align:center}}
+figcaption b{{color:var(--accent);margin-right:2mm;font-weight:800}}
+.box{{margin:5mm 0;padding:3.5mm 4.5mm;font-size:8.7pt;line-height:1.7;break-inside:avoid}}
+.box .bt{{font-weight:800;font-size:8pt;letter-spacing:.18em;margin:0 0 1.5mm}}
+.box p{{margin:0 0 1mm;text-align:left}}
+.box ul{{margin:0;padding-left:4mm}}
+.box-bot{{background:var(--tint);border-top:.6mm solid var(--accent)}}
+.box-bot .bt{{color:var(--accent)}}
+.box-fix{{background:var(--fix);border-left:1mm solid var(--fixline)}}
+.box-fix .bt{{color:var(--fixline)}}
+.box-btc{{background:var(--warm);border-top:.6mm solid var(--accent2);position:absolute;left:0;right:0;bottom:0;margin:0}}
+.box-btc .bt{{color:var(--accent2)}}
+.review{{margin:9mm 0 0;border:.4mm solid var(--ink);padding:5mm 6mm 3mm;break-inside:avoid}}
+.review .bt{{font-weight:800;font-size:11pt;margin:0 0 3mm;display:flex;justify-content:space-between;align-items:baseline}}
+.review .bt span{{font-size:7.5pt;font-weight:400;color:var(--muted)}}
+.review ol{{margin:0;padding-left:6mm}}
+.review li{{font-family:{SERIF};font-size:9.8pt;margin:0 0 2.5mm}}
+.review li::marker{{font-family:{SANS};font-weight:800;color:var(--accent2)}}
+.answers h3{{font-size:11pt;margin:7mm 0 2.5mm;padding-bottom:1.5mm;border-bottom:1px solid var(--rule);break-after:avoid}}
+.answers h3 b{{color:var(--accent2);margin-right:2mm}}
+.answers .qa{{margin:0 0 3.5mm;break-inside:avoid}}
+.answers .q{{font-weight:700;font-size:9.2pt;margin:0 0 .8mm}}
+.answers .q b{{color:var(--accent2);margin-right:1.5mm}}
+.answers .a{{font-family:{SERIF};font-size:9.4pt;margin:0;padding-left:5.5mm;text-align:justify}}
+.answers .a a{{font-family:{SANS};font-size:7.8pt;color:var(--accent);white-space:nowrap;margin-left:1.5mm}}
+h3.ini{{font-size:12pt;margin:6mm 0 2mm;color:var(--accent2);break-after:avoid}}
+table{{border-collapse:collapse;width:100%;font-size:8.3pt;line-height:1.55;margin:0 0 4mm}}
+th{{text-align:left;font-weight:800;border-bottom:.4mm solid var(--ink);padding:1.5mm 2mm;font-size:7.8pt;letter-spacing:.06em}}
+td{{border-bottom:1px solid #e3ded4;padding:1.6mm 2mm;vertical-align:top}}
+tr{{break-inside:avoid}}
+table.gloss td:first-child{{width:24%}}
+table.gloss td:last-child{{width:12%;color:var(--accent);white-space:nowrap}}
+.note{{font-size:8.8pt;color:#555;font-family:{SANS}}}
+.mk{{position:absolute;left:0;top:0;font-size:1px;line-height:1px;color:#fff;white-space:nowrap}}
+.lesson-head,.opener,.back-head{{position:relative}}
+
+@media screen{{
+ main{{box-shadow:0 2px 18px rgba(0,0,0,.12)}}
+ .cover,.notice,.study,.toc,.opener,.back-head,.back-body,.lesson-head{{margin-top:0}}
+ main>*:not(.cover){{padding-left:18mm;padding-right:18mm}}
+ .lesson-head,.opener,.back-head,.study,.toc{{padding-top:14mm;border-top:6px solid #e9e7e2}}
+ .box-btc{{position:static;margin-top:8mm}}
+}}
 """
 
 
-def render_html(blocks: list) -> str:
+COVER_SVG = """<svg class="chart" viewBox="0 0 182 62" preserveAspectRatio="none" aria-hidden="true">
+<g stroke="#4c6a82" stroke-width=".35">{wicks}</g><g>{bodies}</g>
+<polyline points="{line}" fill="none" stroke="#d9a35a" stroke-width=".7"/></svg>"""
+
+
+def cover_svg() -> str:
+    """표지 아래쪽에 그리는 장식용 캔들 차트(고정된 모양, 실제 데이터 아님)."""
+    import random
+    rnd = random.Random(7)
+    price, wicks, bodies, pts = 40.0, [], [], []
+    for i in range(34):
+        x = 6 + i * 5.1
+        drift = 0.7 if i > 12 else -0.25
+        o = price
+        c = max(8, min(56, o + rnd.uniform(-3.2, 3.6) + drift))
+        hi, lo = max(o, c) + rnd.uniform(.4, 2.6), min(o, c) - rnd.uniform(.4, 2.6)
+        up = c >= o
+        y = lambda v: 62 - v
+        wicks.append(f'<line x1="{x:.1f}" x2="{x:.1f}" y1="{y(hi):.1f}" y2="{y(lo):.1f}"/>')
+        top, h = y(max(o, c)), max(.6, abs(c - o))
+        fill = "#d9a35a" if up else "#3f5d75"
+        bodies.append(f'<rect x="{x - 1.6:.1f}" y="{top:.1f}" width="3.2" height="{h:.1f}" fill="{fill}"/>')
+        pts.append(f"{x:.1f},{y((o + c) / 2 - 3):.1f}")
+        price = c
+    return COVER_SVG.format(wicks="".join(wicks), bodies="".join(bodies), line=" ".join(pts))
+
+
+def render_html(blocks: list, markers: bool = False, pages: dict | None = None) -> str:
+    """markers=True면 제목마다 PDF에서 찾을 수 있는 작은 표식을 넣는다(쪽 번호 계산용, 1차 렌더링에만)."""
+    pages = pages or {}
     out = []
     title = ""
-    in_chapter = in_lesson = False
 
-    def close_lesson():
-        nonlocal in_lesson
-        if in_lesson:
-            out.append("</section>")
-            in_lesson = False
-
-    def close_chapter():
-        nonlocal in_chapter
-        close_lesson()
-        if in_chapter:
-            out.append("</section>")
-            in_chapter = False
+    def mk(anchor: str) -> str:
+        return f'<span class="mk">@@{anchor}@@</span>' if markers else ""
 
     for b in blocks:
         t = b["t"]
         if t == "cover":
             title = b["title"]
-            out.append(f'<header class="cover"><h1>{html.escape(b["title"])}</h1>'
-                       f'<p>{html.escape(b["subtitle"])}</p><p>{html.escape(b["meta"])}</p></header>')
-        elif t == "box":
-            inner = (f'<ul>{"".join(f"<li>{h_runs(p)}</li>" for p in b["paras"])}</ul>' if b.get("bullets")
-                     else "".join(f"<p>{h_runs(p)}</p>" for p in b["paras"]))
-            bt = f'<p class="bt">{html.escape(b["title"])}</p>' if b["title"] else ""
-            out.append(f'<div class="box box-{b["kind"]}">{bt}{inner}</div>')
+            out.append(f'<section class="cover"><p class="series">PERSONAL STUDY EDITION</p>'
+                       f'<h1>{html.escape(b["title"])}</h1><div class="bar"></div>'
+                       f'<p class="sub">{html.escape(b["subtitle"])}</p>{cover_svg()}'
+                       f'<div class="foot"><span>차트프로 유튜브 강의 정리 · 강의 {b["lessons"]}편</span>'
+                       f'<span>개인 학습용</span></div></section>')
+        elif t == "notice":
+            ps = b["paras"]
+            meta = "".join(f"<p>{html.escape(p)}</p>" for p in ps[:3])
+            rest = "".join(f"<p>{html.escape(p)}</p>" for p in ps[3:])
+            out.append(f'<section class="notice"><h2>{html.escape(b["title"])}</h2>{meta}<div class="rule"></div>{rest}</section>')
+        elif t == "study":
+            lis = "".join(f"<li>{h_runs(r)}</li>" for r in b["items"])
+            out.append(f'<section class="study"><h2>{html.escape(b["title"])}</h2><ol>{lis}</ol></section>')
         elif t == "toc":
-            lis = "".join(f'<li class="l{lv}"><a href="#{html.escape(a)}">{html.escape(tx)}</a></li>'
-                          for lv, tx, a in b["entries"])
-            out.append(f'<nav class="toc"><h2>차례</h2><ol>{lis}</ol></nav>')
+            lis = []
+            for lv, num, tx, a in b["entries"]:
+                pg = pages.get(a, "")
+                lis.append(f'<li class="l{lv}"><span class="n">{html.escape(num)}</span>'
+                           f'<a class="t" href="#{html.escape(a)}">{html.escape(tx)}</a>'
+                           f'<span class="dots"></span><span class="pg">{pg}</span></li>')
+            out.append(f'<nav class="toc"><h2>차례</h2><ol>{"".join(lis)}</ol></nav>')
         elif t == "chapter":
-            close_chapter()
-            out.append(f'<section class="chapter" id="{b["id"]}"><h2>{html.escape(b["title"])}</h2>')
-            in_chapter = True
-        elif t == "h2":
-            close_lesson()
-            out.append(f'<h2 class="sub" id="{b["id"]}">{html.escape(b["text"])}</h2>')
+            inside = "".join(f'<li><b>{n}</b><a href="#{a}">{html.escape(tx)}</a></li>' for n, tx, a in b["lessons"])
+            intro = f'<p class="intro">{h_runs(b["intro"])}</p>' if b["intro"] else ""
+            btc = (f'<div class="box box-btc"><p class="bt">BTC에 쓸 때</p><p>{h_runs(b["btc"])}</p></div>'
+                   if b["btc"] else "")
+            big = f'<p class="big">{b["num"]}</p>' if b["num"] else ""
+            out.append(f'<section class="opener" id="{b["id"]}">{mk(b["id"])}<p class="label">CHAPTER</p>{big}'
+                       f'<h1>{html.escape(b["title"])}</h1>{intro}'
+                       f'<div class="inside"><p>이 장의 강의</p><ol>{inside}</ol></div>{btc}</section>')
+        elif t == "back":
+            label = f'<p class="label">{html.escape(b["label"])}</p>' if b["label"] else '<p class="label">&nbsp;</p>'
+            out.append(f'<section class="back-head" id="{b["id"]}">{mk(b["id"])}{label}'
+                       f'<h1>{html.escape(b["title"])}</h1></section>')
         elif t == "lesson":
-            close_lesson()
-            out.append(f'<section class="lesson" id="{html.escape(b["id"])}"><h3><span class="num">{b["num"]}</span>'
-                       f'{html.escape(b["title"])}</h3><p class="src">원본 강의: <a href="{b["url"]}">{b["url"]}</a></p>')
-            in_lesson = True
+            out.append(f'<header class="lesson-head" id="{html.escape(b["id"])}">{mk(b["id"])}'
+                       f'<p class="k">LESSON {b["num"]}</p><h2>{html.escape(b["title"])}</h2>'
+                       f'<p class="src">{html.escape(b["series"] + " · " if b["series"] else "")}원본 강의 '
+                       f'{html.escape(b["src"])}</p></header>')
         elif t == "h4":
-            k = "봇" if b["kind"] == "봇 적용" else b["kind"]
-            out.append(f'<h4 class="k-{k}">{html.escape(b["text"])}</h4>')
+            out.append(f'<h4 class="k-{b["kind"].replace(" ", "")}">{html.escape(b["text"])}</h4>')
         elif t == "h3":
             out.append(f'<h3 class="ini">{html.escape(b["text"])}</h3>')
         elif t == "para":
             cls = f' class="{b["cls"]}"' if b.get("cls") else ""
             out.append(f"<p{cls}>{h_runs(b['runs'])}</p>")
         elif t == "list":
-            k = "봇" if b["kind"] == "봇 적용" else b["kind"]
-            out.append(h_list(b["items"]).replace("<ul>", f'<ul class="k-{k}">', 1))
+            out.append(h_list(b["items"], "k-" + b["kind"].replace(" ", "")))
         elif t == "figure":
             out.append(h_figure(b))
+        elif t == "box":
+            inner = (f'<ul>{"".join(f"<li>{h_runs(p)}</li>" for p in b["paras"])}</ul>' if b.get("bullets")
+                     else "".join(f"<p>{h_runs(p)}</p>" for p in b["paras"]))
+            out.append(f'<div class="box box-{b["kind"]}"><p class="bt">{html.escape(b["title"])}</p>{inner}</div>')
         elif t == "review":
-            close_lesson()
-            lis = []
-            for it in b["items"]:
-                s = f'<li><p class="q">{h_runs(it["q"])}</p>'
-                if it["a"]:
-                    s += f'<p class="a"><b>답</b> {h_runs(it["a"])}</p>'
-                if it["refs"]:
-                    s += f'<p class="ref">{h_runs(it["refs"])}</p>'
-                lis.append(s + "</li>")
-            out.append(f'<div class="review"><h4>복습 질문</h4><ol>{"".join(lis)}</ol></div>')
+            lis = "".join(f"<li>{h_runs(q)}</li>" for q in b["items"])
+            hint = "<span>정답과 해설은 책 뒤에</span>" if b["has_answers"] else ""
+            out.append(f'<div class="review"><p class="bt">확인 문제{hint}</p><ol>{lis}</ol></div>')
+        elif t == "answers":
+            parts = []
+            for cnum, cname, items in b["groups"]:
+                parts.append(f'<h3><b>{cnum}</b>{html.escape(cname)}</h3>')
+                for i, (q, a, refs) in enumerate(items, 1):
+                    parts.append(f'<div class="qa"><p class="q"><b>{i}</b>{h_runs(q)}</p>'
+                                 f'<p class="a">{h_runs(a)}{h_runs(refs)}</p></div>')
+            out.append(f'<section class="answers">{"".join(parts)}</section>')
         elif t == "table":
             head = "".join(f"<th>{html.escape(h)}</th>" for h in b["head"])
             rows = "".join("<tr>" + "".join(f"<td>{h_runs(c)}</td>" for c in r) + "</tr>" for r in b["rows"])
-            out.append(f'<div class="tw"><table class="{b["cls"]}"><thead><tr>{head}</tr></thead>'
-                       f"<tbody>{rows}</tbody></table></div>")
-    close_chapter()
+            out.append(f'<table class="{b["cls"]}"><thead><tr>{head}</tr></thead><tbody>{rows}</tbody></table>')
     return f"""<!doctype html><html lang="ko"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex">
-<title>{html.escape(title)}</title><style>{CSS}</style></head><body><main>
+<title>{html.escape(title)}</title><style>{book_css(title)}</style></head><body><main>
 {"".join(out)}
-<footer>개인 학습용 · 공유 금지. 같은 폴더의 {PDF_NAME}(읽기·인쇄용)과 {DOCX_NAME}(워드 편집용)도 같은 내용입니다.</footer>
 </main></body></html>"""
 
 
@@ -829,31 +995,39 @@ def render_html(blocks: list) -> str:
 # ---------------------------------------------------------------------------
 
 
-KO_FONT = "Apple SD Gothic Neo"
-KO_FONT_ALT = "Malgun Gothic"
+KO_SERIF, KO_SERIF_ALT = "AppleMyungjo", "Batang"
+KO_SANS, KO_SANS_ALT = "Apple SD Gothic Neo", "Malgun Gothic"
 
 
 def write_docx(blocks: list, path: pathlib.Path) -> None:
     import docx
+    from docx.enum.section import WD_SECTION
     from docx.enum.table import WD_TABLE_ALIGNMENT
     from docx.enum.text import WD_ALIGN_PARAGRAPH, WD_BREAK
-    from docx.opc.constants import RELATIONSHIP_TYPE as RT
     from docx.oxml import OxmlElement
     from docx.oxml.ns import qn
     from docx.shared import Cm, Pt, RGBColor
 
-    ACCENT = RGBColor(0xA3, 0x36, 0x0A)
-    MUTED = RGBColor(0x66, 0x66, 0x6C)
-    LINK = RGBColor(0x1F, 0x4E, 0xB4)
+    INK = RGBColor(0x1B, 0x1B, 0x1B)
+    ACCENT = RGBColor(0x1F, 0x4E, 0x5F)
+    ACCENT2 = RGBColor(0xC0, 0x60, 0x3A)
+    MUTED = RGBColor(0x6A, 0x6A, 0x6A)
+    GREEN = RGBColor(0x6B, 0x8A, 0x3A)
 
     d = docx.Document()
     sec = d.sections[0]
-    sec.page_width, sec.page_height = Cm(21.0), Cm(29.7)
-    sec.left_margin = sec.right_margin = Cm(2.0)
-    sec.top_margin, sec.bottom_margin = Cm(2.0), Cm(2.0)
+    sec.page_width, sec.page_height = Cm(BOOK_W / 10), Cm(BOOK_H / 10)
+    sec.left_margin, sec.right_margin = Cm(1.9), Cm(1.7)       # 거울 여백: 왼쪽 값이 안쪽
+    sec.top_margin, sec.bottom_margin = Cm(2.1), Cm(2.2)
+    sec.header_distance, sec.footer_distance = Cm(1.1), Cm(1.1)
+    text_w = BOOK_W / 10 - 1.9 - 1.7
+    settings = d.settings.element
+    mm = OxmlElement("w:mirrorMargins")
+    settings.insert(0, mm)
+    d.settings.odd_and_even_pages_header_footer = True
 
-    def set_fonts(rpr_owner):
-        rpr = rpr_owner.get_or_add_rPr()
+    def set_font(owner, font):
+        rpr = owner.get_or_add_rPr()
         rf = rpr.find(qn("w:rFonts"))
         if rf is None:
             rf = OxmlElement("w:rFonts")
@@ -862,7 +1036,7 @@ def write_docx(blocks: list, path: pathlib.Path) -> None:
             if rf.get(qn(a)) is not None:
                 del rf.attrib[qn(a)]
         for a in ("w:ascii", "w:hAnsi", "w:eastAsia", "w:cs"):
-            rf.set(qn(a), KO_FONT)
+            rf.set(qn(a), font)
         lang = rpr.find(qn("w:lang"))
         if lang is None:
             lang = OxmlElement("w:lang")
@@ -870,49 +1044,51 @@ def write_docx(blocks: list, path: pathlib.Path) -> None:
         lang.set(qn("w:eastAsia"), "ko-KR")
 
     styles = d.styles
-    for name in ("Normal", "Title", "Subtitle", "Heading 1", "Heading 2", "Heading 3", "Heading 4",
-                 "List Bullet", "List Bullet 2", "List Bullet 3", "Caption"):
-        try:
-            st = styles[name]
-        except KeyError:
-            continue
-        set_fonts(st.element)
+    for name in ("Normal", "List Bullet", "List Bullet 2", "List Bullet 3"):
+        set_font(styles[name].element, KO_SERIF)
+    for name in ("Title", "Heading 1", "Heading 2", "Heading 3", "Caption"):
+        set_font(styles[name].element, KO_SANS)
     normal = styles["Normal"]
-    normal.font.size = Pt(10.5)
-    normal.paragraph_format.space_after = Pt(4)
-    normal.paragraph_format.line_spacing = 1.3
-    for name, size, color in (("Heading 1", 20, RGBColor(0x1D, 0x1D, 0x1F)), ("Heading 2", 14, RGBColor(0x1D, 0x1D, 0x1F)),
-                              ("Heading 3", 11.5, ACCENT), ("Title", 30, RGBColor(0x1D, 0x1D, 0x1F))):
+    normal.font.size = Pt(10)
+    normal.font.color.rgb = INK
+    normal.paragraph_format.space_after = Pt(3)
+    normal.paragraph_format.line_spacing = 1.45
+    for name, size, color in (("Title", 30, RGBColor(0xFF, 0xFF, 0xFF)), ("Heading 1", 22, INK),
+                              ("Heading 2", 15, INK), ("Heading 3", 10, ACCENT)):
         st = styles[name]
         st.font.size = Pt(size)
         st.font.color.rgb = color
         st.font.bold = True
-    styles["Heading 1"].paragraph_format.space_after = Pt(10)
-    styles["Heading 2"].paragraph_format.space_before = Pt(18)
-    styles["Heading 3"].paragraph_format.space_before = Pt(8)
-    styles["Heading 3"].paragraph_format.space_after = Pt(2)
+        st.paragraph_format.keep_with_next = True
+    styles["Heading 1"].paragraph_format.space_after = Pt(14)
+    styles["Heading 2"].paragraph_format.space_before = Pt(0)
+    styles["Heading 2"].paragraph_format.space_after = Pt(2)
+    styles["Heading 3"].paragraph_format.space_before = Pt(10)
+    styles["Heading 3"].paragraph_format.space_after = Pt(3)
 
-    # 글꼴 표: 맥 글꼴이 없는 컴퓨터(윈도)에서는 맑은 고딕으로 바꿔 보이도록 대체 이름을 적어 둔다
+    # 글꼴 표: 맥 글꼴이 없는 컴퓨터(윈도)에서 대신 쓸 글꼴 이름
     try:
         for rel in d.part.rels.values():
             if rel.reltype.endswith("/fontTable") and not rel.is_external:
                 part = rel.target_part
                 blob = part.blob.decode("utf-8")
-                if KO_FONT not in blob and "</w:fonts>" in blob:
-                    font_xml = (f'<w:font w:name="{KO_FONT}"><w:altName w:val="{KO_FONT_ALT}"/>'
-                                '<w:charset w:val="81"/><w:family w:val="swiss"/><w:pitch w:val="variable"/></w:font>')
-                    part._blob = blob.replace("</w:fonts>", font_xml + "</w:fonts>").encode("utf-8")
+                add = ""
+                for f, alt, fam in ((KO_SERIF, KO_SERIF_ALT, "roman"), (KO_SANS, KO_SANS_ALT, "swiss")):
+                    if f not in blob:
+                        add += (f'<w:font w:name="{f}"><w:altName w:val="{alt}"/><w:charset w:val="81"/>'
+                                f'<w:family w:val="{fam}"/><w:pitch w:val="variable"/></w:font>')
+                if add and "</w:fonts>" in blob:
+                    part._blob = blob.replace("</w:fonts>", add + "</w:fonts>").encode("utf-8")
     except Exception:  # noqa: BLE001 — 대체 글꼴 표시는 없어도 된다
         pass
 
     bm_ids: dict = {}
+    bm_counter = [0]
 
     def bm_name(anchor: str) -> str:
         if anchor not in bm_ids:
             bm_ids[anchor] = f"bm{len(bm_ids) + 1}"
         return bm_ids[anchor]
-
-    bm_counter = [0]
 
     def add_bookmark(p, anchor):
         bm_counter[0] += 1
@@ -924,25 +1100,42 @@ def write_docx(blocks: list, path: pathlib.Path) -> None:
         p._p.insert(1 if p._p.pPr is not None else 0, start)
         p._p.append(end)
 
-    def link_run(p, text, url=None, anchor=None, size=None, color=LINK, underline=True):
+    def styled_run(p, text, size=None, bold=False, color=None, font=None, spacing=None):
+        r = p.add_run(text)
+        if size:
+            r.font.size = Pt(size)
+        if bold:
+            r.bold = True
+        if color is not None:
+            r.font.color.rgb = color
+        if font:
+            set_font(r._r, font)
+        if spacing:
+            rpr = r._r.get_or_add_rPr()
+            sp = OxmlElement("w:spacing")
+            sp.set(qn("w:val"), str(spacing))
+            rpr.append(sp)
+        return r
+
+    def anchor_run(p, text, anchor, size=None, color=ACCENT, bold=False, font=None):
         h = OxmlElement("w:hyperlink")
-        if url:
-            h.set(qn("r:id"), p.part.relate_to(url, RT.HYPERLINK, is_external=True))
-        else:
-            h.set(qn("w:anchor"), bm_name(anchor))
+        h.set(qn("w:anchor"), bm_name(anchor))
         r = OxmlElement("w:r")
         rpr = OxmlElement("w:rPr")
-        c = OxmlElement("w:color")
+        if font:
+            rf = OxmlElement("w:rFonts")
+            for a in ("w:ascii", "w:hAnsi", "w:eastAsia", "w:cs"):
+                rf.set(qn(a), font)
+            rpr.append(rf)
+        if bold:
+            rpr.append(OxmlElement("w:b"))
+        c = OxmlElement("w:color")                 # rPr 안 순서: rFonts → b → color → sz
         c.set(qn("w:val"), str(color))
         rpr.append(c)
-        if size:                      # rPr 안 순서: color → sz → u (워드는 순서가 틀리면 파일을 못 연다)
+        if size:
             sz = OxmlElement("w:sz")
             sz.set(qn("w:val"), str(int(size * 2)))
             rpr.append(sz)
-        if underline:
-            u = OxmlElement("w:u")
-            u.set(qn("w:val"), "single")
-            rpr.append(u)
         r.append(rpr)
         t = OxmlElement("w:t")
         t.text = text
@@ -951,71 +1144,75 @@ def write_docx(blocks: list, path: pathlib.Path) -> None:
         h.append(r)
         p._p.append(h)
 
-    def add_runs(p, rs, size=None):
-        prev = None
+    def add_runs(p, rs, size=None, font=None):
         for r in rs:
             k = r[0]
-            if k == "ts":
-                if prev == "ts":
-                    p.add_run(" ")
-                link_run(p, r[1], url=r[2], size=8.5, color=MUTED, underline=False)
+            if k == "anchor":
+                anchor_run(p, r[1], r[2], size=(size or 10) - 1.5, font=KO_SANS)
             elif k == "link":
-                link_run(p, r[1], url=r[2], size=size)
-            elif k == "anchor":
-                link_run(p, r[1], anchor=r[2], size=size)
+                styled_run(p, r[1], size=size, font=font)
             else:
-                run = p.add_run(r[1])
-                if size:
-                    run.font.size = Pt(size)
+                run = styled_run(p, r[1], size=size, font=font)
                 if k == "bold":
                     run.bold = True
+                    set_font(run._r, KO_SANS)
                 elif k == "guess":
-                    run.font.size = Pt(8.5)
+                    run.font.size = Pt(7.5)
                     run.font.color.rgb = MUTED
-            prev = k
+                    set_font(run._r, KO_SANS)
 
-    def shade(p, fill, border=None):
+    def ppr_add(p, el):
+        p._p.get_or_add_pPr().append(el)
+
+    def shade(p, fill, left=None, top=None):
         ppr = p._p.get_or_add_pPr()
-        if border:
+        if left or top:
             bdr = OxmlElement("w:pBdr")
-            left = OxmlElement("w:left")
-            for k, v in (("w:val", "single"), ("w:sz", "18"), ("w:space", "6"), ("w:color", border)):
-                left.set(qn(k), v)
-            bdr.append(left)
+            for side, color, sz in (("w:top", top, "12"), ("w:left", left, "24")):
+                if color:
+                    e = OxmlElement(side)
+                    for k, v in (("w:val", "single"), ("w:sz", sz), ("w:space", "4"), ("w:color", color)):
+                        e.set(qn(k), v)
+                    bdr.append(e)
             ppr.append(bdr)
         shd = OxmlElement("w:shd")
         for k, v in (("w:val", "clear"), ("w:color", "auto"), ("w:fill", fill)):
             shd.set(qn(k), v)
         ppr.append(shd)
-        p.paragraph_format.left_indent = Cm(0.3)
-        p.paragraph_format.right_indent = Cm(0.3)
+        p.paragraph_format.left_indent = Cm(0.25)
+        p.paragraph_format.right_indent = Cm(0.25)
 
-    def add_figure(f, indent=0.0):
-        if f["img"] is None:
-            p = d.add_paragraph()
-            p.paragraph_format.left_indent = Cm(indent)
-            link_run(p, f"▶ 영상 {f['label']} 화면 보기", url=f["url"], size=9)
-            if f["note"]:
-                r = p.add_run(f" ({f['note']})")
-                r.font.size = Pt(9)
-                r.font.color.rgb = MUTED
+    def bottom_rule(p, color="1B1B1B", sz="12"):
+        bdr = OxmlElement("w:pBdr")
+        e = OxmlElement("w:bottom")
+        for k, v in (("w:val", "single"), ("w:sz", sz), ("w:space", "6"), ("w:color", color)):
+            e.set(qn(k), v)
+        bdr.append(e)
+        ppr_add(p, bdr)
+
+    def page_break():
+        d.add_paragraph().add_run().add_break(WD_BREAK.PAGE)
+
+    def add_figure(f):
+        if not f:
             return
         p = d.add_paragraph()
         p.alignment = WD_ALIGN_PARAGRAPH.CENTER
         p.paragraph_format.keep_with_next = True
+        p.paragraph_format.space_before = Pt(6)
         p.paragraph_format.space_after = Pt(0)
-        p.add_run().add_picture(str(f["img"]), width=Cm(15))
+        w = min(text_w - 1.5, 11.5)
+        if f.get("size") and f["size"][1] / f["size"][0] > 0.62:      # 세로로 긴 화면은 높이로 제한
+            w = min(w, 9.0 * f["size"][0] / f["size"][1])
+        p.add_run().add_picture(str(f["img"]), width=Cm(w))
         cap = d.add_paragraph()
         cap.alignment = WD_ALIGN_PARAGRAPH.CENTER
-        r = cap.add_run(f"영상 {f['label']} 화면 · ")
-        r.font.size = Pt(8.5)
-        r.font.color.rgb = MUTED
-        link_run(cap, "유튜브에서 이 장면 보기", url=f["url"], size=8.5)
-        cap.paragraph_format.space_after = Pt(8)
+        styled_run(cap, f"그림 {f['num']}  ", size=8, bold=True, color=ACCENT, font=KO_SANS)
+        styled_run(cap, f["caption"], size=8, color=MUTED, font=KO_SANS)
+        cap.paragraph_format.space_after = Pt(9)
 
     def add_table(b):
         tb = d.add_table(rows=1, cols=len(b["head"]))
-        tb.style = "Table Grid"
         tb.alignment = WD_TABLE_ALIGNMENT.CENTER
         tb.autofit = False
         hdr = tb.rows[0]
@@ -1024,136 +1221,260 @@ def write_docx(blocks: list, path: pathlib.Path) -> None:
         th.set(qn("w:val"), "true")
         trpr.append(th)
         for i, h in enumerate(b["head"]):
-            c = hdr.cells[i]
-            c.paragraphs[0].add_run(h).bold = True
+            pp = hdr.cells[i].paragraphs[0]
+            styled_run(pp, h, size=8, bold=True, font=KO_SANS)
+            bottom_rule(pp, sz="8")
         for row in b["rows"]:
             cells = tb.add_row().cells
             for i, rs in enumerate(row):
-                add_runs(cells[i].paragraphs[0], rs, size=9.5)
+                pp = cells[i].paragraphs[0]
+                pp.paragraph_format.space_after = Pt(1)
+                add_runs(pp, rs, size=8.5, font=KO_SANS)
+        scale = text_w / sum(b.get("widths") or [text_w])
         for row in tb.rows:
             for i, w in enumerate(b.get("widths") or []):
-                row.cells[i].width = Cm(w)
+                row.cells[i].width = Cm(w * scale)
         d.add_paragraph()
+
+    def box(title, paras, fill, color, left=False, bullets=False):
+        p = d.add_paragraph()
+        styled_run(p, title, size=8, bold=True, color=RGBColor.from_string(color), font=KO_SANS, spacing=30)
+        shade(p, fill, left=color if left else None, top=None if left else color)
+        p.paragraph_format.space_before = Pt(8)
+        p.paragraph_format.space_after = Pt(0)
+        p.paragraph_format.keep_with_next = True
+        for i, rs in enumerate(paras):
+            q = d.add_paragraph()
+            add_runs(q, ([("text", "· ")] if bullets else []) + rs, size=8.8, font=KO_SANS)
+            shade(q, fill, left=color if left else None)
+            q.paragraph_format.space_after = Pt(0 if i < len(paras) - 1 else 8)
+            q.paragraph_format.keep_with_next = i < len(paras) - 1
 
     LIST_STYLES = ["List Bullet", "List Bullet 2", "List Bullet 3"]
     for b in blocks:
         t = b["t"]
         if t == "cover":
-            for _ in range(6):
+            # 표지: 짙은 남색 칸 하나를 쪽 가득 채운다
+            tb = d.add_table(rows=1, cols=1)
+            tb.alignment = WD_TABLE_ALIGNMENT.CENTER
+            cell = tb.rows[0].cells[0]
+            cell.width = Cm(text_w)
+            tcpr = cell._tc.get_or_add_tcPr()
+            shd = OxmlElement("w:shd")
+            for k, v in (("w:val", "clear"), ("w:color", "auto"), ("w:fill", "14283A")):
+                shd.set(qn(k), v)
+            tcpr.append(shd)
+            trpr = tb.rows[0]._tr.get_or_add_trPr()
+            hgt = OxmlElement("w:trHeight")
+            hgt.set(qn("w:val"), str(int((BOOK_H / 10 - 2.1 - 2.2 - 0.6) / 2.54 * 1440)))
+            hgt.set(qn("w:hRule"), "exact")
+            trpr.append(hgt)
+            cp = cell.paragraphs[0]
+            cp.paragraph_format.space_before = Pt(110)
+            styled_run(cp, "PERSONAL STUDY EDITION", size=8.5, color=RGBColor(0xD9, 0xA3, 0x5A), font=KO_SANS, spacing=60)
+            cp.paragraph_format.left_indent = Cm(0.8)
+            p = cell.add_paragraph()
+            p.paragraph_format.left_indent = Cm(0.8)
+            p.paragraph_format.space_before = Pt(26)
+            styled_run(p, b["title"], size=32, bold=True, color=RGBColor(0xFF, 0xFF, 0xFF), font=KO_SANS)
+            p = cell.add_paragraph()
+            p.paragraph_format.left_indent = Cm(0.8)
+            styled_run(p, "━━━", size=14, color=RGBColor(0xD9, 0xA3, 0x5A), font=KO_SANS)
+            p = cell.add_paragraph()
+            p.paragraph_format.left_indent = Cm(0.8)
+            p.paragraph_format.right_indent = Cm(2.0)
+            styled_run(p, b["subtitle"], size=11, color=RGBColor(0xD6, 0xDD, 0xE3), font=KO_SANS)
+            p = cell.add_paragraph()
+            p.paragraph_format.left_indent = Cm(0.8)
+            p.paragraph_format.space_before = Pt(170)
+            styled_run(p, f"차트프로 유튜브 강의 정리 · 강의 {b['lessons']}편 · 개인 학습용", size=8.5,
+                       color=RGBColor(0x9F, 0xB0, 0xBF), font=KO_SANS)
+        elif t == "notice":
+            page_break()
+            for _ in range(16):
                 d.add_paragraph()
-            d.add_paragraph(b["title"], style="Title")
-            p = d.add_paragraph(b["subtitle"])
-            p.runs[0].font.size = Pt(13)
-            p = d.add_paragraph(b["meta"])
-            p.runs[0].font.color.rgb = MUTED
-            d.add_paragraph()
-        elif t == "box":
-            fill, border = {"warn": ("FFF4EC", "B23C0B"), "study": ("EEF4FF", "3B6FD6"),
-                            "btc": ("EEF4FF", None), "fix": ("F3F7EC", "6B8E23")}.get(b["kind"], ("F5F5F5", None))
-            if b["title"]:
+            p = d.add_paragraph()
+            styled_run(p, b["title"], size=13, bold=True, font=KO_SANS)
+            bottom_rule(p, color="CFCAC0", sz="6")
+            for line in b["paras"]:
                 p = d.add_paragraph()
-                p.add_run(b["title"]).bold = True
-                shade(p, fill, border)
-                p.paragraph_format.space_after = Pt(0)
-                p.paragraph_format.keep_with_next = True
-            for i, rs in enumerate(b["paras"]):
+                p.paragraph_format.space_after = Pt(4)
+                styled_run(p, line, size=8.5, color=RGBColor(0x44, 0x44, 0x44), font=KO_SANS)
+        elif t == "study":
+            page_break()
+            p = d.add_paragraph()
+            styled_run(p, b["title"], size=20, bold=True, font=KO_SANS)
+            p.paragraph_format.space_after = Pt(18)
+            for i, rs in enumerate(b["items"], 1):
                 p = d.add_paragraph()
-                add_runs(p, ([("text", "• ")] if b.get("bullets") else []) + rs, size=9.5)
-                shade(p, fill, border)
-                p.paragraph_format.space_after = Pt(0 if i < len(b["paras"]) - 1 else 8)
+                p.paragraph_format.left_indent = Cm(1.1)
+                p.paragraph_format.first_line_indent = Cm(-1.1)
+                p.paragraph_format.space_after = Pt(10)
+                styled_run(p, f"{i:02d}\t", size=12, bold=True, color=ACCENT2, font=KO_SANS)
+                add_runs(p, rs, size=10.5)
+                bottom_rule(p, color="EBE7DF", sz="4")
         elif t == "toc":
+            page_break()
             p = d.add_paragraph()
-            p.add_run().add_break(WD_BREAK.PAGE)
-            p = d.add_paragraph()
-            r = p.add_run("차례")
-            r.bold = True
-            r.font.size = Pt(20)
-            for lv, tx, a in b["entries"]:
+            styled_run(p, "차례", size=20, bold=True, font=KO_SANS)
+            p.paragraph_format.space_after = Pt(14)
+            for lv, num, tx, a in b["entries"]:
                 p = d.add_paragraph()
-                p.paragraph_format.space_after = Pt(1 if lv == 2 else 2)
                 if lv == 1:
-                    p.paragraph_format.space_before = Pt(8)
-                    link_run(p, tx, anchor=a, size=11.5, color=RGBColor(0x1D, 0x1D, 0x1F), underline=False)
+                    p.paragraph_format.space_before = Pt(10)
+                    p.paragraph_format.space_after = Pt(2)
+                    p.paragraph_format.keep_with_next = True
+                    styled_run(p, (num + "   ") if num else "", size=10.5, bold=True, color=ACCENT2, font=KO_SANS)
+                    anchor_run(p, tx, a, size=10.5, color=INK, bold=True, font=KO_SANS)
                 else:
-                    p.paragraph_format.left_indent = Cm(0.8)
-                    link_run(p, tx, anchor=a, size=9.5, color=MUTED, underline=False)
-        elif t == "chapter":
+                    p.paragraph_format.left_indent = Cm(0.9)
+                    p.paragraph_format.space_after = Pt(0)
+                    p.paragraph_format.line_spacing = 1.25
+                    styled_run(p, num + "  ", size=8.5, color=MUTED, font=KO_SANS)
+                    anchor_run(p, tx, a, size=8.5, color=RGBColor(0x3A, 0x3A, 0x3A), font=KO_SANS)
+        elif t in ("chapter", "back"):
+            page_break()
+            p = d.add_paragraph()
+            p.paragraph_format.space_before = Pt(40)
+            label = "CHAPTER" if t == "chapter" else (b["label"] or " ")
+            styled_run(p, label, size=9, bold=True, color=ACCENT2, font=KO_SANS, spacing=80)
+            if t == "chapter" and b["num"]:
+                p = d.add_paragraph()
+                p.paragraph_format.space_after = Pt(0)
+                styled_run(p, b["num"], size=60, bold=True, color=ACCENT, font=KO_SANS)
             h = d.add_heading(b["title"], level=1)
-            h.paragraph_format.page_break_before = True
+            bottom_rule(h)
             add_bookmark(h, b["id"])
-        elif t == "h2":
-            h = d.add_heading(b["text"], level=2)
-            add_bookmark(h, b["id"])
+            if t == "chapter":
+                if b["intro"]:
+                    p = d.add_paragraph()
+                    p.paragraph_format.space_before = Pt(6)
+                    p.paragraph_format.space_after = Pt(16)
+                    add_runs(p, b["intro"], size=10.5)
+                p = d.add_paragraph()
+                styled_run(p, "이 장의 강의", size=7.5, bold=True, color=MUTED, font=KO_SANS, spacing=40)
+                for n, tx, a in b["lessons"]:
+                    p = d.add_paragraph()
+                    p.paragraph_format.space_after = Pt(1)
+                    bottom_rule(p, color="ECE8E0", sz="4")
+                    styled_run(p, n + "   ", size=8.6, bold=True, color=ACCENT2, font=KO_SANS)
+                    anchor_run(p, tx, a, size=8.6, color=INK, font=KO_SANS)
+                if b["btc"]:
+                    d.add_paragraph()
+                    box("BTC에 쓸 때", [b["btc"]], "F7F1E8", "C0603A")
         elif t == "lesson":
-            h = d.add_heading("", level=2)
-            r = h.add_run(b["num"] + "  ")
-            r.font.color.rgb = ACCENT
-            h.add_run(b["title"])
-            h.paragraph_format.keep_with_next = True
+            page_break()
+            p = d.add_paragraph()
+            styled_run(p, f"LESSON {b['num']}", size=8, bold=True, color=ACCENT2, font=KO_SANS, spacing=60)
+            bottom_rule(p, color="CFCAC0", sz="4")
+            p.paragraph_format.space_after = Pt(4)
+            p.paragraph_format.keep_with_next = True
+            h = d.add_heading(b["title"], level=2)
             add_bookmark(h, b["id"])
             p = d.add_paragraph()
-            r = p.add_run("원본 강의: ")
-            r.font.size = Pt(9)
-            r.font.color.rgb = MUTED
-            link_run(p, b["url"], url=b["url"], size=9)
+            styled_run(p, (b["series"] + " · " if b["series"] else "") + f"원본 강의 {b['src']}", size=7.5, color=RGBColor(0x9A, 0x9A, 0x9A), font=KO_SANS)
+            p.paragraph_format.space_after = Pt(10)
         elif t == "h4":
-            h = d.add_heading(b["text"], level=3)
-            if b["kind"] == "봇 적용":
-                h.runs[0].font.color.rgb = MUTED
+            h = d.add_heading("■ " + b["text"], level=3)
+            if b["kind"] in ("빠진 내용", "보강 설명"):
+                for r in h.runs:
+                    r.font.color.rgb = ACCENT2
         elif t == "h3":
-            d.add_heading(b["text"], level=3)
+            h = d.add_heading(b["text"], level=3)
+            for r in h.runs:
+                r.font.color.rgb = ACCENT2
+                r.font.size = Pt(12)
         elif t == "para":
             p = d.add_paragraph()
-            add_runs(p, b["runs"], size=11 if b.get("cls") == "intro" else None)
+            if b.get("cls") == "note":
+                add_runs(p, b["runs"], size=8.8, font=KO_SANS)
+            else:
+                p.alignment = WD_ALIGN_PARAGRAPH.JUSTIFY
+                add_runs(p, b["runs"])
         elif t == "list":
-            small = 9.5 if b["kind"] in ("봇 적용", "기타") else None
+            small = 9.3 if b["kind"] in ("용어", "기타") else None
             for dep, rs, fig in b["items"]:
                 p = d.add_paragraph(style=LIST_STYLES[min(dep, 2)])
+                p.alignment = WD_ALIGN_PARAGRAPH.JUSTIFY
                 p.paragraph_format.space_after = Pt(2)
-                add_runs(p, rs, size=small)
-                if fig:
-                    add_figure(fig)
+                add_runs(p, rs, size=small if dep == 0 else (small or 9.4))
+                add_figure(fig)
         elif t == "figure":
             add_figure(b)
+        elif t == "box":
+            fill, color, left = {"bot": ("EEF3F4", "1F4E5F", False), "fix": ("F1F5EA", "6B8A3A", True)}.get(
+                b["kind"], ("F5F5F5", "6A6A6A", True))
+            box(b["title"], b["paras"], fill, color, left=left, bullets=b.get("bullets", False))
         elif t == "review":
-            p = d.add_heading("복습 질문", level=3)
-            p.paragraph_format.space_before = Pt(16)
-            for i, it in enumerate(b["items"], 1):
+            d.add_paragraph()
+            tb = d.add_table(rows=1, cols=1)
+            tb.style = "Table Grid"
+            cell = tb.rows[0].cells[0]
+            cp = cell.paragraphs[0]
+            styled_run(cp, "확인 문제", size=11, bold=True, font=KO_SANS)
+            if b["has_answers"]:
+                styled_run(cp, "    정답과 해설은 책 뒤에", size=7.5, color=MUTED, font=KO_SANS)
+            cp.paragraph_format.space_after = Pt(6)
+            for i, q in enumerate(b["items"], 1):
+                p = cell.add_paragraph()
+                p.paragraph_format.left_indent = Cm(0.6)
+                p.paragraph_format.first_line_indent = Cm(-0.6)
+                p.paragraph_format.space_after = Pt(4)
+                styled_run(p, f"{i}\t", size=10, bold=True, color=ACCENT2, font=KO_SANS)
+                add_runs(p, q, size=9.8)
+            d.add_paragraph()
+        elif t == "answers":
+            page_break()
+            for cnum, cname, items in b["groups"]:
                 p = d.add_paragraph()
-                p.paragraph_format.space_before = Pt(6)
-                p.paragraph_format.space_after = Pt(1)
-                p.paragraph_format.keep_with_next = bool(it["a"] or it["refs"])
-                add_runs(p, [("bold", f"Q{i}. ")] + [("bold", r[1]) if r[0] in ("text", "bold") else r for r in it["q"]])
-                if it["a"]:
+                p.paragraph_format.space_before = Pt(12)
+                p.paragraph_format.keep_with_next = True
+                styled_run(p, (cnum + "  ") if cnum else "", size=11, bold=True, color=ACCENT2, font=KO_SANS)
+                styled_run(p, cname, size=11, bold=True, font=KO_SANS)
+                bottom_rule(p, color="CFCAC0", sz="4")
+                for i, (q, a, refs) in enumerate(items, 1):
                     p = d.add_paragraph()
-                    p.paragraph_format.left_indent = Cm(0.6)
+                    p.paragraph_format.space_before = Pt(4)
                     p.paragraph_format.space_after = Pt(1)
-                    r = p.add_run("답  ")
-                    r.bold = True
-                    r.font.color.rgb = ACCENT
-                    add_runs(p, it["a"])
-                if it["refs"]:
+                    p.paragraph_format.keep_with_next = True
+                    styled_run(p, f"{i}  ", size=9.2, bold=True, color=ACCENT2, font=KO_SANS)
+                    add_runs(p, [("bold", r[1]) if r[0] == "text" else r for r in q], size=9.2, font=KO_SANS)
                     p = d.add_paragraph()
-                    p.paragraph_format.left_indent = Cm(0.6)
-                    add_runs(p, it["refs"], size=9)
+                    p.paragraph_format.left_indent = Cm(0.55)
+                    p.alignment = WD_ALIGN_PARAGRAPH.JUSTIFY
+                    add_runs(p, a + ([("text", "  ")] + refs if refs else []), size=9.4)
         elif t == "table":
             add_table(b)
-    # 바닥글 가운데에 쪽 번호
-    fp = d.sections[0].footer.paragraphs[0]
-    fp.alignment = WD_ALIGN_PARAGRAPH.CENTER
-    fld = OxmlElement("w:fldSimple")
-    fld.set(qn("w:instr"), "PAGE")
-    r = OxmlElement("w:r")
-    rpr = OxmlElement("w:rPr")
-    sz = OxmlElement("w:sz")
-    sz.set(qn("w:val"), "18")
-    rpr.append(sz)
-    r.append(rpr)
-    t = OxmlElement("w:t")
-    t.text = "1"
-    r.append(t)
-    fld.append(r)
-    fp._p.append(fld)
+
+    # 머리글·바닥글: 홀수쪽은 오른쪽, 짝수쪽은 왼쪽(바깥쪽)에 쪽 번호. 표지에는 넣지 않는다.
+    sec.different_first_page_header_footer = True
+
+    def page_field(p):
+        fld = OxmlElement("w:fldSimple")
+        fld.set(qn("w:instr"), "PAGE")
+        r = OxmlElement("w:r")
+        rpr = OxmlElement("w:rPr")
+        sz = OxmlElement("w:sz")
+        sz.set(qn("w:val"), "17")
+        rpr.append(sz)
+        r.append(rpr)
+        tt = OxmlElement("w:t")
+        tt.text = "1"
+        r.append(tt)
+        fld.append(r)
+        p._p.append(fld)
+
+    for hf, align, text in ((sec.header, WD_ALIGN_PARAGRAPH.RIGHT, "차트프로 강의 노트"),
+                            (sec.even_page_header, WD_ALIGN_PARAGRAPH.LEFT, None)):
+        p = hf.paragraphs[0]
+        p.alignment = align
+        styled_run(p, text or next((b["title"] for b in blocks if b["t"] == "cover"), ""), size=7.5,
+                   color=RGBColor(0x8A, 0x8A, 0x8A), font=KO_SANS, spacing=20)
+    for hf, align in ((sec.footer, WD_ALIGN_PARAGRAPH.RIGHT), (sec.even_page_footer, WD_ALIGN_PARAGRAPH.LEFT)):
+        p = hf.paragraphs[0]
+        p.alignment = align
+        page_field(p)
+
     tmp = path.with_suffix(".docx.part")
     d.save(str(tmp))
     os.replace(tmp, path)
@@ -1165,14 +1486,24 @@ def write_docx(blocks: list, path: pathlib.Path) -> None:
 
 
 MAC_CHROME = pathlib.Path("/Applications/Google Chrome.app")
+MARK_RE = re.compile(r"@@([\w-]+)@@")
 
 
-def write_pdf(html_path: pathlib.Path, pdf_path: pathlib.Path) -> None:
+def write_pdf(blocks: list, html_path: pathlib.Path, pdf_path: pathlib.Path) -> bool:
+    """2단계: ① 제목 표식을 넣어 렌더링 → 표식이 있는 쪽을 찾아 차례에 쪽 번호 → ② 최종 렌더링.
+    pymupdf가 없으면 쪽 번호 없이 한 번만 렌더링한다. 차례에 쪽 번호를 넣었으면 True."""
     from playwright.sync_api import sync_playwright
 
-    footer = ('<div style="width:100%;font-size:8px;color:#888;text-align:center;font-family:sans-serif">'
-              '<span class="pageNumber"></span> / <span class="totalPages"></span></div>')
+    try:
+        import pymupdf
+    except ImportError:
+        try:
+            import fitz as pymupdf  # 옛 이름
+        except ImportError:
+            pymupdf = None
+
     tmp = pdf_path.with_suffix(".pdf.part")
+    numbered = False
     with sync_playwright() as p:
         browser = None
         if sys.platform == "darwin" and MAC_CHROME.exists():
@@ -1184,14 +1515,27 @@ def write_pdf(html_path: pathlib.Path, pdf_path: pathlib.Path) -> None:
             browser = p.chromium.launch()
         try:
             page = browser.new_page()
-            page.goto(html_path.as_uri(), wait_until="load", timeout=300_000)
-            page.emulate_media(media="print")
-            page.pdf(path=str(tmp), format="A4", print_background=True, display_header_footer=True,
-                     header_template="<span></span>", footer_template=footer,
-                     margin={"top": "16mm", "bottom": "18mm", "left": "15mm", "right": "15mm"})
+
+            def render(markup: str):
+                html_path.write_text(markup, encoding="utf-8")
+                page.goto(html_path.as_uri(), wait_until="load", timeout=300_000)
+                page.emulate_media(media="print")
+                page.pdf(path=str(tmp), print_background=True, prefer_css_page_size=True)
+
+            pages = {}
+            if pymupdf is not None:
+                render(render_html(blocks, markers=True))
+                doc = pymupdf.open(str(tmp))
+                for i, pg in enumerate(doc):
+                    for a in MARK_RE.findall(pg.get_text()):
+                        pages.setdefault(a, i + 1)
+                doc.close()
+                numbered = bool(pages)
+            render(render_html(blocks, pages=pages))
         finally:
             browser.close()
     os.replace(tmp, pdf_path)
+    return numbered
 
 
 # ---------------------------------------------------------------------------
@@ -1303,9 +1647,9 @@ def main(argv: list | None = None) -> int:
             print(f"워드 파일 만들기 실패: {type(exc).__name__}: {exc}")
     if not args.no_pdf:
         try:
-            write_pdf(html_path, out / PDF_NAME)
+            numbered = write_pdf(blocks, html_path, out / PDF_NAME)
             made["pdf"] = out / PDF_NAME
-            print(f"PDF: {out / PDF_NAME}")
+            print(f"PDF: {out / PDF_NAME}" + ("" if numbered else "  (차례 쪽 번호 없음: pymupdf 미설치)"))
         except ImportError:
             print("PDF는 건너뜀: playwright가 설치되어 있지 않습니다 (맥 실행 스크립트를 쓰면 자동 설치).")
         except Exception as exc:  # noqa: BLE001

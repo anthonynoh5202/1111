@@ -25,7 +25,7 @@ VENV="$HOME/.chartpro_textbook_venv"
 [ -x "$VENV/bin/python" ] || "$PY" -m venv "$VENV"
 echo "도구 설치·업데이트 중 (처음엔 몇 분 걸려요)..."
 "$VENV/bin/python" -m pip install -q -U pip
-"$VENV/bin/python" -m pip install -q -U "yt-dlp[default]" imageio-ffmpeg python-docx playwright
+"$VENV/bin/python" -m pip install -q -U "yt-dlp[default]" imageio-ffmpeg python-docx playwright pymupdf
 "$VENV/bin/python" -m pip install -q -U deno || echo "(deno 설치 실패 — 그래도 계속 진행)"
 
 # PDF를 만들 브라우저: 구글 크롬이 있으면 그것을 쓰고, 없으면 Playwright용 크로미움을 한 번 받아 둔다.
