@@ -657,7 +657,8 @@ def build_model(cfg: dict, lessons: dict, img_dir: pathlib.Path, manifest: dict)
                      "rows": [[runs(a), runs(b)] for a, b in typos], "widths": [6.4, 7.8]})
 
     today = time.strftime("%Y년 %-m월 %-d일") if sys.platform != "win32" else time.strftime("%Y-%m-%d")
-    front = [{"t": "cover", "title": cfg["title"], "subtitle": cfg.get("subtitle", ""), "lessons": n},
+    front = [{"t": "cover", "title": cfg["title"], "subtitle": cfg.get("subtitle", ""), "lessons": n,
+              "chapters": len(cfg["chapters"])},
              {"t": "notice", "title": cfg["title"], "paras": [
                  f"만든 날  {today}",
                  f"구성  강의 {n}편 · {len(cfg['chapters'])}개 장",
@@ -677,9 +678,55 @@ def build_model(cfg: dict, lessons: dict, img_dir: pathlib.Path, manifest: dict)
 # ---------------------------------------------------------------------------
 
 BOOK_W, BOOK_H = 182, 257          # B5(mm)
-SERIF = ('"AppleMyungjo","Nanum Myeongjo","NanumMyeongjo","Noto Serif KR","Noto Serif CJK KR","Batang",'
+SERIF = ('"BookSerif","Noto Serif KR","AppleMyungjo","Nanum Myeongjo","NanumMyeongjo","Noto Serif KR","Noto Serif CJK KR","Batang",'
          '"WenQuanYi Zen Hei",serif')
-SANS = ('"Apple SD Gothic Neo","Noto Sans KR","Noto Sans CJK KR","Malgun Gothic","WenQuanYi Zen Hei",sans-serif')
+SANS = ('"BookSans","Pretendard","Apple SD Gothic Neo","Noto Sans KR","Noto Sans CJK KR","Malgun Gothic","WenQuanYi Zen Hei",sans-serif')
+
+
+NUM = '"BookNum","Instrument Serif","Times New Roman",serif'
+MONO = '"BookMono","DM Mono",ui-monospace,Menlo,monospace'
+
+# 글꼴 파일(맥 스크립트가 ~/.chartpro_textbook_fonts 에 받아 둔다). 없으면 시스템 글꼴로 대신한다.
+FONTS_DIR = pathlib.Path(os.environ.get("CHARTPRO_FONTS_DIR") or (pathlib.Path.home() / ".chartpro_textbook_fonts"))
+SERIF_VF = "NotoSerifKR-VF.ttf"
+SERIF_STATIC = [(400, "NotoSerifKR-Regular.ttf"), (600, "NotoSerifKR-SemiBold.ttf"), (700, "NotoSerifKR-Bold.ttf")]
+FONT_FILES = [("BookSerif", "400", "NotoSerifKR-Regular.ttf"), ("BookSerif", "600", "NotoSerifKR-SemiBold.ttf"),
+              ("BookSerif", "700", "NotoSerifKR-Bold.ttf"),
+              ("BookSans", "300", "Pretendard-Light.ttf"), ("BookSans", "400", "Pretendard-Regular.ttf"),
+              ("BookSans", "600", "Pretendard-SemiBold.ttf"), ("BookSans", "700", "Pretendard-Bold.ttf"),
+              ("BookNum", "400", "InstrumentSerif-Regular.ttf"), ("BookMono", "400", "DMMono-Regular.ttf")]
+
+
+def font_faces(fonts_dir: pathlib.Path) -> str:
+    out = []
+    for fam, w, name in FONT_FILES:
+        f = fonts_dir / name
+        if f.exists():
+            out.append(f'@font-face{{font-family:"{fam}";font-weight:{w};src:url("{f.resolve().as_uri()}")}}')
+    return "\n".join(out)
+
+
+def prepare_fonts(fonts_dir: pathlib.Path) -> None:
+    """가변 글꼴(본명조)을 굵기별 일반 글꼴로 바꿔 둔다. 가변 글꼴은 PDF에 그림 글꼴(Type3)로 들어가 흐려지기 때문."""
+    vf = fonts_dir / SERIF_VF
+    todo = [(w, fonts_dir / n) for w, n in SERIF_STATIC if not (fonts_dir / n).exists()]
+    if not vf.exists() or not todo:
+        return
+    try:
+        from fontTools.ttLib import TTFont
+        from fontTools.varLib import instancer
+    except ImportError:
+        print("글꼴 변환 도구(fonttools)가 없어 본명조를 시스템 명조로 대신합니다.")
+        return
+    for w, dst in todo:
+        font = instancer.instantiateVariableFont(TTFont(str(vf)), {"wght": w}, updateFontNames=True)
+        tmp = dst.with_suffix(".part")
+        font.save(str(tmp))
+        os.replace(tmp, dst)
+
+
+def fonts_found(fonts_dir: pathlib.Path) -> int:
+    return sum((fonts_dir / n).exists() for _, _, n in FONT_FILES)
 
 
 def h_runs(rs: list) -> str:
@@ -728,41 +775,39 @@ def h_list(items: list, cls: str) -> str:
 
 def book_css(title: str) -> str:
     head = html.escape(title).replace('"', "")
-    return f"""
-:root{{--ink:#1b1b1b;--muted:#6a6a6a;--rule:#cfcac0;--accent:#1f4e5f;--accent2:#c0603a;--tint:#eef3f4;
- --warm:#f7f1e8;--fix:#f1f5ea;--fixline:#6b8a3a;--navy:#14283a;--gold:#d9a35a}}
+    return font_faces(FONTS_DIR) + f"""
+:root{{--ink:#1e1e1c;--muted:#8c887f;--rule:#dcd7cc;--accent:#1e1e1c;--accent2:#c8452d;--tint:#f3f0e8;
+ --warm:#f3f0e8;--fix:#f3f0e8;--fixline:#8c887f;--paper:#f3f0e8}}
 *{{box-sizing:border-box}}
 html{{background:#e9e7e2}}
-body{{margin:0;color:var(--ink);font-family:{SERIF};font-size:10pt;line-height:1.78;word-break:keep-all;
+body{{margin:0;color:var(--ink);font-family:{SERIF};font-size:9.6pt;line-height:1.85;word-break:keep-all;
  overflow-wrap:break-word;-webkit-print-color-adjust:exact;print-color-adjust:exact}}
 main{{background:#fff;max-width:{BOOK_W}mm;margin:0 auto}}
 a{{color:inherit;text-decoration:none}}
 h1,h2,h3,h4,.sans,figcaption,.box,.toc,table,.lesson-head,.opener,.back-head,.review,.answers,.notice{{font-family:{SANS}}}
 p{{margin:0 0 .55em;text-align:justify}}
-strong{{font-family:{SANS};font-weight:700}}
+strong{{font-family:{SANS};font-weight:600}}
 .guess{{font-family:{SANS};font-size:7.5pt;color:var(--muted);vertical-align:1px}}
 
 /* 쪽 설정: B5, 안쪽 여백을 넓게, 바깥쪽에 쪽 번호와 머리글 */
 @page{{size:{BOOK_W}mm {BOOK_H}mm;margin:21mm 17mm 22mm 19mm}}
 @page :left{{margin-left:17mm;margin-right:19mm;
- @top-left{{content:"{head}";font-family:{SANS};font-size:7.5pt;color:#8a8a8a;letter-spacing:.06em;vertical-align:bottom;padding-bottom:4mm}}
- @bottom-left{{content:counter(page);font-family:{SANS};font-size:8.5pt;color:#555;vertical-align:top;padding-top:5mm}}}}
+ @top-left{{content:"{head}";font-family:{SANS};font-weight:300;font-size:7pt;color:#8c887f;letter-spacing:.08em;vertical-align:bottom;padding-bottom:4mm}}
+ @bottom-left{{content:counter(page);font-family:{NUM};font-size:10.5pt;color:#1e1e1c;vertical-align:top;padding-top:5mm}}}}
 @page :right{{margin-left:19mm;margin-right:17mm;
- @top-right{{content:"차트프로 강의 노트";font-family:{SANS};font-size:7.5pt;color:#8a8a8a;letter-spacing:.06em;vertical-align:bottom;padding-bottom:4mm}}
- @bottom-right{{content:counter(page);font-family:{SANS};font-size:8.5pt;color:#555;vertical-align:top;padding-top:5mm}}}}
+ @top-right{{content:"CHART STUDY NOTES";font-family:{MONO};font-size:6.3pt;color:#8c887f;letter-spacing:.22em;vertical-align:bottom;padding-bottom:4mm}}
+ @bottom-right{{content:counter(page);font-family:{NUM};font-size:10.5pt;color:#1e1e1c;vertical-align:top;padding-top:5mm}}}}
 @page bare{{@top-left{{content:none}}@top-right{{content:none}}@bottom-left{{content:none}}@bottom-right{{content:none}}}}
 @page cover{{margin:0;@top-left{{content:none}}@top-right{{content:none}}@bottom-left{{content:none}}@bottom-right{{content:none}}}}
 
 /* 표지 */
-.cover{{page:cover;height:{BOOK_H - 1}mm;background:var(--navy);color:#fff;position:relative;overflow:hidden;
- padding:42mm 20mm 0 22mm;font-family:{SANS}}}
-.cover .series{{font-size:9pt;letter-spacing:.35em;color:var(--gold);margin:0 0 14mm}}
-.cover h1{{font-size:34pt;line-height:1.22;margin:0;font-weight:800;letter-spacing:-.02em}}
-.cover .bar{{width:22mm;height:2.2mm;background:var(--gold);margin:9mm 0 7mm}}
-.cover .sub{{font-size:11pt;line-height:1.6;color:#d6dde3;max-width:120mm;text-align:left}}
-.cover .chart{{position:absolute;left:0;right:0;bottom:34mm;height:62mm;opacity:.9}}
-.cover .foot{{position:absolute;left:22mm;right:20mm;bottom:16mm;font-size:8.5pt;color:#9fb0bf;
- border-top:1px solid #3a5065;padding-top:4mm;display:flex;justify-content:space-between}}
+.cover{{page:cover;overflow:hidden;background:var(--paper)}}
+.cover .cv{{position:relative;width:{BOOK_W}mm;height:{BOOK_H - 1}mm}}
+.cover svg{{position:absolute;left:0;top:0;display:block;width:{BOOK_W}mm;height:{BOOK_H}mm}}
+.cover .kt{{font-family:{SANS};font-weight:300;letter-spacing:-.25px}}
+.cover .ks{{font-family:{SANS};font-weight:400}}
+.cover .num{{font-family:{NUM}}}
+.cover .mono{{font-family:{MONO}}}
 
 /* 판권·공부법·차례 */
 .notice{{page:bare;break-before:page;min-height:200mm;display:flex;flex-direction:column;justify-content:flex-end;
@@ -771,52 +816,55 @@ strong{{font-family:{SANS};font-weight:700}}
 .notice p{{margin:0 0 2.5mm;text-align:left}}
 .notice .rule{{border-top:1px solid var(--rule);margin:4mm 0}}
 .study{{break-before:page}}
-.study h2,.toc h2,.back-head h1{{font-size:20pt;font-weight:800;margin:6mm 0 9mm;letter-spacing:-.01em}}
+.study h2,.toc h2,.back-head h1{{font-size:21pt;font-weight:300;margin:6mm 0 9mm;letter-spacing:-.02em}}
 .study ol{{margin:0;padding:0;list-style:none;counter-reset:s}}
 .study li{{counter-increment:s;position:relative;padding:0 0 4mm 12mm;margin:0 0 4mm;border-bottom:1px solid #ebe7df;
  font-family:{SERIF};font-size:10.5pt;line-height:1.8}}
-.study li::before{{content:counter(s,decimal-leading-zero);position:absolute;left:0;top:0;font-family:{SANS};
- font-weight:800;color:var(--accent2);font-size:12pt}}
+.study li::before{{content:counter(s,decimal-leading-zero);position:absolute;left:0;top:-1mm;font-family:{NUM};
+ color:var(--accent2);font-size:16pt}}
 .toc{{break-before:page}}
 .toc ol{{list-style:none;margin:0;padding:0}}
 .toc li{{display:flex;align-items:baseline;gap:2mm}}
 .toc li .t{{flex:1;min-width:0}}
 .toc li .dots{{flex:1 1 6mm;border-bottom:1px dotted #b9b3a8;transform:translateY(-1.2mm);min-width:6mm}}
 .toc li .pg{{width:9mm;text-align:right;font-variant-numeric:tabular-nums}}
-.toc li.l1{{font-weight:800;font-size:10.5pt;margin:5mm 0 1.2mm;break-after:avoid}}
-.toc li.l1 .n{{color:var(--accent2);width:9mm;flex:none}}
+.toc li.l1{{font-weight:600;font-size:10.2pt;margin:5mm 0 1.2mm;break-after:avoid}}
+.toc li.l1 .n{{color:var(--accent2);width:9mm;flex:none;font-family:{NUM};font-weight:400;font-size:13pt}}
+.toc li.l1 .pg{{font-family:{NUM};font-weight:400;font-size:11pt}}
 .toc li.l2{{font-size:8.6pt;color:#3a3a3a;margin:0 0 .6mm 9mm;font-weight:400}}
-.toc li.l2 .n{{color:var(--muted);width:7mm;flex:none;font-variant-numeric:tabular-nums}}
+.toc li.l2 .n{{color:var(--muted);width:7mm;flex:none;font-family:{MONO};font-size:7pt}}
 .toc li.l2 .t{{flex:0 1 auto;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}}
 
 /* 장 시작 페이지 */
-.opener{{page:bare;break-before:page;min-height:205mm;position:relative;padding-top:18mm}}
-.opener .label{{font-size:9pt;letter-spacing:.4em;color:var(--accent2);font-weight:700;margin:0}}
-.opener .big{{font-size:64pt;line-height:1;font-weight:800;color:var(--accent);margin:2mm 0 4mm;letter-spacing:-.03em}}
-.opener h1{{font-size:24pt;line-height:1.3;margin:0 0 9mm;font-weight:800;letter-spacing:-.02em;
- padding-bottom:6mm;border-bottom:2px solid var(--ink)}}
+.opener{{page:bare;break-before:page;position:relative;padding-top:12mm}}
+.opener .label{{font-family:{MONO};font-size:7.5pt;letter-spacing:.42em;color:var(--muted);margin:0;
+ padding-bottom:3mm;border-bottom:.25mm solid var(--ink)}}
+.opener .big{{font-family:{NUM};font-size:110pt;line-height:.95;font-weight:400;color:var(--ink);margin:10mm 0 2mm;
+ letter-spacing:-.02em}}
+.opener .big::after{{content:"";display:inline-block;width:3mm;height:3mm;background:var(--accent2);margin-left:2mm}}
+.opener h1{{font-size:25pt;line-height:1.3;margin:0 0 10mm;font-weight:300;letter-spacing:-.03em}}
 .opener .intro{{font-family:{SERIF};font-size:10.5pt;line-height:1.85;margin:0 0 8mm;text-align:justify}}
 .opener .inside{{font-size:8.6pt;margin:0 0 8mm}}
-.opener .inside p{{font-weight:700;letter-spacing:.2em;color:var(--muted);font-size:7.5pt;margin:0 0 2mm}}
+.opener .inside p{{font-family:{MONO};letter-spacing:.3em;color:var(--muted);font-size:6.5pt;margin:0 0 2mm}}
 .opener .inside ol{{list-style:none;margin:0;padding:0;columns:1}}
 .opener .inside li{{padding:1.2mm 0;border-bottom:1px solid #ece8e0;display:flex;gap:3mm}}
-.opener .inside li b{{color:var(--accent2);font-variant-numeric:tabular-nums}}
+.opener .inside li b{{color:var(--accent2);font-family:{MONO};font-weight:400;font-size:7.5pt;padding-top:.4mm}}
 .back-head{{break-before:page;padding-top:10mm;margin-bottom:6mm}}
-.back-head .label{{font-size:9pt;letter-spacing:.4em;color:var(--accent2);font-weight:700;margin:0}}
-.back-head h1{{padding-bottom:5mm;border-bottom:2px solid var(--ink)}}
+.back-head .label{{font-family:{MONO};font-size:7.5pt;letter-spacing:.42em;color:var(--muted);margin:0 0 4mm}}
+.back-head h1{{padding-bottom:5mm;border-bottom:.25mm solid var(--ink)}}
 .back-body{{break-before:page}}
 .back-body.cont{{break-before:auto}}
 
 /* 강의 */
 .lesson-head{{break-before:page;margin:0 0 6mm}}
-.lesson-head .k{{display:flex;align-items:center;gap:3mm;font-size:7.8pt;font-weight:700;letter-spacing:.28em;
- color:var(--accent2);margin:0 0 2mm}}
+.lesson-head .k{{display:flex;align-items:center;gap:3mm;font-family:{MONO};font-size:7pt;letter-spacing:.32em;
+ color:var(--accent2);margin:0 0 3mm}}
 .lesson-head .k::after{{content:"";flex:1;border-top:1px solid var(--rule)}}
-.lesson-head h2{{font-size:15.5pt;line-height:1.38;margin:0 0 1.5mm;font-weight:800;letter-spacing:-.015em}}
+.lesson-head h2{{font-size:16pt;line-height:1.4;margin:0 0 2mm;font-weight:600;letter-spacing:-.025em}}
 .lesson-head .src{{font-size:7.5pt;color:#9a9a9a;margin:0;letter-spacing:.02em}}
-h4{{font-size:10pt;margin:6mm 0 2mm;color:var(--accent);font-weight:800;display:flex;align-items:center;gap:2mm;
+h4{{font-size:9.6pt;margin:6mm 0 2mm;color:var(--accent);font-weight:600;display:flex;align-items:center;gap:2mm;
  break-after:avoid}}
-h4::before{{content:"";width:2.2mm;height:2.2mm;background:var(--accent);display:inline-block}}
+h4::before{{content:"";width:1.6mm;height:1.6mm;background:var(--accent);display:inline-block}}
 h4.k-빠진내용,h4.k-보강설명{{color:var(--accent2)}}
 h4.k-빠진내용::before,h4.k-보강설명::before{{background:var(--accent2)}}
 .sec-head{{margin-bottom:1.5mm}}
@@ -828,33 +876,34 @@ ul.k-용어 li,ul.k-기타 li{{font-size:9.3pt}}
 figure{{margin:3.5mm 0 4.5mm;break-inside:avoid;text-align:center}}
 figure img{{display:block;max-width:100%;max-height:78mm;width:auto;height:auto;margin:0 auto;border:.3mm solid #d8d3c9}}
 figcaption{{font-size:7.8pt;color:#555;margin-top:1.8mm;line-height:1.5;text-align:center}}
-figcaption b{{color:var(--accent);margin-right:2mm;font-weight:800}}
+figcaption b{{color:var(--accent2);margin-right:2mm;font-family:{MONO};font-weight:400;letter-spacing:.08em}}
 .box{{margin:5mm 0;padding:3.5mm 4.5mm;font-size:8.7pt;line-height:1.7;break-inside:avoid}}
 .box .bt{{font-weight:800;font-size:8pt;letter-spacing:.18em;margin:0 0 1.5mm}}
 .box p{{margin:0 0 1mm;text-align:left}}
 .box ul{{margin:0;padding-left:4mm}}
-.box-bot{{background:var(--tint);border-top:.6mm solid var(--accent)}}
-.box-bot .bt{{color:var(--accent)}}
-.box-fix{{background:var(--fix);border-left:1mm solid var(--fixline)}}
-.box-fix .bt{{color:var(--fixline)}}
-.box-btc{{background:var(--warm);border-top:.6mm solid var(--accent2);position:absolute;left:0;right:0;bottom:0;margin:0}}
+.box .bt{{font-family:{MONO};font-weight:400;font-size:6.6pt;letter-spacing:.3em}}
+.box-bot{{background:var(--paper);border-top:.25mm solid var(--ink)}}
+.box-bot .bt{{color:var(--ink)}}
+.box-fix{{background:transparent;border:.25mm solid var(--rule);border-left:.8mm solid var(--muted)}}
+.box-fix .bt{{color:var(--muted)}}
+.box-btc{{background:var(--paper);border-top:.25mm solid var(--accent2);margin:10mm 0 0}}
 .box-btc .bt{{color:var(--accent2)}}
-.review{{margin:9mm 0 0;border:.4mm solid var(--ink);padding:5mm 6mm 3mm;break-inside:avoid}}
-.review .bt{{font-weight:800;font-size:11pt;margin:0 0 3mm;display:flex;justify-content:space-between;align-items:baseline}}
-.review .bt span{{font-size:7.5pt;font-weight:400;color:var(--muted)}}
+.review{{margin:9mm 0 0;border:.25mm solid var(--ink);padding:5mm 6mm 3mm;break-inside:avoid}}
+.review .bt{{font-weight:600;font-size:10.5pt;margin:0 0 3mm;display:flex;justify-content:space-between;align-items:baseline}}
+.review .bt span{{font-family:{MONO};font-size:6.4pt;letter-spacing:.12em;font-weight:400;color:var(--muted)}}
 .review ol{{margin:0;padding-left:6mm}}
 .review li{{font-family:{SERIF};font-size:9.8pt;margin:0 0 2.5mm}}
 .review li::marker{{font-family:{SANS};font-weight:800;color:var(--accent2)}}
 .answers h3{{font-size:11pt;margin:7mm 0 2.5mm;padding-bottom:1.5mm;border-bottom:1px solid var(--rule);break-after:avoid}}
-.answers h3 b{{color:var(--accent2);margin-right:2mm}}
+.answers h3 b{{color:var(--accent2);margin-right:2.5mm;font-family:{NUM};font-weight:400;font-size:14pt}}
 .answers .qa{{margin:0 0 3.5mm;break-inside:avoid}}
 .answers .q{{font-weight:700;font-size:9.2pt;margin:0 0 .8mm}}
 .answers .q b{{color:var(--accent2);margin-right:1.5mm}}
 .answers .a{{font-family:{SERIF};font-size:9.4pt;margin:0;padding-left:5.5mm;text-align:justify}}
 .answers .a a{{font-family:{SANS};font-size:7.8pt;color:var(--accent);white-space:nowrap;margin-left:1.5mm}}
-h3.ini{{font-size:12pt;margin:6mm 0 2mm;color:var(--accent2);break-after:avoid}}
+h3.ini{{font-size:12pt;font-weight:300;margin:6mm 0 2mm;color:var(--accent2);break-after:avoid}}
 table{{border-collapse:collapse;width:100%;font-size:8.3pt;line-height:1.55;margin:0 0 4mm}}
-th{{text-align:left;font-weight:800;border-bottom:.4mm solid var(--ink);padding:1.5mm 2mm;font-size:7.8pt;letter-spacing:.06em}}
+th{{text-align:left;font-weight:600;border-bottom:.25mm solid var(--ink);padding:1.5mm 2mm;font-size:7.8pt;letter-spacing:.06em}}
 td{{border-bottom:1px solid #e3ded4;padding:1.6mm 2mm;vertical-align:top}}
 tr{{break-inside:avoid}}
 table.gloss td:first-child{{width:24%}}
@@ -873,31 +922,146 @@ table.gloss td:last-child{{width:12%;color:var(--accent);white-space:nowrap}}
 """
 
 
-COVER_SVG = """<svg class="chart" viewBox="0 0 182 62" preserveAspectRatio="none" aria-hidden="true">
-<g stroke="#4c6a82" stroke-width=".35">{wicks}</g><g>{bodies}</g>
-<polyline points="{line}" fill="none" stroke="#d9a35a" stroke-width=".7"/></svg>"""
-
-
-def cover_svg() -> str:
-    """표지 아래쪽에 그리는 장식용 캔들 차트(고정된 모양, 실제 데이터 아님)."""
+def cover_svg(title: str, subtitle: str, lessons: int, chapters: int) -> str:
+    """표지(B5, mm 단위 SVG). 'Quiet Ledger': 얇은 캔들의 축적, 긴 횡보 뒤 단 하나의 붉은 캔들.
+    실제 시세가 아니라 고정된 장식용 모양이다(같은 결과가 나오도록 난수 씨앗 고정)."""
     import random
-    rnd = random.Random(7)
-    price, wicks, bodies, pts = 40.0, [], [], []
-    for i in range(34):
-        x = 6 + i * 5.1
-        drift = 0.7 if i > 12 else -0.25
-        o = price
-        c = max(8, min(56, o + rnd.uniform(-3.2, 3.6) + drift))
-        hi, lo = max(o, c) + rnd.uniform(.4, 2.6), min(o, c) - rnd.uniform(.4, 2.6)
+
+    W, H = BOOK_W, BOOK_H
+    PAPER, INK, G1, G2, RULE, RED = "#F3F0E8", "#1E1E1C", "#8C887F", "#B9B4AA", "#DCD7CC", "#C8452D"
+    rnd = random.Random(20261003)
+
+    # 가격 흐름: 하락 → 오래 좁게 횡보(기준마디 전) → 한 번의 장대 돌파 → 완만한 상승과 얕은 눌림
+    n_down, n_base, n_up = 30, 44, 26
+    seq, p = [], 100.0
+    for _ in range(n_down):
+        o = p
+        c = o - rnd.uniform(-0.55, 1.35)
+        seq.append((o, c))
+        p = c
+    base_lo, base_hi = p - 2.2, p + 2.0
+    for _ in range(n_base):
+        o = p
+        c = min(base_hi, max(base_lo, o + rnd.uniform(-1.0, 1.0)))
+        seq.append((o, c))
+        p = c
+    brk = len(seq)
+    o = (base_lo + base_hi) / 2
+    c = base_hi + 7.5
+    seq.append((o, c))
+    p = c
+    for i in range(n_up - 1):
+        o = p
+        drift = 0.62 if not 6 <= i <= 10 else -0.55
+        c = o + drift + rnd.uniform(-0.9, 0.9)
+        seq.append((o, c))
+        p = c
+    bars = []
+    for i, (o, c) in enumerate(seq):
+        span = abs(c - o)
+        wick = 0.35 + rnd.random() * (0.9 if i != brk else 0.5)
+        hi = max(o, c) + wick * (1.4 if span < 0.6 else 1.0)
+        lo = min(o, c) - (0.35 + rnd.random() * 0.9)
+        bars.append((o, hi, lo, c))
+
+    # 그리는 영역
+    x0, x1, y0, y1 = 18.0, W - 26.0, 58.0, 160.0
+    pmin = min(b[2] for b in bars) - 1.5
+    pmax = max(b[1] for b in bars) + 1.5
+    step = (x1 - x0) / len(bars)
+    bw = step * 0.56
+
+    def Y(v):
+        return y1 - (v - pmin) / (pmax - pmin) * (y1 - y0)
+
+    out = [f'<svg class="cover-art" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 {W} {H}" '
+           f'width="{W}mm" height="{H}mm" aria-hidden="true">',
+           f'<rect width="{W}" height="{H}" fill="{PAPER}"/>']
+    # 가로 눈금(아주 옅게)과 오른쪽 작은 숫자
+    for k in range(11):
+        yy = y0 + k * (y1 - y0) / 10
+        out.append(f'<line x1="{x0}" x2="{x1}" y1="{yy:.2f}" y2="{yy:.2f}" stroke="{RULE}" stroke-width=".12"/>')
+        val = pmax - k * (pmax - pmin) / 10
+        out.append(f'<text x="{x1 + 2.2}" y="{yy + .9:.2f}" class="mono" font-size="2.1" fill="{G2}">'
+                   f'{val:06.2f}</text>')
+    # 세로 눈금: 20봉마다 아주 짧은 표시
+    for i in range(0, len(bars) + 1, 20):
+        xx = x0 + i * step
+        out.append(f'<line x1="{xx:.2f}" x2="{xx:.2f}" y1="{y1 + 1.2}" y2="{y1 + 2.6}" stroke="{G1}" stroke-width=".12"/>')
+        out.append(f'<text x="{xx:.2f}" y="{y1 + 5.6}" class="mono" font-size="2.1" fill="{G2}" '
+                   f'text-anchor="middle">{i:03d}</text>')
+    # 횡보 상단(돌파 기준선): 점선 한 줄
+    by = Y(base_hi + 0.2)
+    bx0 = x0 + n_down * step
+    out.append(f'<line x1="{bx0:.2f}" x2="{x1:.2f}" y1="{by:.2f}" y2="{by:.2f}" stroke="{G1}" '
+               f'stroke-width=".14" stroke-dasharray=".5 .9"/>')
+    # 캔들
+    for i, (o, hi, lo, c) in enumerate(bars):
+        cx = x0 + (i + 0.5) * step
         up = c >= o
-        y = lambda v: 62 - v
-        wicks.append(f'<line x1="{x:.1f}" x2="{x:.1f}" y1="{y(hi):.1f}" y2="{y(lo):.1f}"/>')
-        top, h = y(max(o, c)), max(.6, abs(c - o))
-        fill = "#d9a35a" if up else "#3f5d75"
-        bodies.append(f'<rect x="{x - 1.6:.1f}" y="{top:.1f}" width="3.2" height="{h:.1f}" fill="{fill}"/>')
-        pts.append(f"{x:.1f},{y((o + c) / 2 - 3):.1f}")
-        price = c
-    return COVER_SVG.format(wicks="".join(wicks), bodies="".join(bodies), line=" ".join(pts))
+        col = RED if i == brk else INK
+        out.append(f'<line x1="{cx:.2f}" x2="{cx:.2f}" y1="{Y(hi):.2f}" y2="{Y(lo):.2f}" stroke="{col}" '
+                   f'stroke-width=".13"/>')
+        top, bot = Y(max(o, c)), Y(min(o, c))
+        h = max(bot - top, .22)
+        if i == brk:
+            out.append(f'<rect x="{cx - bw / 2:.2f}" y="{top:.2f}" width="{bw:.2f}" height="{h:.2f}" fill="{RED}"/>')
+            mid = Y((o + c) / 2)                    # 허리: 붉은 캔들 몸통의 가운데에 아주 짧은 표시
+            out.append(f'<line x1="{cx + bw / 2 + .5:.2f}" x2="{cx + bw / 2 + 2.2:.2f}" y1="{mid:.2f}" '
+                       f'y2="{mid:.2f}" stroke="{RED}" stroke-width=".14"/>')
+        elif up:
+            out.append(f'<rect x="{cx - bw / 2 + .065:.2f}" y="{top:.2f}" width="{bw - .13:.2f}" height="{h:.2f}" '
+                       f'fill="{PAPER}" stroke="{INK}" stroke-width=".13"/>')
+        else:
+            out.append(f'<rect x="{cx - bw / 2:.2f}" y="{top:.2f}" width="{bw:.2f}" height="{h:.2f}" fill="{INK}"/>')
+    # 거래량: 가는 막대, 돌파 봉만 진하게
+    vy = 176.0
+    rv = random.Random(7)
+    for i, (o, hi, lo, c) in enumerate(bars):
+        cx = x0 + (i + 0.5) * step
+        v = 1.2 + rv.random() * 2.6 + (abs(c - o) * .7)
+        if n_down <= i < brk:
+            v *= .55
+        if i == brk:
+            v = 11.5
+        out.append(f'<line x1="{cx:.2f}" x2="{cx:.2f}" y1="{vy:.2f}" y2="{vy - v:.2f}" '
+                   f'stroke="{INK if i == brk else G2}" stroke-width="{bw * .55:.2f}"/>')
+    out.append(f'<line x1="{x0}" x2="{x1}" y1="{vy + .4}" y2="{vy + .4}" stroke="{G2}" stroke-width=".12"/>')
+
+    # 글자
+    def esc(s):
+        return s.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
+
+    out.append(f'<text x="18" y="24" class="mono" font-size="2.5" letter-spacing=".9" fill="{INK}">'
+               f'CHART STUDY NOTES</text>')
+    out.append(f'<text x="{W - 18}" y="24" class="mono" font-size="2.5" letter-spacing=".9" fill="{G1}" '
+               f'text-anchor="end">VOL. 01</text>')
+    out.append(f'<line x1="18" x2="{W - 18}" y1="28" y2="28" stroke="{INK}" stroke-width=".18"/>')
+    out.append(f'<text x="18" y="35.2" class="mono" font-size="2.1" letter-spacing=".5" fill="{G1}">'
+               f'FIG. 0 — ACCUMULATION, COMPRESSION, RELEASE</text>')
+
+    words = title.split()
+    ty = 206.0
+    if len(words) >= 2:
+        out.append(f'<text x="17.2" y="{ty}" class="kt" font-size="15.5" fill="{INK}">{esc(words[0])}</text>')
+        out.append(f'<text x="17.2" y="{ty + 17}" class="kt" font-size="15.5" fill="{INK}">{esc(" ".join(words[1:]))}</text>')
+        sy = ty + 26.5
+    else:
+        out.append(f'<text x="17.2" y="{ty}" class="kt" font-size="15.5" fill="{INK}">{esc(title)}</text>')
+        sy = ty + 9.5
+    out.append(f'<text x="{W - 18}" y="{ty + 17}" class="num" font-size="34" fill="{INK}" text-anchor="end">'
+               f'{lessons}</text>')
+    out.append(f'<text x="{W - 18}" y="{ty + 23.5}" class="mono" font-size="2.1" letter-spacing=".5" fill="{G1}" '
+               f'text-anchor="end">LESSONS</text>')
+    sub = subtitle.replace(" — 개인 학습용", "").strip()
+    out.append(f'<text x="18" y="{sy}" class="ks" font-size="3.1" fill="{G1}">{esc(sub)}</text>')
+    out.append(f'<line x1="18" x2="{W - 18}" y1="{H - 21}" y2="{H - 21}" stroke="{INK}" stroke-width=".18"/>')
+    out.append(f'<text x="18" y="{H - 15.5}" class="mono" font-size="2.1" letter-spacing=".5" fill="{G1}">'
+               f'PL. 01 — {chapters} CHAPTERS</text>')
+    out.append(f'<text x="{W - 18}" y="{H - 15.5}" class="mono" font-size="2.1" letter-spacing=".5" fill="{G1}" '
+               f'text-anchor="end">PERSONAL EDITION · NOT FOR DISTRIBUTION</text>')
+    out.append("</svg>")
+    return "".join(out)
 
 
 def render_html(blocks: list, markers: bool = False, pages: dict | None = None) -> str:
@@ -907,17 +1071,17 @@ def render_html(blocks: list, markers: bool = False, pages: dict | None = None) 
     title = ""
 
     def mk(anchor: str) -> str:
-        return f'<span class="mk">@@{anchor}@@</span>' if markers else ""
+        if not markers:
+            return ""
+        return f'<span class="mk">@@{marker_ids.setdefault(anchor, len(marker_ids) + 1)}@@</span>'
 
     for b in blocks:
         t = b["t"]
         if t == "cover":
             title = b["title"]
-            out.append(f'<section class="cover"><p class="series">PERSONAL STUDY EDITION</p>'
-                       f'<h1>{html.escape(b["title"])}</h1><div class="bar"></div>'
-                       f'<p class="sub">{html.escape(b["subtitle"])}</p>{cover_svg()}'
-                       f'<div class="foot"><span>차트프로 유튜브 강의 정리 · 강의 {b["lessons"]}편</span>'
-                       f'<span>개인 학습용</span></div></section>')
+            # 표지 SVG는 고정 높이 상자 안에 절대 위치로 둔다(SVG를 바로 두면 크롬이 표지 쪽 여백 0을 무시함)
+            out.append(f'<section class="cover"><div class="cv">'
+                       f'{cover_svg(b["title"], b["subtitle"], b["lessons"], b.get("chapters", 10))}</div></section>')
         elif t == "notice":
             ps = b["paras"]
             meta = "".join(f"<p>{html.escape(p)}</p>" for p in ps[:3])
@@ -995,11 +1159,11 @@ def render_html(blocks: list, markers: bool = False, pages: dict | None = None) 
 # ---------------------------------------------------------------------------
 
 
-KO_SERIF, KO_SERIF_ALT = "AppleMyungjo", "Batang"
-KO_SANS, KO_SANS_ALT = "Apple SD Gothic Neo", "Malgun Gothic"
+KO_SERIF, KO_SERIF_ALT = "Noto Serif KR", "AppleMyungjo"     # 맥 스크립트가 내 글꼴 폴더에 설치
+KO_SANS, KO_SANS_ALT = "Pretendard", "Apple SD Gothic Neo"
 
 
-def write_docx(blocks: list, path: pathlib.Path) -> None:
+def write_docx(blocks: list, path: pathlib.Path, cover_png: pathlib.Path | None = None) -> None:
     import docx
     from docx.enum.section import WD_SECTION
     from docx.enum.table import WD_TABLE_ALIGNMENT
@@ -1254,43 +1418,31 @@ def write_docx(blocks: list, path: pathlib.Path) -> None:
     for b in blocks:
         t = b["t"]
         if t == "cover":
-            # 표지: 짙은 남색 칸 하나를 쪽 가득 채운다
-            tb = d.add_table(rows=1, cols=1)
-            tb.alignment = WD_TABLE_ALIGNMENT.CENTER
-            cell = tb.rows[0].cells[0]
-            cell.width = Cm(text_w)
-            tcpr = cell._tc.get_or_add_tcPr()
-            shd = OxmlElement("w:shd")
-            for k, v in (("w:val", "clear"), ("w:color", "auto"), ("w:fill", "14283A")):
-                shd.set(qn(k), v)
-            tcpr.append(shd)
-            trpr = tb.rows[0]._tr.get_or_add_trPr()
-            hgt = OxmlElement("w:trHeight")
-            hgt.set(qn("w:val"), str(int((BOOK_H / 10 - 2.1 - 2.2 - 0.6) / 2.54 * 1440)))
-            hgt.set(qn("w:hRule"), "exact")
-            trpr.append(hgt)
-            cp = cell.paragraphs[0]
-            cp.paragraph_format.space_before = Pt(110)
-            styled_run(cp, "PERSONAL STUDY EDITION", size=8.5, color=RGBColor(0xD9, 0xA3, 0x5A), font=KO_SANS, spacing=60)
-            cp.paragraph_format.left_indent = Cm(0.8)
-            p = cell.add_paragraph()
-            p.paragraph_format.left_indent = Cm(0.8)
-            p.paragraph_format.space_before = Pt(26)
-            styled_run(p, b["title"], size=32, bold=True, color=RGBColor(0xFF, 0xFF, 0xFF), font=KO_SANS)
-            p = cell.add_paragraph()
-            p.paragraph_format.left_indent = Cm(0.8)
-            styled_run(p, "━━━", size=14, color=RGBColor(0xD9, 0xA3, 0x5A), font=KO_SANS)
-            p = cell.add_paragraph()
-            p.paragraph_format.left_indent = Cm(0.8)
-            p.paragraph_format.right_indent = Cm(2.0)
-            styled_run(p, b["subtitle"], size=11, color=RGBColor(0xD6, 0xDD, 0xE3), font=KO_SANS)
-            p = cell.add_paragraph()
-            p.paragraph_format.left_indent = Cm(0.8)
-            p.paragraph_format.space_before = Pt(170)
-            styled_run(p, f"차트프로 유튜브 강의 정리 · 강의 {b['lessons']}편 · 개인 학습용", size=8.5,
-                       color=RGBColor(0x9F, 0xB0, 0xBF), font=KO_SANS)
+            # 표지: 그림(표지 PNG)이 있으면 여백 없는 첫 구역에 쪽 가득, 없으면 글자 표지
+            if cover_png and cover_png.exists():
+                cs = d.sections[0]
+                cs.left_margin = cs.right_margin = cs.top_margin = cs.bottom_margin = Cm(0)
+                cs.header_distance = cs.footer_distance = Cm(0)
+                cp = d.paragraphs[0] if d.paragraphs else d.add_paragraph()
+                cp.paragraph_format.space_after = Pt(0)
+                cp.paragraph_format.line_spacing = 1.0
+                cp.add_run().add_picture(str(cover_png), width=Cm(BOOK_W / 10), height=Cm(BOOK_H / 10 - 0.05))
+            else:
+                for _ in range(10):
+                    d.add_paragraph()
+                p = d.add_paragraph()
+                styled_run(p, "CHART STUDY NOTES", size=8, color=MUTED, font=KO_SANS, spacing=60)
+                p = d.add_paragraph()
+                styled_run(p, b["title"], size=30, color=INK, font=KO_SANS)
+                p = d.add_paragraph()
+                styled_run(p, b["subtitle"], size=9.5, color=MUTED, font=KO_SANS)
+            ns = d.add_section(WD_SECTION.NEW_PAGE)
+            ns.left_margin, ns.right_margin = Cm(1.9), Cm(1.7)
+            ns.top_margin, ns.bottom_margin = Cm(2.1), Cm(2.2)
+            ns.header_distance, ns.footer_distance = Cm(1.1), Cm(1.1)
+            ns.page_width, ns.page_height = Cm(BOOK_W / 10), Cm(BOOK_H / 10)
+            continue
         elif t == "notice":
-            page_break()
             for _ in range(16):
                 d.add_paragraph()
             p = d.add_paragraph()
@@ -1447,7 +1599,12 @@ def write_docx(blocks: list, path: pathlib.Path) -> None:
             add_table(b)
 
     # 머리글·바닥글: 홀수쪽은 오른쪽, 짝수쪽은 왼쪽(바깥쪽)에 쪽 번호. 표지에는 넣지 않는다.
-    sec.different_first_page_header_footer = True
+    sec = d.sections[-1]
+    if len(d.sections) > 1:
+        for hf in (sec.header, sec.even_page_header, sec.footer, sec.even_page_footer):
+            hf.is_linked_to_previous = False
+    else:
+        sec.different_first_page_header_footer = True
 
     def page_field(p):
         fld = OxmlElement("w:fldSimple")
@@ -1464,7 +1621,7 @@ def write_docx(blocks: list, path: pathlib.Path) -> None:
         fld.append(r)
         p._p.append(fld)
 
-    for hf, align, text in ((sec.header, WD_ALIGN_PARAGRAPH.RIGHT, "차트프로 강의 노트"),
+    for hf, align, text in ((sec.header, WD_ALIGN_PARAGRAPH.RIGHT, "CHART STUDY NOTES"),
                             (sec.even_page_header, WD_ALIGN_PARAGRAPH.LEFT, None)):
         p = hf.paragraphs[0]
         p.alignment = align
@@ -1486,7 +1643,44 @@ def write_docx(blocks: list, path: pathlib.Path) -> None:
 
 
 MAC_CHROME = pathlib.Path("/Applications/Google Chrome.app")
-MARK_RE = re.compile(r"@@([\w-]+)@@")
+
+
+def launch_browser(p):
+    if sys.platform == "darwin" and MAC_CHROME.exists():
+        try:
+            return p.chromium.launch(channel="chrome")
+        except Exception:  # noqa: BLE001 — 설치된 크롬을 못 쓰면 Playwright 크로미움으로
+            pass
+    return p.chromium.launch()
+
+
+def render_cover_png(blocks: list, out: pathlib.Path) -> pathlib.Path | None:
+    """워드 표지용 그림: 표지 SVG를 브라우저로 그려 PNG로 저장(약 300dpi)."""
+    from playwright.sync_api import sync_playwright
+
+    cover = next((b for b in blocks if b["t"] == "cover"), None)
+    if cover is None:
+        return None
+    html_path, png = out / ".cover.html", out / "cover.png"
+    css = book_css(cover["title"])
+    html_path.write_text(f'<!doctype html><html><head><meta charset="utf-8"><style>{css}'
+                         f'html,body{{margin:0;background:#fff}}</style></head><body>'
+                         f'{cover_svg(cover["title"], cover["subtitle"], cover["lessons"], cover.get("chapters", 10))}'
+                         f'</body></html>', encoding="utf-8")
+    px_w, px_h = round(BOOK_W / 25.4 * 96), round(BOOK_H / 25.4 * 96)
+    with sync_playwright() as p:
+        browser = launch_browser(p)
+        try:
+            page = browser.new_page(viewport={"width": px_w, "height": px_h}, device_scale_factor=3.2)
+            page.goto(html_path.as_uri(), wait_until="load")
+            page.wait_for_timeout(300)
+            page.screenshot(path=str(png), clip={"x": 0, "y": 0, "width": px_w, "height": px_h})
+        finally:
+            browser.close()
+    html_path.unlink(missing_ok=True)
+    return png
+MARK_RE = re.compile(r"@@(\d+)@@")
+marker_ids: dict = {}   # 제목 id → 표식 번호(PDF 글자 추출이 '-' 같은 기호를 흘리지 않도록 숫자만 쓴다)
 
 
 def write_pdf(blocks: list, html_path: pathlib.Path, pdf_path: pathlib.Path) -> bool:
@@ -1505,14 +1699,7 @@ def write_pdf(blocks: list, html_path: pathlib.Path, pdf_path: pathlib.Path) -> 
     tmp = pdf_path.with_suffix(".pdf.part")
     numbered = False
     with sync_playwright() as p:
-        browser = None
-        if sys.platform == "darwin" and MAC_CHROME.exists():
-            try:
-                browser = p.chromium.launch(channel="chrome")
-            except Exception:  # noqa: BLE001 — 설치된 크롬을 못 쓰면 Playwright 크로미움으로
-                browser = None
-        if browser is None:
-            browser = p.chromium.launch()
+        browser = launch_browser(p)
         try:
             page = browser.new_page()
 
@@ -1526,9 +1713,11 @@ def write_pdf(blocks: list, html_path: pathlib.Path, pdf_path: pathlib.Path) -> 
             if pymupdf is not None:
                 render(render_html(blocks, markers=True))
                 doc = pymupdf.open(str(tmp))
+                back = {v: k for k, v in marker_ids.items()}
                 for i, pg in enumerate(doc):
-                    for a in MARK_RE.findall(pg.get_text()):
-                        pages.setdefault(a, i + 1)
+                    for num in MARK_RE.findall(re.sub(r"\s+", "", pg.get_text())):
+                        if int(num) in back:
+                            pages.setdefault(back[int(num)], i + 1)
                 doc.close()
                 numbered = bool(pages)
             render(render_html(blocks, pages=pages))
@@ -1557,6 +1746,8 @@ def main(argv: list | None = None) -> int:
     ap.add_argument("--no-pdf", action="store_true", help="PDF 파일을 만들지 않는다")
     ap.add_argument("--open", action="store_true", help="끝나면 PDF(없으면 HTML)를 연다(맥)")
     ap.add_argument("--check", action="store_true", help="영상을 받지 않고 캡처가 다 됐는지만 확인한다")
+    ap.add_argument("--fonts-dir", type=pathlib.Path, default=None,
+                    help="책 글꼴 폴더(기본: ~/.chartpro_textbook_fonts, 맥 스크립트가 받아 둔다)")
     # 영상 ID는 '-'로 시작할 수 있어(예: -vFKpVjo7vE) --only 뒤의 값은 직접 모은다
     argv = list(sys.argv[1:] if argv is None else argv)
     only, rest, i = None, [], 0
@@ -1571,6 +1762,9 @@ def main(argv: list | None = None) -> int:
         i += 1
     args = ap.parse_args(rest)
     args.only = only
+    global FONTS_DIR
+    if args.fonts_dir:
+        FONTS_DIR = args.fonts_dir.expanduser()
 
     out = args.out.expanduser().resolve()
     if out == REPO or REPO in out.parents:
@@ -1635,10 +1829,21 @@ def main(argv: list | None = None) -> int:
     shots = len(list(img_dir.glob("*.jpg")))
     print(f"\nHTML: {html_path}  (강의 {n}편, 캡처 {shots}장, 보강 노트 {n_sup}개)")
 
+    try:
+        prepare_fonts(FONTS_DIR)
+    except Exception as exc:  # noqa: BLE001 — 변환 실패 시 시스템 글꼴로
+        print(f"글꼴 변환 실패: {type(exc).__name__}")
+    nf = fonts_found(FONTS_DIR)
+    print(f"글꼴: {nf}/{len(FONT_FILES)}개 찾음" + ("" if nf == len(FONT_FILES) else f" ({FONTS_DIR} — 없는 글꼴은 시스템 글꼴로 대신)"))
     made = {}
+    cover_png = None
     if not args.no_docx:
         try:
-            write_docx(blocks, out / DOCX_NAME)
+            cover_png = render_cover_png(blocks, out)
+        except Exception as exc:  # noqa: BLE001 — 표지 그림이 없으면 글자 표지로
+            print(f"워드 표지 그림은 건너뜀: {type(exc).__name__}")
+        try:
+            write_docx(blocks, out / DOCX_NAME, cover_png)
             made["docx"] = out / DOCX_NAME
             print(f"워드: {out / DOCX_NAME}")
         except ImportError:
