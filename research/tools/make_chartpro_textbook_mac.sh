@@ -1,10 +1,11 @@
 #!/bin/bash
-# [대표님 맥에서 실행] 차트프로 초급 교재 만들기 — 준비부터 실행까지 한 번에.
+# [대표님 맥에서 실행] 차트프로 교재(1권 초급·2권 중급·3권 실전·4권 해외선물) 만들기 — 준비부터 실행까지 한 번에.
 #   저장소 폴더에서:  bash research/tools/make_chartpro_textbook_mac.sh
 #   유튜브가 로그인을 요구하면:  bash research/tools/make_chartpro_textbook_mac.sh --browser chrome
+#   한 권만 만들려면:  ... --volume 2   (1 초급, 2 중급, 3 실전, 4 해외선물, 기본은 전부)
 #   영상 첫 8초 안에서 찍힌 옛 캡처를 다시 찍으려면:  ... --recapture
-# 결과: ~/Documents/차트프로_교재/ 안의 차트프로_초급_교재.pdf · .docx (저장소 밖, 개인 학습용)
-#       끝나면 PDF가 자동으로 열린다(--out 으로 폴더를 바꿔도 그 폴더의 PDF가 열린다).
+# 결과: ~/Documents/차트프로_교재/ 안의 차트프로_1권_초급.pdf · .docx 등 권별 파일 (저장소 밖, 개인 학습용)
+#       끝나면 결과 폴더(한 권만 만들면 그 PDF)가 열린다.
 # 다시 실행하면 이미 있는 캡처는 건너뛴다. 보통은 git pull 후 같은 명령을 다시 실행하면 된다.
 set -e
 cd "$(dirname "$0")/../.."

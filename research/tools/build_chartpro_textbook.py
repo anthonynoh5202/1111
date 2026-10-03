@@ -41,8 +41,9 @@ CHAPTERS = REPO / "research" / "chartpro" / "textbook" / "chapters.json"
 SUPPLEMENTS_DIR = REPO / "research" / "chartpro" / "textbook" / "supplements"
 TYPO_NOTE = NOTES_DIR / "01.md"
 DEFAULT_OUT = pathlib.Path.home() / "Documents" / "차트프로_교재"
-DOCX_NAME = "차트프로_초급_교재.docx"
-PDF_NAME = "차트프로_초급_교재.pdf"
+TEXTBOOK_DIR = REPO / "research" / "chartpro" / "textbook"
+VOLUMES = {1: (CHAPTERS, "차트프로_1권_초급"), 2: (TEXTBOOK_DIR / "vol2.json", "차트프로_2권_중급"),
+           3: (TEXTBOOK_DIR / "vol3.json", "차트프로_3권_실전"), 4: (TEXTBOOK_DIR / "vol4.json", "차트프로_4권_해외선물")}
 MANIFEST_NAME = "captures.json"   # 캡처 시각·중복 판정 기록 (결과 폴더 안)
 
 CAPTURE_DELAY_S = 3      # 말을 시작한 뒤 화면에 그림이 그려질 시간
@@ -581,7 +582,7 @@ def chapter_parts(title: str) -> tuple:
     return (f"{int(m.group(1)):02d}", m.group(2).strip()) if m else ("", title)
 
 
-def build_model(cfg: dict, lessons: dict, img_dir: pathlib.Path, manifest: dict) -> tuple:
+def build_model(cfg: dict, lessons: dict, img_dir: pathlib.Path, manifest: dict, vol: int = 1) -> tuple:
     """(블록 목록, 강의 수, 노트에 없는 영상)"""
     nums, n, missing = {}, 0, []
     for ch in cfg["chapters"]:
@@ -658,7 +659,7 @@ def build_model(cfg: dict, lessons: dict, img_dir: pathlib.Path, manifest: dict)
 
     today = time.strftime("%Y년 %-m월 %-d일") if sys.platform != "win32" else time.strftime("%Y-%m-%d")
     front = [{"t": "cover", "title": cfg["title"], "subtitle": cfg.get("subtitle", ""), "lessons": n,
-              "chapters": len(cfg["chapters"])},
+              "chapters": len(cfg["chapters"]), "vol": vol},
              {"t": "notice", "title": cfg["title"], "paras": [
                  f"만든 날  {today}",
                  f"구성  강의 {n}편 · {len(cfg['chapters'])}개 장",
@@ -922,14 +923,14 @@ table.gloss td:last-child{{width:12%;color:var(--accent);white-space:nowrap}}
 """
 
 
-def cover_svg(title: str, subtitle: str, lessons: int, chapters: int) -> str:
+def cover_svg(title: str, subtitle: str, lessons: int, chapters: int, vol: int = 1) -> str:
     """표지(B5, mm 단위 SVG). 'Quiet Ledger': 얇은 캔들의 축적, 긴 횡보 뒤 단 하나의 붉은 캔들.
     실제 시세가 아니라 고정된 장식용 모양이다(같은 결과가 나오도록 난수 씨앗 고정)."""
     import random
 
     W, H = BOOK_W, BOOK_H
     PAPER, INK, G1, G2, RULE, RED = "#F3F0E8", "#1E1E1C", "#8C887F", "#B9B4AA", "#DCD7CC", "#C8452D"
-    rnd = random.Random(20261003)
+    rnd = random.Random(20261003 + (vol - 1) * 97)
 
     # 가격 흐름: 하락 → 오래 좁게 횡보(기준마디 전) → 한 번의 장대 돌파 → 완만한 상승과 얕은 눌림
     n_down, n_base, n_up = 30, 44, 26
@@ -1035,7 +1036,7 @@ def cover_svg(title: str, subtitle: str, lessons: int, chapters: int) -> str:
     out.append(f'<text x="18" y="24" class="mono" font-size="2.5" letter-spacing=".9" fill="{INK}">'
                f'CHART STUDY NOTES</text>')
     out.append(f'<text x="{W - 18}" y="24" class="mono" font-size="2.5" letter-spacing=".9" fill="{G1}" '
-               f'text-anchor="end">VOL. 01</text>')
+               f'text-anchor="end">VOL. {vol:02d}</text>')
     out.append(f'<line x1="18" x2="{W - 18}" y1="28" y2="28" stroke="{INK}" stroke-width=".18"/>')
     out.append(f'<text x="18" y="35.2" class="mono" font-size="2.1" letter-spacing=".5" fill="{G1}">'
                f'FIG. 0 — ACCUMULATION, COMPRESSION, RELEASE</text>')
@@ -1057,7 +1058,7 @@ def cover_svg(title: str, subtitle: str, lessons: int, chapters: int) -> str:
     out.append(f'<text x="18" y="{sy}" class="ks" font-size="3.1" fill="{G1}">{esc(sub)}</text>')
     out.append(f'<line x1="18" x2="{W - 18}" y1="{H - 21}" y2="{H - 21}" stroke="{INK}" stroke-width=".18"/>')
     out.append(f'<text x="18" y="{H - 15.5}" class="mono" font-size="2.1" letter-spacing=".5" fill="{G1}">'
-               f'PL. 01 — {chapters} CHAPTERS</text>')
+               f'PL. {vol:02d} — {chapters} CHAPTERS</text>')
     out.append(f'<text x="{W - 18}" y="{H - 15.5}" class="mono" font-size="2.1" letter-spacing=".5" fill="{G1}" '
                f'text-anchor="end">PERSONAL EDITION · NOT FOR DISTRIBUTION</text>')
     out.append("</svg>")
@@ -1081,7 +1082,7 @@ def render_html(blocks: list, markers: bool = False, pages: dict | None = None) 
             title = b["title"]
             # 표지 SVG는 고정 높이 상자 안에 절대 위치로 둔다(SVG를 바로 두면 크롬이 표지 쪽 여백 0을 무시함)
             out.append(f'<section class="cover"><div class="cv">'
-                       f'{cover_svg(b["title"], b["subtitle"], b["lessons"], b.get("chapters", 10))}</div></section>')
+                       f'{cover_svg(b["title"], b["subtitle"], b["lessons"], b.get("chapters", 10), b.get("vol", 1))}</div></section>')
         elif t == "notice":
             ps = b["paras"]
             meta = "".join(f"<p>{html.escape(p)}</p>" for p in ps[:3])
@@ -1661,11 +1662,11 @@ def render_cover_png(blocks: list, out: pathlib.Path) -> pathlib.Path | None:
     cover = next((b for b in blocks if b["t"] == "cover"), None)
     if cover is None:
         return None
-    html_path, png = out / ".cover.html", out / "cover.png"
+    html_path, png = out / ".cover.html", out / f".cover_{cover.get('vol', 1)}.png"
     css = book_css(cover["title"])
     html_path.write_text(f'<!doctype html><html><head><meta charset="utf-8"><style>{css}'
                          f'html,body{{margin:0;background:#fff}}</style></head><body>'
-                         f'{cover_svg(cover["title"], cover["subtitle"], cover["lessons"], cover.get("chapters", 10))}'
+                         f'{cover_svg(cover["title"], cover["subtitle"], cover["lessons"], cover.get("chapters", 10), cover.get("vol", 1))}'
                          f'</body></html>', encoding="utf-8")
     px_w, px_h = round(BOOK_W / 25.4 * 96), round(BOOK_H / 25.4 * 96)
     with sync_playwright() as p:
@@ -1746,6 +1747,8 @@ def main(argv: list | None = None) -> int:
     ap.add_argument("--no-pdf", action="store_true", help="PDF 파일을 만들지 않는다")
     ap.add_argument("--open", action="store_true", help="끝나면 PDF(없으면 HTML)를 연다(맥)")
     ap.add_argument("--check", action="store_true", help="영상을 받지 않고 캡처가 다 됐는지만 확인한다")
+    ap.add_argument("--volume", default="all", choices=["all", "1", "2", "3", "4"],
+                    help="만들 권: 1 초급, 2 중급, 3 실전, 4 해외선물, all 전부(기본)")
     ap.add_argument("--fonts-dir", type=pathlib.Path, default=None,
                     help="책 글꼴 폴더(기본: ~/.chartpro_textbook_fonts, 맥 스크립트가 받아 둔다)")
     # 영상 ID는 '-'로 시작할 수 있어(예: -vFKpVjo7vE) --only 뒤의 값은 직접 모은다
@@ -1773,28 +1776,43 @@ def main(argv: list | None = None) -> int:
     img_dir = out / "img"
     img_dir.mkdir(parents=True, exist_ok=True)
 
-    cfg = json.loads(CHAPTERS.read_text(encoding="utf-8"))
     lessons = parse_notes()
     n_sup = load_supplements(lessons, args.supplements_dir.expanduser())
-    vids = list(dict.fromkeys(v for ch in cfg["chapters"] for v in ch["videos"] if v in lessons))
     manifest = load_manifest(out)
+    wanted = sorted(VOLUMES) if args.volume == "all" else [int(args.volume)]
+    books = []
+    for vol in wanted:
+        cfg_path, base = VOLUMES[vol]
+        if not cfg_path.exists():
+            if args.volume != "all":
+                print(f"{vol}권 구성 파일이 없습니다: {cfg_path}")
+            continue
+        cfg = json.loads(cfg_path.read_text(encoding="utf-8"))
+        vids = list(dict.fromkeys(v for ch in cfg["chapters"] for v in ch["videos"] if v in lessons))
+        books.append((vol, base, cfg, vids))
+    if not books:
+        print("만들 권이 없습니다.")
+        return 1
 
     if args.check:
-        total = have = 0
-        lacking = []
-        for vid in vids:
-            secs = capture_points(lessons[vid])
-            miss = [s for s in secs if not (img_dir / shot_name(vid, s)).exists()]
-            total += len(secs)
-            have += len(secs) - len(miss)
-            if miss:
-                lacking.append((vid, len(secs) - len(miss), len(secs)))
-        print(f"캡처 {have}/{total}장 (영상 {len(vids)}편 중 덜 된 영상 {len(lacking)}편)")
-        for vid, h, t in lacking:
-            print(f"  - {lessons[vid]['title'][:40]}  {h}/{t}  ({vid})")
-        for name in (PDF_NAME, DOCX_NAME):
-            print(f"{name}: {'있음' if (out / name).exists() else '없음'}")
-        print("모두 완료" if not lacking else "덜 된 영상은 같은 명령을 다시 실행하면 이어서 받습니다.")
+        any_lacking = False
+        for vol, base, cfg, vids in books:
+            total = have = 0
+            lacking = []
+            for vid in vids:
+                secs = capture_points(lessons[vid])
+                miss = [s for s in secs if not (img_dir / shot_name(vid, s)).exists()]
+                total += len(secs)
+                have += len(secs) - len(miss)
+                if miss:
+                    lacking.append((vid, len(secs) - len(miss), len(secs)))
+            print(f"[{vol}권] {cfg['title']}: 캡처 {have}/{total}장 (영상 {len(vids)}편 중 덜 된 영상 {len(lacking)}편)")
+            for vid, h, t in lacking:
+                print(f"  - {lessons[vid]['title'][:40]}  {h}/{t}  ({vid})")
+            for name in (base + ".pdf", base + ".docx"):
+                print(f"  {name}: {'있음' if (out / name).exists() else '없음'}")
+            any_lacking = any_lacking or bool(lacking)
+        print("모두 완료" if not any_lacking else "덜 된 영상은 같은 명령을 다시 실행하면 이어서 받습니다.")
         return 0
 
     failed = []
@@ -1805,7 +1823,8 @@ def main(argv: list | None = None) -> int:
         except Exception as exc:  # noqa: BLE001
             print(f"캡처 도구(imageio-ffmpeg)를 못 찾아 캡처를 건너뜁니다: {exc}")
             ffmpeg = None
-        targets = [v for v in vids if not args.only or v in args.only] if ffmpeg else []
+        all_vids = list(dict.fromkeys(v for _, _, _, vids in books for v in vids))
+        targets = [v for v in all_vids if not args.only or v in args.only] if ffmpeg else []
         for i, vid in enumerate(targets, 1):
             secs = capture_points(lessons[vid])
             entry = manifest.setdefault(vid, {})
@@ -1823,53 +1842,54 @@ def main(argv: list | None = None) -> int:
             if need:
                 time.sleep(1)
 
-    blocks, n, missing = build_model(cfg, lessons, img_dir, manifest)
-    html_path = out / "index.html"
-    html_path.write_text(render_html(blocks), encoding="utf-8")
-    shots = len(list(img_dir.glob("*.jpg")))
-    print(f"\nHTML: {html_path}  (강의 {n}편, 캡처 {shots}장, 보강 노트 {n_sup}개)")
-
     try:
         prepare_fonts(FONTS_DIR)
     except Exception as exc:  # noqa: BLE001 — 변환 실패 시 시스템 글꼴로
         print(f"글꼴 변환 실패: {type(exc).__name__}")
     nf = fonts_found(FONTS_DIR)
-    print(f"글꼴: {nf}/{len(FONT_FILES)}개 찾음" + ("" if nf == len(FONT_FILES) else f" ({FONTS_DIR} — 없는 글꼴은 시스템 글꼴로 대신)"))
-    made = {}
-    cover_png = None
-    if not args.no_docx:
-        try:
-            cover_png = render_cover_png(blocks, out)
-        except Exception as exc:  # noqa: BLE001 — 표지 그림이 없으면 글자 표지로
-            print(f"워드 표지 그림은 건너뜀: {type(exc).__name__}")
-        try:
-            write_docx(blocks, out / DOCX_NAME, cover_png)
-            made["docx"] = out / DOCX_NAME
-            print(f"워드: {out / DOCX_NAME}")
-        except ImportError:
-            print("워드 파일은 건너뜀: python-docx가 설치되어 있지 않습니다 (맥 실행 스크립트를 쓰면 자동 설치).")
-        except Exception as exc:  # noqa: BLE001
-            print(f"워드 파일 만들기 실패: {type(exc).__name__}: {exc}")
-    if not args.no_pdf:
-        try:
-            numbered = write_pdf(blocks, html_path, out / PDF_NAME)
-            made["pdf"] = out / PDF_NAME
-            print(f"PDF: {out / PDF_NAME}" + ("" if numbered else "  (차례 쪽 번호 없음: pymupdf 미설치)"))
-        except ImportError:
-            print("PDF는 건너뜀: playwright가 설치되어 있지 않습니다 (맥 실행 스크립트를 쓰면 자동 설치).")
-        except Exception as exc:  # noqa: BLE001
-            print(f"PDF 만들기 실패: {type(exc).__name__}: {str(exc)[:300]}")
-            print("  브라우저가 없다는 메시지면: 가상환경 파이썬으로 'python -m playwright install chromium' 실행 후 다시.")
+    print(f"\n글꼴: {nf}/{len(FONT_FILES)}개 찾음" + ("" if nf == len(FONT_FILES) else f" ({FONTS_DIR} — 없는 글꼴은 시스템 글꼴로 대신)"))
 
-    if missing:
-        print("노트에 없는 영상:", ", ".join(missing))
+    made_pdfs = []
+    for vol, base, cfg, vids in books:
+        blocks, n, missing = build_model(cfg, lessons, img_dir, manifest, vol=vol)
+        html_path = out / f"{base}.html"
+        html_path.write_text(render_html(blocks), encoding="utf-8")
+        shots = sum(1 for v in vids for s in capture_points(lessons[v]) if (img_dir / shot_name(v, s)).exists())
+        print(f"\n[{vol}권] {cfg['title']} — 강의 {n}편, 캡처 {shots}장")
+        if not args.no_docx:
+            cover_png = None
+            try:
+                cover_png = render_cover_png(blocks, out)
+            except Exception as exc:  # noqa: BLE001 — 표지 그림이 없으면 글자 표지로
+                print(f"  워드 표지 그림은 건너뜀: {type(exc).__name__}")
+            try:
+                write_docx(blocks, out / f"{base}.docx", cover_png)
+                print(f"  워드: {out / (base + '.docx')}")
+            except ImportError:
+                print("  워드 파일은 건너뜀: python-docx가 설치되어 있지 않습니다 (맥 실행 스크립트를 쓰면 자동 설치).")
+            except Exception as exc:  # noqa: BLE001
+                print(f"  워드 파일 만들기 실패: {type(exc).__name__}: {exc}")
+        if not args.no_pdf:
+            try:
+                numbered = write_pdf(blocks, html_path, out / f"{base}.pdf")
+                made_pdfs.append(out / f"{base}.pdf")
+                print(f"  PDF: {out / (base + '.pdf')}" + ("" if numbered else "  (차례 쪽 번호 없음: pymupdf 미설치)"))
+            except ImportError:
+                print("  PDF는 건너뜀: playwright가 설치되어 있지 않습니다 (맥 실행 스크립트를 쓰면 자동 설치).")
+            except Exception as exc:  # noqa: BLE001
+                print(f"  PDF 만들기 실패: {type(exc).__name__}: {str(exc)[:300]}")
+                print("  브라우저가 없다는 메시지면: 가상환경 파이썬으로 'python -m playwright install chromium' 실행 후 다시.")
+        if missing:
+            print("  노트에 없는 영상:", ", ".join(missing))
+
     if failed:
-        print(f"캡처가 덜 된 영상 {len(failed)}개 — 다시 실행하면 빠진 것만 이어서 받습니다.")
+        print(f"\n캡처가 덜 된 영상 {len(failed)}개 — 다시 실행하면 빠진 것만 이어서 받습니다.")
         print("계속 실패하면 크롬에 유튜브 로그인 후: --browser chrome 을 붙여 실행하세요.")
     if args.open and sys.platform == "darwin":
-        target = made.get("pdf") or html_path
+        target = made_pdfs[0] if len(made_pdfs) == 1 else out
         subprocess.run(["open", str(target)], check=False)
     return 0
+
 
 
 if __name__ == "__main__":
