@@ -1,0 +1,172 @@
+{
+ "tokens": {
+  "prefix": 52000,
+  "dyn": 7500,
+  "out": 6000
+ },
+ "price": {
+  "opus": {
+   "inp": 4.0,
+   "rd": 0.2,
+   "w1h": 8.0,
+   "out": 20.0,
+   "b_inp": 2.0,
+   "b_rd": 0.1,
+   "b_out": 10.0
+  },
+  "sonnet": {
+   "inp": 2.0,
+   "rd": 0.1,
+   "w1h": 4.0,
+   "out": 10.0,
+   "b_inp": 1.0,
+   "b_rd": 0.05,
+   "b_out": 5.0
+  },
+  "haiku": {
+   "inp": 0.1,
+   "rd": 0.01,
+   "w1h": 0.2,
+   "out": 0.5,
+   "b_inp": 0.05,
+   "b_rd": 0.005,
+   "b_out": 0.25
+  }
+ },
+ "costs": {
+  "opus": {
+   "std_cached": 0.1604,
+   "std_nocache": 0.358,
+   "batch_cached": 0.0802,
+   "batch_nocache": 0.179,
+   "live_month_hourly": 135.5424
+  },
+  "sonnet": {
+   "std_cached": 0.0802,
+   "std_nocache": 0.179,
+   "batch_cached": 0.0401,
+   "batch_nocache": 0.0895,
+   "live_month_hourly": 67.7712
+  },
+  "haiku": {
+   "std_cached": 0.00427,
+   "std_nocache": 0.00895,
+   "batch_cached": 0.002135,
+   "batch_nocache": 0.004475,
+   "live_month_hourly": 3.76296
+  }
+ },
+ "paired_sigma": {
+  "corr_long_short_same_hour": -0.617654655227855,
+  "veto_f0.1": 0.376837793801897,
+  "flip_f0.1": 0.6775275258853077,
+  "veto_f0.2": 0.5329291188093986,
+  "flip_f0.2": 0.9581686159880904,
+  "veto_f0.3": 0.6527022050770498,
+  "flip_f0.3": 1.1735120983597906,
+  "veto_f0.5": 0.8426349234320907,
+  "flip_f0.5": 1.5149976045067963
+ },
+ "tau": {
+  "R1": 12.983848466216365,
+  "R2": 47.35371575286845
+ },
+ "designs": {
+  "E1 깨끗한 구간 2026-07-01~09-25, 4시간 간격, 원본+상하반전": {
+   "points": 516,
+   "calls": 1032,
+   "cost_opus_batch_cached": 82.76639999999999,
+   "cost_opus_batch_nocache": 184.72799999999998,
+   "cost_sonnet_batch_cached": 41.383199999999995,
+   "n_eff_R1": 158.96673512252352,
+   "n_eff_R2": 43.586864667002885,
+   "mde_R1_veto30": 0.12871999825537284,
+   "mde_R1_flip20": 0.18896130826428045,
+   "mde_R2_veto30": 0.2458223338377866,
+   "mde_R2_flip20": 0.3608678560608042
+  },
+  "E1' 더 깨끗한 구간 2026-08-01~09-25, 2시간 간격, 원본+상하반전": {
+   "points": 660,
+   "calls": 1320,
+   "cost_opus_batch_cached": 105.86399999999999,
+   "cost_opus_batch_nocache": 236.28,
+   "cost_sonnet_batch_cached": 52.931999999999995,
+   "n_eff_R1": 101.66477246207899,
+   "n_eff_R2": 27.875320426571612,
+   "mde_R1_veto30": 0.16095849627518236,
+   "mde_R1_flip20": 0.2362875112231462,
+   "mde_R2_veto30": 0.30738963441319384,
+   "mde_R2_flip20": 0.45124882110671954
+  },
+  "E2 과거(익명화) 2020-03~2026-05, 24시간 간격, 익명 원본+익명 반전": {
+   "points": 2283,
+   "calls": 4566,
+   "cost_opus_batch_cached": 366.1932,
+   "cost_opus_batch_nocache": 817.314,
+   "cost_sonnet_batch_cached": 183.0966,
+   "n_eff_R1": 2283,
+   "n_eff_R2": 1157.0792097065998,
+   "mde_R1_veto30": 0.03396614011737938,
+   "mde_R1_flip20": 0.049862386266773945,
+   "mde_R2_veto30": 0.04771089982709961,
+   "mde_R2_flip20": 0.0700397309818831
+  },
+  "E2' 과거(익명화) 2020-03~2026-05, 12시간 간격, 익명 원본만": {
+   "points": 4566,
+   "calls": 4566,
+   "cost_opus_batch_cached": 366.1932,
+   "cost_opus_batch_nocache": 817.314,
+   "cost_sonnet_batch_cached": 183.0966,
+   "n_eff_R1": 4220.012282380479,
+   "n_eff_R2": 1157.0792097065998,
+   "mde_R1_veto30": 0.02498286810082557,
+   "mde_R1_flip20": 0.036674918462632204,
+   "mde_R2_veto30": 0.04771089982709961,
+   "mde_R2_flip20": 0.0700397309818831
+  },
+  "E3 날짜 맞히기 탐침(오염 검사) 100건": {
+   "points": 100,
+   "calls": 100,
+   "cost_opus_batch_cached": 8.02,
+   "cost_opus_batch_nocache": 17.9,
+   "cost_sonnet_batch_cached": 4.01,
+   "n_eff_R1": NaN,
+   "n_eff_R2": NaN,
+   "mde_R1_veto30": NaN,
+   "mde_R1_flip20": NaN,
+   "mde_R2_veto30": NaN,
+   "mde_R2_flip20": NaN
+  },
+  "F  앞으로의 모의 기록 6개월(매시간, 실운영 호출로 충당)": {
+   "points": 4368,
+   "calls": 0,
+   "cost_opus_batch_cached": 0.0,
+   "cost_opus_batch_nocache": 0.0,
+   "cost_sonnet_batch_cached": 0.0,
+   "n_eff_R1": 336.4179743290614,
+   "n_eff_R2": 92.24196941156426,
+   "mde_R1_veto30": 0.08848294253492393,
+   "mde_R1_flip20": 0.12989320080086683,
+   "mde_R2_veto30": 0.16897983012411866,
+   "mde_R2_flip20": 0.24806285117547017
+  },
+  "F' 앞으로의 모의 기록 12개월": {
+   "points": 8760,
+   "calls": 0,
+   "cost_opus_batch_cached": 0.0,
+   "cost_opus_batch_nocache": 0.0,
+   "cost_sonnet_batch_cached": 0.0,
+   "n_eff_R1": 674.6843990665242,
+   "n_eff_R2": 184.99076283088434,
+   "mde_R1_veto30": 0.06248112183438158,
+   "mde_R1_flip20": 0.09172245714470269,
+   "mde_R2_veto30": 0.11932299097502247,
+   "mde_R2_flip20": 0.175166475965253
+  }
+ },
+ "hours": {
+  "clean": 2064.0,
+  "clean_aug": 1320.0,
+  "hist": 54792.0
+ }
+}

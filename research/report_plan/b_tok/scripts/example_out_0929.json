@@ -1,0 +1,61 @@
+{
+  "schema_version": "brief_out_v1",
+  "facts_id": "3f9a0c1d2e4b",
+  "fact_checks": {"waist_side": "ABOVE", "live_madi": "UP", "rest_zone": "NO", "similarity": "SPLIT", "trend_4h": "DOWN"},
+  "views": {
+    "CP": {
+      "stance": "WAIT", "setup": "CP_BREAKOUT_PULLBACK", "regime": "UPTREND",
+      "evidence": [
+        {"rules": ["CP-13-1"], "facts": ["C03"], "text": "9/15 전저점 이탈 뒤 바로 되돌림 → 트랩"},
+        {"rules": ["CP-05-3", "CP-06-1"], "facts": ["M01", "L06"], "text": "9월 마디가 살아 있고 허리 위 → 매수만 본다"},
+        {"rules": ["CP-10-2", "CP-08-4"], "facts": ["L05", "F_PB_VOL_1D"], "text": "옛 박스 상단까지 거래 줄며 눌림 = 돌파 후 첫 눌림"}
+      ],
+      "counter": [
+        {"rules": ["CP-14-2"], "facts": ["H01"], "text": "4시간봉 고점이 계속 낮아짐 → 매수 타이밍 없음"},
+        {"rules": ["CP-01-5"], "facts": ["C10", "C11"], "text": "눌림 중 거래 터진 음봉 두 번"}
+      ],
+      "one_line": "큰 흐름은 매수 관점, 지금은 기다린다"
+    },
+    "WY": {
+      "stance": "WAIT", "setup": "WY_SIMILAR", "regime": "UNKNOWN",
+      "evidence": [
+        {"rules": ["WY-04-3", "WY-07-1"], "facts": ["F_SIM_VERDICT"], "text": "닮은꼴이 갈림 → 모르는 구간"},
+        {"rules": ["WY-05-2"], "facts": ["Z01"], "text": "윗꼬리 몰린 가격대를 못 되찾음(출처 2곳, 약함)"}
+      ],
+      "counter": [
+        {"rules": ["WY-06-2", "WY-06-3"], "facts": ["Z02", "L06"], "text": "아래 지지 구간이 20일선과 겹침"}
+      ],
+      "one_line": "아는 구간이 아니라 관망"
+    },
+    "CL": {
+      "stance": "WAIT", "setup": "CL_COMBINED", "regime": "BOX",
+      "evidence": [
+        {"rules": ["CP-16-3"], "facts": ["L05", "L12"], "text": "82.3k와 84.0k의 가운데라 어느 쪽도 손익비가 나쁨"}
+      ],
+      "counter": [
+        {"rules": ["CP-13-1", "CP-08-6"], "facts": ["L05"], "text": "82.3k를 거래 없이 살짝 깼다 회복하면 트랩(매수 신호)"}
+      ],
+      "one_line": "관망. 82.3~83.1k 반등 양봉이면 매수 시나리오"
+    }
+  },
+  "final": {
+    "decision": "WAIT", "setup": "NONE", "entry_type": "NONE", "style": "MADI", "tf": "4h",
+    "entry_lo": "NONE", "entry_hi": "NONE", "entry_trigger": "NONE", "stop_ref": "NONE", "t1": "NONE", "t2": "NONE",
+    "invalidation": [],
+    "valid_hours": 4,
+    "confidence_band": "LOW",
+    "watch": [
+      {"tf": "4h", "op": "CLOSE_ABOVE", "level": "L12", "volume": "VR2_PLUS", "rules": ["CP-12-3"]},
+      {"tf": "4h", "op": "CLOSE_BELOW", "level": "L05", "volume": "VR2_PLUS", "rules": ["CP-08-6"]}
+    ],
+    "why_wait": ["MID_RANGE", "RR_LOW"]
+  },
+  "marks": [
+    {"no": 1, "view": "CP", "tf": "1d", "kind": "candle", "refs": ["C01", "C02"], "text": "8월 기준봉(거래 2.6~3.8x)"},
+    {"no": 6, "view": "CP", "tf": "1d,4h", "kind": "band", "refs": ["L06"], "text": "허리(근사)"},
+    {"no": 11, "view": "WY", "tf": "4h", "kind": "zone", "refs": ["Z01"], "text": "윗꼬리 가격대(못 되찾음)"},
+    {"no": 16, "view": "CL", "tf": "4h", "kind": "arrow", "refs": ["L13"], "text": "A: 84.0k 위 마감+거래"}
+  ],
+  "changes_vs_prev": "직전(05시) 관망 유지. 바뀐 점 없음",
+  "data_gaps": ["NO_EVENT_CALENDAR", "VOLUME_SINGLE_EXCHANGE"]
+}

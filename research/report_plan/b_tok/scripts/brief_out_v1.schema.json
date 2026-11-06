@@ -1,0 +1,129 @@
+{
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "facts_id", "fact_checks", "views", "final", "marks", "changes_vs_prev", "data_gaps"],
+  "properties": {
+    "schema_version": {"type": "string", "enum": ["brief_out_v1"]},
+    "facts_id": {"type": "string", "pattern": "^[0-9a-f]{12}$"},
+    "fact_checks": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["waist_side", "live_madi", "rest_zone", "similarity", "trend_4h"],
+      "properties": {
+        "waist_side": {"type": "string", "enum": ["ABOVE", "BELOW", "INSIDE", "NONE"]},
+        "live_madi": {"type": "string", "enum": ["UP", "DOWN", "NONE"]},
+        "rest_zone": {"type": "string", "enum": ["YES", "NO"]},
+        "similarity": {"type": "string", "enum": ["GATHERED_UP", "GATHERED_DOWN", "SPLIT", "NONE"]},
+        "trend_4h": {"type": "string", "enum": ["UP", "DOWN", "BOX", "UNCLEAR"]}
+      }
+    },
+    "views": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["CP", "WY", "CL"],
+      "properties": {
+        "CP": {"$ref": "#/$defs/view"},
+        "WY": {"$ref": "#/$defs/view"},
+        "CL": {"$ref": "#/$defs/view"}
+      }
+    },
+    "final": {"$ref": "#/$defs/plan"},
+    "marks": {"type": "array", "items": {"$ref": "#/$defs/mark"}},
+    "changes_vs_prev": {"type": "string"},
+    "data_gaps": {
+      "type": "array",
+      "items": {"type": "string", "enum": ["NO_EVENT_CALENDAR", "NO_OI", "NO_FUNDING", "SIMILARITY_WEAK", "VOLUME_SINGLE_EXCHANGE", "OTHER"]}
+    }
+  },
+  "$defs": {
+    "id": {"type": "string", "pattern": "^[A-Z][A-Z0-9_]{2,20}$"},
+    "rule": {"type": "string", "pattern": "^[CW][PY]-[0-9]{2}(-[0-9]{1,2})?$"},
+    "setup": {
+      "type": "string",
+      "enum": ["CP_PULLBACK_PREDICT", "CP_PULLBACK_CONFIRM", "CP_PULLBACK_BREAK", "CP_BREAKOUT_PREDICT",
+               "CP_BREAKOUT_CONFIRM", "CP_BREAKOUT_PULLBACK", "CP_TRAP", "CP_AF", "CP_DOUBLE_BOTTOM", "CP_BOWL",
+               "CP_BOX_EDGE", "CP_RETEST_SHORT", "CP_TRENDLINE_SHORT", "WY_SIMILAR", "WY_WICK_RECOVERY",
+               "WY_SUPPORT_ZONE", "CL_COMBINED", "NONE"]
+    },
+    "ev": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["rules", "facts", "text"],
+      "properties": {
+        "rules": {"type": "array", "items": {"$ref": "#/$defs/rule"}},
+        "facts": {"type": "array", "items": {"$ref": "#/$defs/id"}},
+        "text": {"type": "string"}
+      }
+    },
+    "view": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["stance", "setup", "regime", "evidence", "counter", "one_line"],
+      "properties": {
+        "stance": {"type": "string", "enum": ["LONG", "SHORT", "WAIT"]},
+        "setup": {"$ref": "#/$defs/setup"},
+        "regime": {"type": "string", "enum": ["UPTREND", "DOWNTREND", "BOX", "REST", "UNKNOWN"]},
+        "evidence": {"type": "array", "items": {"$ref": "#/$defs/ev"}},
+        "counter": {"type": "array", "items": {"$ref": "#/$defs/ev"}},
+        "one_line": {"type": "string"}
+      }
+    },
+    "cond": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["tf", "op", "level", "volume", "rules"],
+      "properties": {
+        "tf": {"type": "string", "enum": ["1h", "4h", "1d"]},
+        "op": {"type": "string", "enum": ["CLOSE_ABOVE", "CLOSE_BELOW", "TOUCH"]},
+        "level": {"$ref": "#/$defs/id"},
+        "volume": {"type": "string", "enum": ["ANY", "VR2_PLUS", "LOW"]},
+        "rules": {"type": "array", "items": {"$ref": "#/$defs/rule"}}
+      }
+    },
+    "plan": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["decision", "setup", "entry_type", "style", "tf", "entry_lo", "entry_hi", "entry_trigger",
+                   "stop_ref", "t1", "t2", "invalidation", "valid_hours", "confidence_band", "watch", "why_wait"],
+      "properties": {
+        "decision": {"type": "string", "enum": ["LONG", "SHORT", "WAIT"]},
+        "setup": {"$ref": "#/$defs/setup"},
+        "entry_type": {"type": "string", "enum": ["PULLBACK_PREDICT", "PULLBACK_CONFIRM", "PULLBACK_BREAK",
+                                                   "BREAKOUT_PREDICT", "BREAKOUT_CONFIRM", "BREAKOUT_PULLBACK",
+                                                   "TRAP", "NONE"]},
+        "style": {"type": "string", "enum": ["SCALP", "MADI", "TREND", "NONE"]},
+        "tf": {"type": "string", "enum": ["1h", "4h", "1d"]},
+        "entry_lo": {"$ref": "#/$defs/id"},
+        "entry_hi": {"$ref": "#/$defs/id"},
+        "entry_trigger": {"type": "string", "enum": ["LIMIT_IN_ZONE", "CLOSE_CONFIRM_1H", "CLOSE_CONFIRM_4H", "NONE"]},
+        "stop_ref": {"$ref": "#/$defs/id"},
+        "t1": {"$ref": "#/$defs/id"},
+        "t2": {"$ref": "#/$defs/id"},
+        "invalidation": {"type": "array", "items": {"$ref": "#/$defs/cond"}},
+        "valid_hours": {"type": "integer", "enum": [1, 4, 8, 12, 24]},
+        "confidence_band": {"type": "string", "enum": ["LOW", "MID", "HIGH"]},
+        "watch": {"type": "array", "items": {"$ref": "#/$defs/cond"}},
+        "why_wait": {
+          "type": "array",
+          "items": {"type": "string", "enum": ["REST_ZONE", "LIVE_MADI_OPPOSITE", "NO_ABS_STOP", "STOP_TOO_FAR",
+                                               "RR_LOW", "RESISTANCE_NEAR", "VIEWS_CONFLICT", "UNKNOWN_ZONE",
+                                               "EVENT", "MID_RANGE", "PULLBACK_VOLUME", "NEAR_MADI_HIGH",
+                                               "LOW_CONFIDENCE", "NONE"]}
+        }
+      }
+    },
+    "mark": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["no", "view", "tf", "kind", "refs", "text"],
+      "properties": {
+        "no": {"type": "integer"},
+        "view": {"type": "string", "enum": ["CP", "WY", "CL"]},
+        "tf": {"type": "string", "enum": ["1d", "4h", "1h", "1d,4h", "4h,1h"]},
+        "kind": {"type": "string", "enum": ["candle", "box", "level", "band", "zone", "highs", "arrow", "offchart"]},
+        "refs": {"type": "array", "items": {"$ref": "#/$defs/id"}},
+        "text": {"type": "string"}
+      }
+    }
+  }
+}
