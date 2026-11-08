@@ -1,0 +1,38 @@
+{
+ "no_skill_year1": {
+  "profit_pct": 28.9,
+  "doubled_people": 586,
+  "x5_people": 24,
+  "x10_people": 1,
+  "lost_half_pct": 37.8,
+  "median_return_pct": -35.5,
+  "best_multiple": 12.1
+ },
+ "no_skill_year2_of_year1_doublers": {
+  "people": 586,
+  "profit_pct_year2": 32.6,
+  "doubled_again_pct": 5.3,
+  "everyone_profit_pct_year2": 29.3
+ },
+ "no_skill_risk10pct_year1": {
+  "profit_pct": 16.9,
+  "doubled_people": 569,
+  "x5_people": 142,
+  "x10_people": 47,
+  "lost_half_pct": 70.8,
+  "median_return_pct": -73.6,
+  "best_multiple": 62.5
+ },
+ "skill_p036_year1": {
+  "profit_pct": 61.7,
+  "doubled_people": 2379,
+  "x5_people": 254,
+  "x10_people": 19,
+  "lost_half_pct": 12.8,
+  "median_return_pct": 16.0,
+  "best_multiple": 25.2
+ },
+ "trades_needed_edge_0.08R": 877,
+ "trades_needed_edge_0.1R": 565,
+ "trades_needed_edge_0.14R": 293
+}
