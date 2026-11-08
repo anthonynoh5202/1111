@@ -1,0 +1,77 @@
+{
+ "period": "1871-01~2023-06",
+ "months": 1830,
+ "full_real_cagr": 6.9,
+ "real_cagr_from_1900-01": 6.61,
+ "real_cagr_from_1926-01": 7.0,
+ "real_cagr_from_1950-01": 7.46,
+ "real_cagr_from_1990-01": 7.28,
+ "lump_1y": {
+  "windows": 1818,
+  "loss_share_pct": 31.1,
+  "worst_pct": -58.12,
+  "worst_start": "1931-06",
+  "median_pct": 8.64,
+  "best_pct": 151.31
+ },
+ "lump_5y": {
+  "windows": 1770,
+  "loss_share_pct": 19.0,
+  "worst_pct": -13.23,
+  "worst_start": "1929-09",
+  "median_pct": 7.23,
+  "best_pct": 33.35
+ },
+ "lump_10y": {
+  "windows": 1710,
+  "loss_share_pct": 11.3,
+  "worst_pct": -5.92,
+  "worst_start": "1999-03",
+  "median_pct": 6.92,
+  "best_pct": 19.96
+ },
+ "lump_20y": {
+  "windows": 1590,
+  "loss_share_pct": 0.1,
+  "worst_pct": -0.22,
+  "worst_start": "1901-06",
+  "median_pct": 6.74,
+  "best_pct": 13.61
+ },
+ "lump_30y": {
+  "windows": 1470,
+  "loss_share_pct": 0.0,
+  "worst_pct": 1.89,
+  "worst_start": "1902-06",
+  "median_pct": 6.72,
+  "best_pct": 11.15
+ },
+ "max_drawdown_real": {
+  "pct": -76.8,
+  "peak": "1929-09",
+  "trough": "1932-06",
+  "recovered": "1936-11"
+ },
+ "max_drawdown_real_since_1950": {
+  "pct": -51.8,
+  "peak": "2000-08",
+  "trough": "2009-03",
+  "recovered": "2013-05"
+ },
+ "dca_10y": {
+  "windows": 1710,
+  "loss_share_pct": 11.5,
+  "worst_multiple": 0.62,
+  "worst_start": "1964-12",
+  "p10_multiple": 0.96,
+  "median_multiple": 1.46
+ },
+ "dca_20y": {
+  "windows": 1590,
+  "loss_share_pct": 4.4,
+  "worst_multiple": 0.77,
+  "worst_start": "1900-12",
+  "p10_multiple": 1.18,
+  "median_multiple": 2.13
+ }
+}
