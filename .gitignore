@@ -18,3 +18,8 @@ config/bot.toml
 config/replay.toml
 config/*.local.toml
 config/orders_control.toml
+
+# 5만 원 테스트의 개인 기록(공개 저장소에 올리지 않는다)
+research/pilot5/signals_log.csv
+research/pilot5/paper_log.csv
+research/pilot5/journal.csv
