@@ -1,0 +1,48 @@
+{
+ "boundaries_pct": [
+  1.39,
+  2.14
+ ],
+ "rank_corr_size": 0.213,
+ "rank_corr_direction": 0.019,
+ "states": {
+  "조용": {
+   "share_pct": 55.9,
+   "median_move_pct": 0.79,
+   "p80_move_pct": 1.88,
+   "p90_move_pct": 2.59,
+   "up_share_pct": 51.2,
+   "dip_ge_3_pct": 7.7,
+   "dip_ge_5_pct": 1.5
+  },
+  "보통": {
+   "share_pct": 31.4,
+   "median_move_pct": 1.07,
+   "p80_move_pct": 2.42,
+   "p90_move_pct": 3.47,
+   "up_share_pct": 51.5,
+   "dip_ge_3_pct": 15.0,
+   "dip_ge_5_pct": 4.4
+  },
+  "거침": {
+   "share_pct": 12.7,
+   "median_move_pct": 1.58,
+   "p80_move_pct": 3.36,
+   "p90_move_pct": 4.76,
+   "up_share_pct": 53.4,
+   "dip_ge_3_pct": 29.8,
+   "dip_ge_5_pct": 12.3
+  }
+ },
+ "latest": {
+  "bar_close_utc": "2026-09-29 00:00:00+00:00",
+  "close": 83461.0,
+  "recent_size_pct": 1.28,
+  "state": "조용",
+  "range20": [
+   82500.1,
+   85146.4
+  ],
+  "pos20_pct": 36
+ }
+}
