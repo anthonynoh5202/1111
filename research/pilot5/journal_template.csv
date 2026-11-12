@@ -1,0 +1,2 @@
+date,my_guess,checked,traded,entry_time,entry_price,entry_type,exit_time,exit_price,exit_type,fee_usdt,funding_usdt,rule_ok,note
+#2026-11-20,L,Y,Y,21:03,75210.5,L,13:02,75890.0,L,0.030,-0.012,Y,예시 줄입니다. 맨 앞이 #이면 채점에서 빠집니다
