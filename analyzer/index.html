@@ -77,6 +77,10 @@ tr.now td{background:var(--soft);font-weight:600}
 ul{margin:0;padding-left:18px;display:flex;flex-direction:column;gap:4px}
 textarea{width:100%;min-height:150px;font-family:var(--mono);font-size:12px;background:var(--soft);color:var(--fg);border:1px solid var(--line);border-radius:8px;padding:10px;resize:vertical}
 .row{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-top:8px}
+.why{list-style:none;padding:0;margin:14px 0 0;display:flex;flex-direction:column;gap:8px;font-size:14px}
+.why li{display:flex;gap:10px;align-items:flex-start}
+.why .b{flex:none;width:20px;height:20px;border-radius:50%;background:var(--fg);color:var(--surface);font-size:12px;font-weight:600;display:inline-flex;align-items:center;justify-content:center;margin-top:2px}
+.why li>span:last-child{min-width:0}
 @media (max-width:720px){
   .verdict,.two{grid-template-columns:minmax(0,1fr)}
   canvas{height:300px}
@@ -117,6 +121,7 @@ textarea{width:100%;min-height:150px;font-family:var(--mono);font-size:12px;back
         <button type="button" data-n="120" aria-pressed="true">20일</button>
         <button type="button" data-n="360">2달</button>
         <button type="button" data-n="900">5달</button>
+        <button type="button" id="whyBtn" aria-pressed="true">근거 번호</button>
       </div>
       <div class="readout num" id="readout">차트에 손가락이나 마우스를 올리면 그 봉의 값이 나옵니다</div>
     </div>
@@ -128,6 +133,9 @@ textarea{width:100%;min-height:150px;font-family:var(--mono);font-size:12px;back
       <span><b class="up">▲</b> 롱 신호가 나온 봉</span>
       <span><i style="background:var(--muted)"></i>가까운 지지·저항(점선)</span>
     </div>
+    <h2 style="margin-top:18px">왜 이렇게 판단했나</h2>
+    <p class="small muted">차트 위 번호와 같은 번호입니다. 1~2번이 신호, 3~4번이 크기와 방향, 5~8번이 자리 설명입니다.</p>
+    <ul class="why" id="why"></ul>
   </section>
 
   <section class="two">
@@ -226,7 +234,7 @@ function kst(ms,withDate=true){const d=new Date(ms+9*3600*1000);
   return withDate?(d.getUTCMonth()+1)+"/"+d.getUTCDate()+" "+t:t;}
 function kstFull(ms){const d=new Date(ms+9*3600*1000);return d.getUTCFullYear()+"-"+p2(d.getUTCMonth()+1)+"-"+p2(d.getUTCDate())+" "+p2(d.getUTCHours())+":"+p2(d.getUTCMinutes());}
 
-let S=null, viewN=120, hover=-1;
+let S=null, viewN=120, hover=-1, showWhy=true;
 
 /* ---------- 계산 (research/pilot5/pilot.py와 같은 식) ---------- */
 function upperVol(b,i){
@@ -372,6 +380,23 @@ function render(){
     rows.push(`<tr><td class="num">${kstFull(b[k][0]+MS4)}</td><td class="num">${s.uv[k].x.toFixed(3)}</td><td class="num">${fmt(b[k][4])}</td><td class="num">${done?fmt(b[k+HOLD][4]):"진행 중"}</td><td class="num ${r==null?"":(r>=0?"up":"down")}">${r==null?"–":pct(r)}</td></tr>`); }
   $("sigRows").innerHTML=rows.join("")||'<tr><td colspan="5">최근 롱 신호가 없습니다</td></tr>';
 
+  const W=[];
+  if(u){
+    W.push("마지막으로 마감된 봉입니다. 굵은 세로줄이 윗꼬리이고, 봉 전체 길이의 "+Math.round(u.up*100)+"%입니다(윗꼬리 비율 "+u.up.toFixed(3)+").");
+    W.push("이 봉의 거래량은 직전 20봉 평균(아래 가로선)의 "+u.mult.toFixed(2)+"배입니다. 둘을 곱한 값이 "+u.x.toFixed(3)+"이고, "+
+      (sg===1?"롱 기준 0.422를 넘어서 신호가 '롱'입니다.":(sg===-1?"숏 기준 0.086 아래라 '숏(기록만)'입니다. 숏은 과거 두 기간 모두 손해라 실전에서 하지 않습니다.":"롱 기준 0.422에 못 미치고 숏 기준 0.086보다는 커서 신호가 '없음'입니다.")));
+  }
+  W.push("음영으로 칠한 최근 6봉(24시간)의 봉 크기 평균이 "+s.rs.toFixed(2)+"%입니다. "+(s.state===0?"1.39%보다 작아서":(s.state===1?"1.39%와 2.14% 사이라서":"2.14%를 넘어서"))+" 크기 상태가 '"+st.name+"'입니다.");
+  W.push("오른쪽 띠가 다음 16시간의 흔한 범위입니다. 진한 띠는 보통 움직임(±"+st.med.toFixed(2)+"%), 옅은 띠는 5번 중 4번이 들어간 범위(±"+st.p80.toFixed(2)+"%)입니다. "+
+    (sg===1?"롱 신호가 있어도 과거 초과 수익(+0.15~0.18%p)이 띠 폭보다 훨씬 작아서 띠는 위아래가 같습니다. 그래서 방향은 '약한 롱 쪽'까지만 말합니다.":"띠가 위아래로 똑같은 것은 어느 쪽으로 갈지 가를 근거가 없기 때문입니다. 이 상태에서 과거에 오른 비율은 "+st.up+"%였습니다. 그래서 방향은 '모름'입니다."));
+  W.push("최근 고점 3개는 "+lastH.map(x=>fmt(x/1000,1)+"k").join(" → ")+"로 "+trend(lastH)+"입니다.");
+  W.push("최근 저점 3개는 "+lastL.map(x=>fmt(x/1000,1)+"k").join(" → ")+"로 "+trend(lastL)+"입니다."+
+    (trend(lastH)==="낮아지는 중"&&trend(lastL)==="높아지는 중"?" 고점은 내려오고 저점은 올라와 폭이 좁아지는 중이라, 구조로도 방향이 갈립니다.":""));
+  W.push(s.res?"가까운 저항은 "+fmt(s.res.p,0)+"("+pct((s.res.p/c-1)*100,1)+")입니다. 종가 위에 있는 고점 중 가장 가까운 것입니다.":"종가가 최근 40일의 고점들 위에 있어 가까운 저항이 없습니다.");
+  W.push((s.sup?"가까운 지지는 "+fmt(s.sup.p,0)+"("+pct((s.sup.p/c-1)*100,1)+")입니다. ":"종가가 최근 40일의 저점들 아래에 있어 가까운 지지가 없습니다. ")+"5~8번은 과거 검증에서 방향을 맞히는 힘이 확인되지 않아 판정에는 쓰지 않았습니다.");
+  $("why").innerHTML=W.map((t,k)=>`<li><span class="b">${k+1}</span><span>${t}</span></li>`).join("");
+  s.why=W;
+
   $("prompt").value=buildPrompt();
   draw();
 }
@@ -389,6 +414,9 @@ function buildPrompt(){
     "[최근 30개 4시간봉]",
     tail,
     "",
+    "[이 도구의 판단 근거]",
+    ...s.why.map((t,k)=>(k+1)+". "+t),
+    "",
     "[부탁]",
     "1. 차트프로 관점(기준봉·마디·허리·눌림), 워뇨띠 관점(캔들과 거래량만), 종합 관점으로 나눠 쉬운 한국어로 설명해 주세요.",
     "2. 상방·하방·횡보 시나리오와, 각 시나리오가 틀렸다고 볼 조건을 가격으로 적어 주세요.",
@@ -405,10 +433,12 @@ function draw(){
   const g=cv.getContext("2d"); g.setTransform(dpr,0,0,dpr,0,0); g.clearRect(0,0,W,H);
   const col={up:css("--up"),down:css("--down"),line:css("--line"),muted:css("--muted"),fg:css("--fg"),ma:[css("--ma1"),css("--ma2"),css("--ma3")]};
   const all=S.forming?S.bars.concat([S.forming]):S.bars, n=Math.min(viewN,all.length), i0=all.length-n;
-  const padR=58, padT=8, volH=Math.round(H*0.16), axH=20, pH=H-padT-volH-axH-8, plotW=W-padR, bw=plotW/n;
+  const FUT=5, padR=58, padT=8, volH=Math.round(H*0.16), axH=20, pH=H-padT-volH-axH-8, plotW=W-padR, bw=plotW/(n+FUT);
   let lo=Infinity,hi=-Infinity,vmax=0;
   for(let k=i0;k<all.length;k++){lo=Math.min(lo,all[k][3]);hi=Math.max(hi,all[k][2]);vmax=Math.max(vmax,all[k][5]);}
-  const pad=(hi-lo)*0.05; lo-=pad; hi+=pad;
+  const stN=STATES[S.state], lc=S.bars[S.i][4];
+  if(showWhy){ lo=Math.min(lo,lc*(1-stN.p80/100)); hi=Math.max(hi,lc*(1+stN.p80/100)); }
+  const pad=(hi-lo)*0.07; lo-=pad; hi+=pad;
   const y=p=>padT+(hi-p)/(hi-lo)*pH, x=k=>(k-i0+0.5)*bw;
   // 눈금
   const raw=(hi-lo)/5, mag=Math.pow(10,Math.floor(Math.log10(raw))), step=[1,2,2.5,5,10].map(m=>m*mag).find(s=>s>=raw);
@@ -441,6 +471,31 @@ function draw(){
   g.fillStyle=col.up;
   for(let k=i0;k<S.bars.length;k++){ if(S.sig[k]!==1) continue; const yy=Math.min(padT+pH-2,y(all[k][3])+10), w=Math.max(3,Math.min(5,bw*0.6));
     g.beginPath(); g.moveTo(x(k),yy-6); g.lineTo(x(k)-w,yy+2); g.lineTo(x(k)+w,yy+2); g.closePath(); g.fill(); }
+  // 판단 근거 번호
+  if(showWhy){
+    const li=S.i, lb=S.bars[li], sf=css("--surface"), marks=[];
+    const ln=(xa,ya,xb,yb)=>{g.beginPath();g.moveTo(xa,ya);g.lineTo(xb,yb);g.stroke();};
+    if(li-5>=i0){ g.fillStyle=col.fg; g.globalAlpha=.07; g.fillRect(x(li-5)-bw/2,padT,bw*6,pH); g.globalAlpha=1; marks.push([3,x(li-5)-bw/2+10,padT+10]); }
+    const x0=x(li)+bw/2, x1=x(li+HOLD)+bw/2, yT=y(lc*(1+stN.p80/100)), yB=y(lc*(1-stN.p80/100));
+    g.fillStyle=col.fg; g.globalAlpha=.10; g.fillRect(x0,yT,x1-x0,yB-yT);
+    g.globalAlpha=.18; g.fillRect(x0,y(lc*(1+stN.med/100)),x1-x0,y(lc*(1-stN.med/100))-y(lc*(1+stN.med/100))); g.globalAlpha=1;
+    g.strokeStyle=col.fg; g.lineWidth=1; g.setLineDash([2,3]); ln(x0,y(lc),x1,y(lc)); g.setLineDash([]);
+    marks.push([4,(x0+x1)/2,yT-12]);
+    g.lineWidth=2.5; const xb=x(li)+cw/2+3; ln(xb,y(lb[2]),xb,y(Math.max(lb[1],lb[4])));
+    marks.push([1,x(li),y(lb[2])-13]);
+    let av=0; for(let k=li-AVG;k<li;k++) av+=S.bars[k][5]; av/=AVG;
+    const yv=vTop+volH-Math.min(1,av/vmax)*volH, xv=x(Math.max(i0,li-AVG))-bw/2;
+    g.lineWidth=1.5; ln(xv,yv,x(li)+bw/2,yv); marks.push([2,xv+10,yv-11]);
+    g.lineWidth=1;
+    [[S.ph,5,-1],[S.pl,6,1]].forEach(([arr,num,dir])=>{ const pts=arr.slice(-3).filter(p=>p.i>=i0); if(!pts.length) return;
+      g.strokeStyle=col.fg; g.setLineDash([5,3]); g.beginPath(); pts.forEach((p,j)=>j?g.lineTo(x(p.i),y(p.p)):g.moveTo(x(p.i),y(p.p))); g.stroke(); g.setLineDash([]);
+      pts.forEach(p=>{ g.fillStyle=sf; g.beginPath(); g.arc(x(p.i),y(p.p),3.5,0,6.3); g.fill(); g.stroke(); });
+      const p=pts[0]; marks.push([num,x(p.i),y(p.p)+dir*14]); });
+    [[S.res,7,-11],[S.sup,8,11]].forEach(([L,num,dy])=>{ if(!L||L.p<lo||L.p>hi) return; marks.push([num,(Math.max(0,x(L.i))+x(li))/2,y(L.p)+dy]); });
+    marks.forEach(([num,bx,by])=>{ bx=Math.max(10,Math.min(plotW-10,bx)); by=Math.max(padT+9,Math.min(vTop+volH-9,by));
+      g.fillStyle=col.fg; g.beginPath(); g.arc(bx,by,8.5,0,6.3); g.fill();
+      g.fillStyle=sf; g.font="600 11px "+css("--sans"); g.textAlign="center"; g.textBaseline="middle"; g.fillText(String(num),bx,by+.5); });
+  }
   // 십자선
   if(hover>=i0&&hover<all.length){ g.strokeStyle=col.fg; g.globalAlpha=.4; g.beginPath(); g.moveTo(Math.round(x(hover))+.5,padT); g.lineTo(Math.round(x(hover))+.5,vTop+volH); g.stroke(); g.globalAlpha=1; }
   draw.geo={i0,bw,n:all.length,all};
@@ -456,7 +511,8 @@ $("chart").addEventListener("pointermove",onMove);
 $("chart").addEventListener("pointerdown",onMove);
 $("chart").addEventListener("pointerleave",onLeave);
 $("ranges").addEventListener("click",e=>{ const b=e.target.closest("button"); if(!b) return;
-  viewN=+b.dataset.n; [...$("ranges").children].forEach(x=>x.setAttribute("aria-pressed",x===b?"true":"false"));
+  if(b.id==="whyBtn"){ showWhy=!showWhy; b.setAttribute("aria-pressed",String(showWhy)); draw(); return; }
+  viewN=+b.dataset.n; [...$("ranges").querySelectorAll("[data-n]")].forEach(x=>x.setAttribute("aria-pressed",x===b?"true":"false"));
   try{localStorage.setItem("btcan.range",String(viewN));}catch(_){ } draw(); });
 $("reload").addEventListener("click",load);
 $("copy").addEventListener("click",async()=>{ const ta=$("prompt");
@@ -466,8 +522,8 @@ window.addEventListener("resize",draw);
 window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change",draw);
 new MutationObserver(draw).observe(document.documentElement,{attributes:true,attributeFilter:["data-theme"]});
 if(document.fonts&&document.fonts.ready) document.fonts.ready.then(draw);
-try{ const v=+localStorage.getItem("btcan.range"); const b=[...$("ranges").children].find(x=>+x.dataset.n===v);
-  if(b){ viewN=v; [...$("ranges").children].forEach(x=>x.setAttribute("aria-pressed",x===b?"true":"false")); } }catch(_){ }
+try{ const v=+localStorage.getItem("btcan.range"); const b=[...$("ranges").querySelectorAll("[data-n]")].find(x=>+x.dataset.n===v);
+  if(b){ viewN=v; [...$("ranges").querySelectorAll("[data-n]")].forEach(x=>x.setAttribute("aria-pressed",x===b?"true":"false")); } }catch(_){ }
 load();
 setInterval(()=>{ if(S&&S.live&&!document.hidden) load(); },5*60*1000);
 })();
