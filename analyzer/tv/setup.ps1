@@ -33,6 +33,11 @@ Push-Location $Dest
 try { Run "npm.cmd" @("ci", "--ignore-scripts", "--no-audit", "--no-fund", "--omit=dev", "--silent") }
 finally { Pop-Location }
 
-Write-Host "받았습니다: vendor\tradingview-mcp (판 $($Pin.Substring(0,7)))"
+Push-Location (Join-Path $Root "analyzer\platform")
+try { Run "npm.cmd" @("ci", "--ignore-scripts", "--no-audit", "--no-fund", "--omit=dev", "--silent") }
+finally { Pop-Location }
+
+Write-Host "받았습니다: vendor\tradingview-mcp (판 $($Pin.Substring(0,7))), 자동 분석 플랫폼의 부품"
 Write-Host "다음: 1) 트레이딩뷰를 디버그 모드로 실행   vendor\tradingview-mcp\scripts\launch_tv_debug.bat"
-Write-Host "      2) 이 폴더에서 claude 를 실행하고  '차트 분석해줘' 라고 말하기"
+Write-Host "      2) 자동 분석 켜기   node analyzer\platform\server.cjs   (안내: analyzer\platform\README.md)"
+Write-Host "         또는 이 폴더에서 claude 를 실행하고  '차트 분석해줘' 라고 말하기"

@@ -23,6 +23,9 @@ git -C "$DEST" checkout --quiet --detach "$PIN"
 [ "$(git -C "$DEST" rev-parse HEAD)" = "$PIN" ] || { echo "고정한 판을 받지 못했습니다."; exit 1; }
 (cd "$DEST" && npm ci --ignore-scripts --no-audit --no-fund --omit=dev --silent)
 
-echo "받았습니다: vendor/tradingview-mcp (판 ${PIN:0:7})"
+(cd "$ROOT/analyzer/platform" && npm ci --ignore-scripts --no-audit --no-fund --omit=dev --silent)
+
+echo "받았습니다: vendor/tradingview-mcp (판 ${PIN:0:7}), 자동 분석 플랫폼의 부품"
 echo "다음: 1) 트레이딩뷰 데스크톱을 디버그 모드로 실행   bash vendor/tradingview-mcp/scripts/launch_tv_debug_mac.sh"
-echo "      2) 이 폴더에서 claude 를 실행하고  '차트 분석해줘' 라고 말하기"
+echo "      2) 자동 분석 켜기   node analyzer/platform/server.cjs   (안내: analyzer/platform/README.md)"
+echo "         또는 이 폴더에서 claude 를 실행하고  '차트 분석해줘' 라고 말하기"

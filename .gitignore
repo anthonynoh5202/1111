@@ -1,2 +1,5 @@
 vendor/
+node_modules/
 analyzer/tv/out/
+analyzer/platform/data/
+analyzer/platform/config.json

@@ -392,7 +392,7 @@ function setTxt(id,t,cls){const e=$(id); e.textContent=t; if(cls!==undefined) e.
 function render(){
   const s=S, b=s.bars, i=s.i, last=b[i], close=last[0]+MS4;
   $("dot").className="dot "+(s.live||s.tv?"live":"old");
-  $("src").textContent=s.live?"실시간 · "+kst(Date.now(),false)+" 읽음":(s.tv?"트레이딩뷰 "+s.tv.symbol+" · "+kst(s.tv.now)+" 읽음":"저장된 과거 자료");
+  $("src").textContent=s.live?"실시간 · "+kst(Date.now(),false)+" 읽음":(s.tv?s.tv.symbol+" · "+kst(s.tv.now)+" 읽음":"저장된 과거 자료");
   const ban=$("banner");
   if(s.gapAt){ ban.hidden=false; ban.textContent=kstFull(s.gapAt)+" 앞에 빠진 봉이 있어 그 뒤의 "+s.n+"개 봉만 썼습니다."; }
   else if(s.live||s.tv) ban.hidden=true;
@@ -460,7 +460,7 @@ function render(){
 function buildPrompt(){
   const s=S,b=s.bars,i=s.i,u=s.uv[i],st=STATES[s.state];
   const tail=b.slice(-30).map(x=>kstFull(x[0]+MS4)+" 마감 | 시 "+x[1]+" 고 "+x[2]+" 저 "+x[3]+" 종 "+x[4]+" | 거래량 "+Math.round(x[5])).join("\n");
-  return ["바이낸스 BTCUSDT 무기한 선물 4시간봉을 분석해 주세요. 기준 시각: "+kstFull(b[i][0]+MS4)+" KST 마감 봉"+(s.live?"":" (과거 자료)")+".",
+  return ["바이낸스 BTCUSDT 무기한 선물 4시간봉을 분석해 주세요. 기준 시각: "+kstFull(b[i][0]+MS4)+" KST 마감 봉"+(s.live||s.tv?"":" (과거 자료)")+".",
     "",
     "[계산된 사실]",
     "- 종가 "+fmt(b[i][4])+", 윗꼬리 비율×거래량 배수 = "+(u?u.x.toFixed(3):"계산 불가")+" (롱 기준 0.422 이상, 숏 기준 0.086 이하) → 신호: "+(s.sig[i]===1?"롱":(s.sig[i]===-1?"숏(기록만)":"없음")),
