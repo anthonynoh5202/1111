@@ -1,0 +1,438 @@
+<title>BTC/USDT 차트분석기</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<style>
+/* 배치: 맨 위 세 줄 결론(방향·크기·신호) → 차트 → 근거 카드 2열 → 검증 성적 → 한계. 한국식 색(상승 빨강, 하락 파랑). */
+:root{
+  --bg:#f4f6f9; --surface:#ffffff; --fg:#161b25; --muted:#5a6475; --line:#dde2ea; --soft:#eef1f6;
+  --up:#d2343c; --down:#2460c4; --accent:#0d766d; --warn:#a95a08; --ma1:#c98a00; --ma2:#7b4fc9; --ma3:#3d8a4a;
+  --sans:"IBM Plex Sans KR",-apple-system,"Apple SD Gothic Neo","Malgun Gothic","Noto Sans KR",sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){
+  --bg:#10131a; --surface:#181c25; --fg:#e6e9ef; --muted:#97a1b2; --line:#2a303c; --soft:#20252f;
+  --up:#f0626b; --down:#6098f2; --accent:#42bbae; --warn:#e2a34a; --ma1:#e0b040; --ma2:#a585ea; --ma3:#6dbb7a; color-scheme:dark } }
+:root[data-theme="dark"]{
+  --bg:#10131a; --surface:#181c25; --fg:#e6e9ef; --muted:#97a1b2; --line:#2a303c; --soft:#20252f;
+  --up:#f0626b; --down:#6098f2; --accent:#42bbae; --warn:#e2a34a; --ma1:#e0b040; --ma2:#a585ea; --ma3:#6dbb7a; color-scheme:dark }
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--fg);font-family:var(--sans);font-size:15px;line-height:1.6;margin:0}
+.wrap{max-width:1040px;margin:0 auto;padding-block:20px 48px;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));
+  display:flex;flex-direction:column;gap:18px}
+h1{font-size:22px;font-weight:700;margin:0;letter-spacing:-.01em}
+h2{font-size:16px;font-weight:600;margin:0 0 8px;text-wrap:balance}
+p{margin:0}
+.num{font-family:var(--mono);font-variant-numeric:tabular-nums}
+.muted{color:var(--muted)} .small{font-size:13px}
+.up{color:var(--up)} .down{color:var(--down)} .warn{color:var(--warn)}
+header{display:flex;flex-wrap:wrap;gap:10px 16px;align-items:center;justify-content:space-between}
+.headl{display:flex;flex-direction:column;gap:2px;min-width:0}
+.headr{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.pill{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:3px 10px;font-size:12.5px}
+.dot{width:8px;height:8px;border-radius:50%;background:var(--muted)}
+.dot.live{background:var(--accent)} .dot.old{background:var(--warn)}
+button{font:inherit;color:var(--fg);background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:6px 12px;cursor:pointer}
+button:hover{border-color:var(--accent)}
+button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+button.primary{background:var(--accent);border-color:var(--accent);color:var(--surface);font-weight:600}
+button[aria-pressed="true"]{border-color:var(--accent);color:var(--accent);font-weight:600}
+.banner{border:1px solid var(--warn);border-radius:10px;padding:10px 14px;background:var(--surface);font-size:14px}
+.price{display:flex;flex-wrap:wrap;align-items:baseline;gap:6px 14px}
+.price .big{font-size:30px;font-weight:600;font-family:var(--mono);font-variant-numeric:tabular-nums;letter-spacing:-.02em}
+.verdict{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+.tile{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:14px 16px;display:flex;flex-direction:column;gap:4px;min-width:0}
+.tile .q{font-size:12.5px;color:var(--muted);letter-spacing:.02em}
+.tile .a{font-size:22px;font-weight:700;line-height:1.25}
+.tile .why{font-size:13px;color:var(--muted)}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:16px;min-width:0}
+.chartbar{display:flex;flex-wrap:wrap;gap:8px;justify-content:space-between;align-items:center;margin-bottom:8px}
+.seg{display:flex;gap:6px;flex-wrap:wrap}
+.seg button{padding:3px 10px;font-size:13px}
+.readout{font-size:12.5px;min-height:20px;color:var(--muted);overflow-wrap:anywhere}
+canvas{display:block;width:100%;height:380px;touch-action:pan-y}
+.legend{display:flex;flex-wrap:wrap;gap:4px 14px;font-size:12.5px;color:var(--muted);margin-top:8px}
+.legend i{display:inline-block;width:14px;height:3px;border-radius:2px;vertical-align:middle;margin-right:5px}
+.two{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+dl{display:grid;grid-template-columns:auto 1fr;gap:6px 14px;margin:0;font-size:14px}
+dt{color:var(--muted)} dd{margin:0;text-align:right}
+.formula{background:var(--soft);border-radius:8px;padding:10px 12px;font-size:13.5px;margin:10px 0;overflow-x:auto;white-space:nowrap}
+.gauge{position:relative;height:10px;background:var(--soft);border-radius:5px;margin:14px 0 22px}
+.gauge .mk{position:absolute;top:-4px;width:2px;height:18px;background:var(--muted)}
+.gauge .mk span{position:absolute;top:19px;left:50%;transform:translateX(-50%);font-size:11px;color:var(--muted);white-space:nowrap}
+.gauge .val{position:absolute;top:-3px;width:16px;height:16px;border-radius:50%;background:var(--fg);border:3px solid var(--surface);transform:translateX(-50%)}
+.tablewrap{overflow-x:auto}
+table{border-collapse:collapse;width:100%;font-size:13.5px}
+th,td{padding:7px 8px;border-bottom:1px solid var(--line);text-align:right;white-space:nowrap}
+th:first-child,td:first-child{text-align:left}
+th{font-weight:500;color:var(--muted);font-size:12.5px}
+tr.now td{background:var(--soft);font-weight:600}
+ul{margin:0;padding-left:18px;display:flex;flex-direction:column;gap:4px}
+textarea{width:100%;min-height:150px;font-family:var(--mono);font-size:12px;background:var(--soft);color:var(--fg);border:1px solid var(--line);border-radius:8px;padding:10px;resize:vertical}
+.row{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-top:8px}
+.why{list-style:none;padding:0;margin:14px 0 0;display:flex;flex-direction:column;gap:8px;font-size:14px}
+.why li{display:flex;gap:10px;align-items:flex-start}
+.why .b{flex:none;width:20px;height:20px;border-radius:50%;background:var(--fg);color:var(--surface);font-size:12px;font-weight:600;display:inline-flex;align-items:center;justify-content:center;margin-top:2px}
+.why li>span:last-child{min-width:0}
+@media (max-width:720px){
+  .verdict,.two{grid-template-columns:minmax(0,1fr)}
+  canvas{height:300px}
+  .price .big{font-size:26px}
+}
+</style>
+
+<div class="wrap">
+  <header>
+    <div class="headl">
+      <h1>BTC/USDT 차트분석기</h1>
+      <span class="small muted">바이낸스 USDⓈ-M 무기한 선물 · 4시간봉 · 시각은 한국 시간</span>
+    </div>
+    <div class="headr">
+      <span class="pill"><span class="dot" id="dot"></span><span id="src">자료 읽는 중</span></span>
+      <button id="reload" type="button">새로 읽기</button>
+    </div>
+  </header>
+
+  <div class="banner" id="banner" hidden></div>
+
+  <div class="price">
+    <span class="big" id="px">–</span>
+    <span class="num" id="chg">–</span>
+    <span class="small muted" id="asof">–</span>
+  </div>
+
+  <section class="verdict" aria-label="세 줄 결론">
+    <div class="tile"><span class="q">방향 · 오를까 내릴까</span><span class="a" id="vDir">–</span><span class="why" id="vDirWhy"></span></div>
+    <div class="tile"><span class="q">크기 · 다음 16시간에 얼마나 움직일까</span><span class="a" id="vSize">–</span><span class="why" id="vSizeWhy"></span></div>
+    <div class="tile"><span class="q">신호 · 방금 마감된 4시간봉</span><span class="a" id="vSig">–</span><span class="why" id="vSigWhy"></span></div>
+  </section>
+
+  <section class="panel">
+    <div class="chartbar">
+      <div class="seg" id="ranges" role="group" aria-label="보는 기간">
+        <button type="button" data-n="42">1주</button>
+        <button type="button" data-n="120" aria-pressed="true">20일</button>
+        <button type="button" data-n="360">2달</button>
+        <button type="button" data-n="900">5달</button>
+        <button type="button" id="whyBtn" aria-pressed="true">근거 번호</button>
+      </div>
+      <div class="readout num" id="readout">차트에 손가락이나 마우스를 올리면 그 봉의 값이 나옵니다</div>
+    </div>
+    <canvas id="chart" aria-label="BTCUSDT 4시간봉 차트"></canvas>
+    <div class="legend">
+      <span><i style="background:var(--ma1)"></i>20봉 평균</span>
+      <span><i style="background:var(--ma2)"></i>60봉 평균</span>
+      <span><i style="background:var(--ma3)"></i>120봉 평균</span>
+      <span><b class="up">▲</b> 롱 신호가 나온 봉</span>
+      <span><i style="background:var(--muted)"></i>가까운 지지·저항(점선)</span>
+    </div>
+    <h2 style="margin-top:18px">왜 이렇게 판단했나</h2>
+    <p class="small muted">차트 위 번호와 같은 번호입니다. 1~2번이 신호, 3~4번이 크기와 방향, 5~8번이 자리 설명입니다.</p>
+    <ul class="why" id="why"></ul>
+  </section>
+
+  <section class="two">
+    <div class="panel">
+      <h2>신호: 거래량 터진 윗꼬리</h2>
+      <p class="small muted">117개 후보 중 사전 등록 검증에서 비용 뒤에도 남은 단 하나의 신호입니다. 윗꼬리가 길고 거래량이 많은 봉 뒤에 오히려 조금 더 올랐습니다.</p>
+      <div class="formula num">윗꼬리 비율 × 거래량 배수 = <span id="fUp">–</span> × <span id="fMult">–</span> = <b id="fX">–</b></div>
+      <div class="gauge" id="gauge"><div class="mk" id="mkS"><span>숏 0.086</span></div><div class="mk" id="mkL"><span>롱 0.422</span></div><div class="val" id="gVal"></div></div>
+      <dl>
+        <dt>판정</dt><dd id="sVerdict">–</dd>
+        <dt>이 봉 마감</dt><dd class="num" id="sClose">–</dd>
+        <dt>밤 9시 마감 봉인가</dt><dd id="sSlot">–</dd>
+        <dt>청산 시각(16시간 뒤)</dt><dd class="num" id="sExit">–</dd>
+        <dt>다음 봉 마감까지</dt><dd class="num" id="sNext">–</dd>
+      </dl>
+    </div>
+    <div class="panel">
+      <h2>크기: 최근 24시간이 얼마나 거칠었나</h2>
+      <p class="small muted">방향은 못 맞혀도 움직임의 크기는 맞힐 수 있었습니다. 최근 6봉의 (고가−저가)÷종가 평균으로 조용·보통·거침을 나눕니다.</p>
+      <div class="tablewrap" style="margin-top:10px"><table>
+        <thead><tr><th>상태 (최근 24시간 봉 크기)</th><th>보통 움직임</th><th>5번 중 1번은</th><th>3% 넘게 빠짐</th><th>오른 비율</th></tr></thead>
+        <tbody id="sizeRows"></tbody>
+      </table></div>
+      <dl style="margin-top:12px">
+        <dt>지금 값</dt><dd class="num" id="zNow">–</dd>
+        <dt>16시간 뒤 흔한 범위(5번 중 4번)</dt><dd class="num" id="zBand">–</dd>
+        <dt>최근 20봉 범위 안 위치</dt><dd class="num" id="zPos">–</dd>
+      </dl>
+    </div>
+  </section>
+
+  <section class="two">
+    <div class="panel">
+      <h2>차트 구조 (계산한 사실만)</h2>
+      <dl id="facts"></dl>
+      <p class="small muted" style="margin-top:10px">평균선 배열, 고점·저점, 지지·저항은 과거 검증에서 방향을 맞히는 힘이 확인되지 않았습니다. 자리를 설명하는 재료로만 봅니다.</p>
+    </div>
+    <div class="panel">
+      <h2>이 신호의 성적</h2>
+      <div class="tablewrap"><table>
+        <thead><tr><th>기간</th><th>롱 신호 뒤</th><th>아무 때나 롱</th><th>초과</th><th>t값</th></tr></thead>
+        <tbody>
+          <tr><td>2020~2023 (찾은 기간)</td><td class="num">+0.267%</td><td class="num">+0.120%</td><td class="num">+0.147%p</td><td class="num">2.24</td></tr>
+          <tr><td>2024-01~2026-09 (확인)</td><td class="num">+0.244%</td><td class="num">+0.064%</td><td class="num">+0.180%p</td><td class="num">2.96</td></tr>
+          <tr class="now" id="fwdRow"><td>2026-09-29 이후 (처음 보는 자료)</td><td class="num" colspan="4">자료를 읽으면 계산합니다</td></tr>
+        </tbody>
+      </table></div>
+      <p class="small muted" style="margin-top:10px" id="fwdNote">16시간 보유, 비용 전. 비용은 거래당 약 0.073%로 추정했습니다. t값이 +2를 넘어야 우연이 아닐 수 있다고 보고, −1.5 아래면 신호를 버립니다. 숏 쪽은 두 기간 모두 손해라 기록만 합니다.</p>
+    </div>
+  </section>
+
+  <section class="panel">
+    <h2>최근 롱 신호</h2>
+    <div class="tablewrap"><table>
+      <thead><tr><th>봉 마감</th><th>윗꼬리×거래량</th><th>종가</th><th>16시간 뒤</th><th>결과</th></tr></thead>
+      <tbody id="sigRows"></tbody>
+    </table></div>
+  </section>
+
+  <section class="panel">
+    <h2>Claude에게 설명 부탁하기</h2>
+    <p class="small muted">아래 글에는 지금 계산한 숫자가 들어 있습니다. 복사해서 Claude 앱에 직접 붙여넣으면 차트프로·워뇨띠·종합 세 관점 설명을 받을 수 있습니다. 자동으로 보내지는 않습니다.</p>
+    <textarea id="prompt" readonly aria-label="Claude에 붙여넣을 질문"></textarea>
+    <div class="row"><button class="primary" id="copy" type="button">질문 복사</button><span class="small muted" id="copyMsg" role="status"></span></div>
+  </section>
+
+  <section class="panel">
+    <h2>한계</h2>
+    <ul class="small">
+      <li>이 페이지는 공개 시세만 읽습니다. 로그인, API 키, 주문 기능이 없습니다.</li>
+      <li>신호가 진짜여도 크기가 작습니다. 최소 수량(0.001 BTC)으로는 한 달에 약 500원입니다. 거래 1번의 운이 기대 이익의 20배가 넘습니다.</li>
+      <li>펀딩비, 미결제약정, 뉴스, 경제 일정은 보지 않습니다. 5% 손절 없이 들고 있으면 안 됩니다(과거 최악 −40.8%).</li>
+      <li>기준 숫자(0.422, 0.086, 1.39%, 2.14%)는 2020~2023년 자료로 정해 고정한 값입니다. 바꾸지 않습니다.</li>
+      <li>투자 권유가 아니며 수익을 보장하지 않습니다.</li>
+    </ul>
+  </section>
+</div>
+
+<script>
+const SNAPSHOT = /*SNAPSHOT*/[];
+const EMBED = /*EMBED*/null;
+(function(){
+"use strict";
+/*CORE*/
+const {Q80,Q20,AVG,HOLD,MS4,FWD,COST,SIZE_Q,STATES,fmt,pct,kst,kstFull,analyze,describe}=BTCAN;
+const $=id=>document.getElementById(id);
+let S=null, viewN=120, hover=-1, showWhy=true;
+
+/* ---------- 자료 읽기 ---------- */
+async function fetchLive(){
+  const urls=["https://fapi.binance.com/fapi/v1/klines?symbol=BTCUSDT&interval=4h&limit=1500"];
+  for(const u of urls){
+    const ac=new AbortController(), tm=setTimeout(()=>ac.abort(),9000);
+    try{const r=await fetch(u,{signal:ac.signal,cache:"no-store"}); clearTimeout(tm);
+      if(!r.ok) continue; const j=await r.json();
+      if(!Array.isArray(j)||j.length<200||j.some(x=>!Array.isArray(x)||x.length<6)) continue;
+      return j.map(x=>[+x[0],+x[1],+x[2],+x[3],+x[4],+x[5]]);
+    }catch(e){clearTimeout(tm);}
+  }
+  return null;
+}
+async function load(){
+  $("src").textContent="자료 읽는 중"; $("dot").className="dot";
+  if(EMBED){ S=analyze(EMBED.bars,EMBED.now,false); S.tv=EMBED; $("reload").hidden=true; render(); return; }
+  const liveBars=await fetchLive();
+  if(liveBars){ S=analyze(liveBars,Date.now(),true); }
+  else { const last=SNAPSHOT[SNAPSHOT.length-1][0]; S=analyze(SNAPSHOT,last+MS4+60000,false); }
+  render();
+}
+
+/* ---------- 화면 ---------- */
+function setTxt(id,t,cls){const e=$(id); e.textContent=t; if(cls!==undefined) e.className=cls;}
+function render(){
+  const s=S, b=s.bars, i=s.i, last=b[i], close=last[0]+MS4;
+  $("dot").className="dot "+(s.live||s.tv?"live":"old");
+  $("src").textContent=s.live?"실시간 · "+kst(Date.now(),false)+" 읽음":(s.tv?"트레이딩뷰 "+s.tv.symbol+" · "+kst(s.tv.now)+" 읽음":"저장된 과거 자료");
+  const ban=$("banner");
+  if(s.gapAt){ ban.hidden=false; ban.textContent=kstFull(s.gapAt)+" 앞에 빠진 봉이 있어 그 뒤의 "+s.n+"개 봉만 썼습니다."; }
+  else if(s.live||s.tv) ban.hidden=true;
+  else { ban.hidden=false; ban.textContent="지금 화면은 "+kstFull(close)+"까지의 저장된 과거 자료입니다. 이 화면에서는 바이낸스 시세를 읽을 수 없었습니다. 실시간으로 보려면 받은 HTML 파일을 휴대폰이나 PC 브라우저에서 열어 주세요."; }
+
+  setTxt("px",fmt(s.px));
+  const prev=b[i-6+ (s.forming?1:0)][4], ch=(s.px/prev-1)*100;
+  setTxt("chg","24시간 "+pct(ch),"num "+(ch>=0?"up":"down"));
+  setTxt("asof",(s.forming?"진행 중인 봉 포함 · ":"")+kstFull(s.pxTime)+" 기준");
+
+  const u=s.uv[i], sg=s.sig[i], st=STATES[s.state];
+  const slot=new Date(last[0]).getUTCHours()===8;
+  // 결론 세 줄
+  if(sg===1){ setTxt("vDir","약한 롱 쪽","a up"); setTxt("vDirWhy","롱 신호가 나왔습니다. 과거 초과 수익은 거래당 +0.15~0.18%p로 작습니다."); }
+  else { setTxt("vDir","모름","a"); setTxt("vDirWhy","검증을 통과한 방향 신호가 지금은 없습니다. 차트 모양만으로는 50%와 구분되지 않았습니다."); }
+  setTxt("vSize",st.name+" · 보통 ±"+st.med.toFixed(2)+"%","a");
+  setTxt("vSizeWhy","5번 중 1번은 "+st.p80.toFixed(2)+"% 넘게 움직였고, 16시간 안에 3% 넘게 빠진 적이 "+st.dip3+"%였습니다.");
+  setTxt("vSig",sg===1?"롱 신호":(sg===-1?"숏 신호 (기록만)":"없음"),"a"+(sg===1?" up":""));
+  setTxt("vSigWhy",u?("값 "+u.x.toFixed(3)+" · 롱 기준 0.422 이상"+(sg===1&&!slot?" · 밤 9시 봉이 아니라 실전 대상은 아님":"")):"계산할 수 없는 봉입니다.");
+
+  // 신호 카드
+  if(u){ setTxt("fUp",u.up.toFixed(3)); setTxt("fMult",u.mult.toFixed(2)); setTxt("fX",u.x.toFixed(3)); }
+  const gmax=1.0, pos=x=>Math.min(100,Math.max(0,x/gmax*100))+"%";
+  $("mkS").style.left=pos(Q20); $("mkL").style.left=pos(Q80); $("gVal").style.left=pos(u?u.x:0);
+  $("gVal").style.background=sg===1?"var(--up)":(sg===-1?"var(--down)":"var(--fg)");
+  setTxt("sVerdict",sg===1?"롱 (0.422 이상)":(sg===-1?"숏 (0.086 이하) · 실전에서는 하지 않음":"없음 (두 기준 사이)"),sg===1?"up":"");
+  setTxt("sClose",kstFull(close));
+  setTxt("sSlot",slot?"예 · 5만 원 테스트 대상":"아니오 · 기록만");
+  setTxt("sExit",sg===1?kstFull(close+HOLD*MS4):"–");
+  if(s.live||s.tv){const left=close+MS4-(s.tv?s.tv.now:Date.now()), m=Math.max(0,Math.round(left/60000)); setTxt("sNext",Math.floor(m/60)+"시간 "+(m%60)+"분 ("+kst(close+MS4)+")");}
+  else setTxt("sNext","과거 자료");
+
+  // 크기 카드
+  $("sizeRows").innerHTML=STATES.map((x,k)=>`<tr${k===s.state?' class="now"':''}><td>${x.name} · ${x.rule}${k===s.state?" ← 지금":""}</td><td class="num">±${x.med.toFixed(2)}%</td><td class="num">${x.p80.toFixed(2)}% 넘음</td><td class="num">${x.dip3}%</td><td class="num">${x.up}%</td></tr>`).join("");
+  const c=last[4];
+  setTxt("zNow",s.rs.toFixed(2)+"% → "+st.name);
+  setTxt("zBand",fmt(c*(1-st.p80/100),0)+" ~ "+fmt(c*(1+st.p80/100),0));
+  setTxt("zPos",Math.round((c-s.lo20)/(s.hi20-s.lo20)*100)+"% ("+fmt(s.lo20,0)+" ~ "+fmt(s.hi20,0)+")");
+
+  // 구조
+  const D=describe(s), F=D.facts;
+  $("facts").innerHTML=F.map(([k,v])=>`<dt>${k}</dt><dd class="num">${v}</dd>`).join("");
+  s.factList=F;
+
+  // 처음 보는 자료 성적
+  const fr=$("fwdRow"), f=s.fwd;
+  if(!f){ fr.innerHTML=`<td>2026-09-29 이후 (처음 보는 자료)</td><td class="num" colspan="4">${s.live||s.tv?"아직 계산할 봉이 없습니다":"실시간에서 계산"}</td>`; }
+  else if(!f.nl){ fr.innerHTML=`<td>2026-09-29 이후 (봉 ${f.n}개)</td><td class="num" colspan="4">롱 신호가 아직 없습니다</td>`; }
+  else { fr.innerHTML=`<td>2026-09-29 이후 (롱 ${f.nl}번 / 봉 ${f.n}개)</td><td class="num">${pct(f.lmean*100,3)}</td><td class="num">${pct(f.base*100,3)}</td><td class="num">${pct((f.lmean-f.base)*100,3)}p</td><td class="num">${isNaN(f.t)?"표본 부족":f.t.toFixed(2)}</td>`; }
+
+  // 최근 롱 신호 표
+  const rows=[]; for(let k=i;k>=AVG&&rows.length<8;k--){ if(s.sig[k]!==1) continue;
+    const done=k+HOLD<=i, r=done?(b[k+HOLD][4]/b[k][4]-1)*100:null;
+    rows.push(`<tr><td class="num">${kstFull(b[k][0]+MS4)}</td><td class="num">${s.uv[k].x.toFixed(3)}</td><td class="num">${fmt(b[k][4])}</td><td class="num">${done?fmt(b[k+HOLD][4]):"진행 중"}</td><td class="num ${r==null?"":(r>=0?"up":"down")}">${r==null?"–":pct(r)}</td></tr>`); }
+  $("sigRows").innerHTML=rows.join("")||'<tr><td colspan="5">최근 롱 신호가 없습니다</td></tr>';
+
+  const W=D.why;
+  $("why").innerHTML=W.map((t,k)=>`<li><span class="b">${k+1}</span><span>${t}</span></li>`).join("");
+  s.why=W;
+
+  $("prompt").value=buildPrompt();
+  draw();
+}
+
+function buildPrompt(){
+  const s=S,b=s.bars,i=s.i,u=s.uv[i],st=STATES[s.state];
+  const tail=b.slice(-30).map(x=>kstFull(x[0]+MS4)+" 마감 | 시 "+x[1]+" 고 "+x[2]+" 저 "+x[3]+" 종 "+x[4]+" | 거래량 "+Math.round(x[5])).join("\n");
+  return ["바이낸스 BTCUSDT 무기한 선물 4시간봉을 분석해 주세요. 기준 시각: "+kstFull(b[i][0]+MS4)+" KST 마감 봉"+(s.live?"":" (과거 자료)")+".",
+    "",
+    "[계산된 사실]",
+    "- 종가 "+fmt(b[i][4])+", 윗꼬리 비율×거래량 배수 = "+(u?u.x.toFixed(3):"계산 불가")+" (롱 기준 0.422 이상, 숏 기준 0.086 이하) → 신호: "+(s.sig[i]===1?"롱":(s.sig[i]===-1?"숏(기록만)":"없음")),
+    "- 최근 24시간 봉 크기 "+s.rs.toFixed(2)+"% → 상태 '"+st.name+"' (다음 16시간 보통 ±"+st.med+"%, 5번 중 1번은 "+st.p80+"% 넘음)",
+    ...s.factList.map(([k,v])=>"- "+k+": "+v),
+    "",
+    "[최근 30개 4시간봉]",
+    tail,
+    "",
+    "[이 도구의 판단 근거]",
+    ...s.why.map((t,k)=>(k+1)+". "+t),
+    "",
+    "[부탁]",
+    "1. 차트프로 관점(기준봉·마디·허리·눌림), 워뇨띠 관점(캔들과 거래량만), 종합 관점으로 나눠 쉬운 한국어로 설명해 주세요.",
+    "2. 상방·하방·횡보 시나리오와, 각 시나리오가 틀렸다고 볼 조건을 가격으로 적어 주세요.",
+    "3. 근거가 약한 부분은 '모름'이라고 적어 주세요. 위 사실에 없는 숫자는 지어내지 마세요."].join("\n");
+}
+
+/* ---------- 차트 ---------- */
+function css(v){return getComputedStyle(document.documentElement).getPropertyValue(v).trim();}
+function draw(){
+  if(!S) return;
+  const cv=$("chart"), dpr=window.devicePixelRatio||1, W=cv.clientWidth, H=cv.clientHeight;
+  if(!W) return;
+  cv.width=Math.round(W*dpr); cv.height=Math.round(H*dpr);
+  const g=cv.getContext("2d"); g.setTransform(dpr,0,0,dpr,0,0); g.clearRect(0,0,W,H);
+  const col={up:css("--up"),down:css("--down"),line:css("--line"),muted:css("--muted"),fg:css("--fg"),ma:[css("--ma1"),css("--ma2"),css("--ma3")]};
+  const all=S.forming?S.bars.concat([S.forming]):S.bars, n=Math.min(viewN,all.length), i0=all.length-n;
+  const FUT=5, padR=58, padT=8, volH=Math.round(H*0.16), axH=20, pH=H-padT-volH-axH-8, plotW=W-padR, bw=plotW/(n+FUT);
+  let lo=Infinity,hi=-Infinity,vmax=0;
+  for(let k=i0;k<all.length;k++){lo=Math.min(lo,all[k][3]);hi=Math.max(hi,all[k][2]);vmax=Math.max(vmax,all[k][5]);}
+  const stN=STATES[S.state], lc=S.bars[S.i][4];
+  if(showWhy){ lo=Math.min(lo,lc*(1-stN.p80/100)); hi=Math.max(hi,lc*(1+stN.p80/100)); }
+  const pad=(hi-lo)*0.07; lo-=pad; hi+=pad;
+  const y=p=>padT+(hi-p)/(hi-lo)*pH, x=k=>(k-i0+0.5)*bw;
+  // 눈금
+  const raw=(hi-lo)/5, mag=Math.pow(10,Math.floor(Math.log10(raw))), step=[1,2,2.5,5,10].map(m=>m*mag).find(s=>s>=raw);
+  g.font="11px "+css("--mono"); g.textBaseline="middle"; g.lineWidth=1;
+  for(let p=Math.ceil(lo/step)*step;p<hi;p+=step){ g.strokeStyle=col.line; g.beginPath(); g.moveTo(0,Math.round(y(p))+.5); g.lineTo(plotW,Math.round(y(p))+.5); g.stroke();
+    g.fillStyle=col.muted; g.textAlign="left"; g.fillText(fmt(p,0),plotW+6,y(p)); }
+  // 날짜 눈금
+  g.textAlign="center"; g.textBaseline="alphabetic"; let lastX=-99;
+  const every=n<=60?6:(n<=200?30:(n<=500?84:180));
+  for(let k=i0;k<all.length;k++){ const t=all[k][0]+9*3600*1000, d=new Date(t);
+    if(d.getUTCHours()===9 && Math.floor(t/86400000)%(every/6)===0 && x(k)-lastX>44 && x(k)<plotW-16){
+      g.fillStyle=col.muted; g.fillText((d.getUTCMonth()+1)+"/"+d.getUTCDate(),x(k),H-5); lastX=x(k);
+      g.strokeStyle=col.line; g.beginPath(); g.moveTo(Math.round(x(k))+.5,padT); g.lineTo(Math.round(x(k))+.5,padT+pH); g.stroke(); } }
+  // 지지·저항
+  g.setLineDash([4,4]); g.strokeStyle=col.muted;
+  [S.res,S.sup].forEach(L=>{ if(!L||L.p<lo||L.p>hi) return; g.beginPath(); g.moveTo(Math.max(0,x(L.i)),y(L.p)); g.lineTo(plotW,y(L.p)); g.stroke(); });
+  g.setLineDash([]);
+  // 봉과 거래량
+  const cw=Math.max(1,Math.min(14,bw*0.68)), vTop=padT+pH+8;
+  for(let k=i0;k<all.length;k++){ const [,o,h,l,c,v]=all[k], upb=c>=o, forming=k>=S.bars.length;
+    g.globalAlpha=forming?0.45:1; g.fillStyle=g.strokeStyle=upb?col.up:col.down;
+    g.beginPath(); g.moveTo(Math.round(x(k))+.5,y(h)); g.lineTo(Math.round(x(k))+.5,y(l)); g.stroke();
+    const yt=y(Math.max(o,c)), hb=Math.max(1,y(Math.min(o,c))-yt); g.fillRect(x(k)-cw/2,yt,cw,hb);
+    g.globalAlpha=forming?0.25:0.5; const vh=v/vmax*volH; g.fillRect(x(k)-cw/2,vTop+volH-vh,cw,vh); }
+  g.globalAlpha=1;
+  // 평균선
+  [S.ma20,S.ma60,S.ma120].forEach((ma,j)=>{ g.strokeStyle=col.ma[j]; g.lineWidth=1.4; g.beginPath(); let st=false;
+    for(let k=i0;k<S.bars.length;k++){ if(ma[k]==null) continue; if(!st){g.moveTo(x(k),y(ma[k]));st=true;} else g.lineTo(x(k),y(ma[k])); } g.stroke(); });
+  // 롱 신호 표시
+  g.fillStyle=col.up;
+  for(let k=i0;k<S.bars.length;k++){ if(S.sig[k]!==1) continue; const yy=Math.min(padT+pH-2,y(all[k][3])+10), w=Math.max(3,Math.min(5,bw*0.6));
+    g.beginPath(); g.moveTo(x(k),yy-6); g.lineTo(x(k)-w,yy+2); g.lineTo(x(k)+w,yy+2); g.closePath(); g.fill(); }
+  // 판단 근거 번호
+  if(showWhy){
+    const li=S.i, lb=S.bars[li], sf=css("--surface"), marks=[];
+    const ln=(xa,ya,xb,yb)=>{g.beginPath();g.moveTo(xa,ya);g.lineTo(xb,yb);g.stroke();};
+    if(li-5>=i0){ g.fillStyle=col.fg; g.globalAlpha=.07; g.fillRect(x(li-5)-bw/2,padT,bw*6,pH); g.globalAlpha=1; marks.push([3,x(li-5)-bw/2+10,padT+10]); }
+    const x0=x(li)+bw/2, x1=x(li+HOLD)+bw/2, yT=y(lc*(1+stN.p80/100)), yB=y(lc*(1-stN.p80/100));
+    g.fillStyle=col.fg; g.globalAlpha=.10; g.fillRect(x0,yT,x1-x0,yB-yT);
+    g.globalAlpha=.18; g.fillRect(x0,y(lc*(1+stN.med/100)),x1-x0,y(lc*(1-stN.med/100))-y(lc*(1+stN.med/100))); g.globalAlpha=1;
+    g.strokeStyle=col.fg; g.lineWidth=1; g.setLineDash([2,3]); ln(x0,y(lc),x1,y(lc)); g.setLineDash([]);
+    marks.push([4,(x0+x1)/2,yT-12]);
+    g.lineWidth=2.5; const xb=x(li)+cw/2+3; ln(xb,y(lb[2]),xb,y(Math.max(lb[1],lb[4])));
+    marks.push([1,x(li),y(lb[2])-13]);
+    let av=0; for(let k=li-AVG;k<li;k++) av+=S.bars[k][5]; av/=AVG;
+    const yv=vTop+volH-Math.min(1,av/vmax)*volH, xv=x(Math.max(i0,li-AVG))-bw/2;
+    g.lineWidth=1.5; ln(xv,yv,x(li)+bw/2,yv); marks.push([2,xv+10,yv-11]);
+    g.lineWidth=1;
+    [[S.ph,5,-1],[S.pl,6,1]].forEach(([arr,num,dir])=>{ const pts=arr.slice(-3).filter(p=>p.i>=i0); if(!pts.length) return;
+      g.strokeStyle=col.fg; g.setLineDash([5,3]); g.beginPath(); pts.forEach((p,j)=>j?g.lineTo(x(p.i),y(p.p)):g.moveTo(x(p.i),y(p.p))); g.stroke(); g.setLineDash([]);
+      pts.forEach(p=>{ g.fillStyle=sf; g.beginPath(); g.arc(x(p.i),y(p.p),3.5,0,6.3); g.fill(); g.stroke(); });
+      const p=pts[0]; marks.push([num,x(p.i),y(p.p)+dir*14]); });
+    [[S.res,7,-11],[S.sup,8,11]].forEach(([L,num,dy])=>{ if(!L||L.p<lo||L.p>hi) return; marks.push([num,(Math.max(0,x(L.i))+x(li))/2,y(L.p)+dy]); });
+    marks.forEach(([num,bx,by])=>{ bx=Math.max(10,Math.min(plotW-10,bx)); by=Math.max(padT+9,Math.min(vTop+volH-9,by));
+      g.fillStyle=col.fg; g.beginPath(); g.arc(bx,by,8.5,0,6.3); g.fill();
+      g.fillStyle=sf; g.font="600 11px "+css("--sans"); g.textAlign="center"; g.textBaseline="middle"; g.fillText(String(num),bx,by+.5); });
+  }
+  // 십자선
+  if(hover>=i0&&hover<all.length){ g.strokeStyle=col.fg; g.globalAlpha=.4; g.beginPath(); g.moveTo(Math.round(x(hover))+.5,padT); g.lineTo(Math.round(x(hover))+.5,vTop+volH); g.stroke(); g.globalAlpha=1; }
+  draw.geo={i0,bw,n:all.length,all};
+}
+function onMove(e){ const geo=draw.geo; if(!geo) return; const r=$("chart").getBoundingClientRect();
+  const k=geo.i0+Math.floor((e.clientX-r.left)/geo.bw); if(k<geo.i0||k>=geo.n){onLeave();return;}
+  hover=k; const b=geo.all[k], u=k<S.bars.length?S.uv[k]:null, ch=(b[4]/b[1]-1)*100;
+  $("readout").textContent=kst(b[0]+MS4)+" 마감 · 시 "+fmt(b[1],0)+" 고 "+fmt(b[2],0)+" 저 "+fmt(b[3],0)+" 종 "+fmt(b[4],0)+" ("+pct(ch)+")"+(u?" · 신호값 "+u.x.toFixed(3):"");
+  draw(); }
+function onLeave(){ hover=-1; draw(); }
+
+$("chart").addEventListener("pointermove",onMove);
+$("chart").addEventListener("pointerdown",onMove);
+$("chart").addEventListener("pointerleave",onLeave);
+$("ranges").addEventListener("click",e=>{ const b=e.target.closest("button"); if(!b) return;
+  if(b.id==="whyBtn"){ showWhy=!showWhy; b.setAttribute("aria-pressed",String(showWhy)); draw(); return; }
+  viewN=+b.dataset.n; [...$("ranges").querySelectorAll("[data-n]")].forEach(x=>x.setAttribute("aria-pressed",x===b?"true":"false"));
+  try{localStorage.setItem("btcan.range",String(viewN));}catch(_){ } draw(); });
+$("reload").addEventListener("click",load);
+$("copy").addEventListener("click",async()=>{ const ta=$("prompt");
+  try{ await navigator.clipboard.writeText(ta.value); $("copyMsg").textContent="복사했습니다. Claude 앱에 붙여넣으세요."; }
+  catch(_){ ta.focus(); ta.select(); $("copyMsg").textContent="글을 선택해 두었습니다. 길게 눌러 복사하세요."; } });
+window.addEventListener("resize",draw);
+window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change",draw);
+new MutationObserver(draw).observe(document.documentElement,{attributes:true,attributeFilter:["data-theme"]});
+if(document.fonts&&document.fonts.ready) document.fonts.ready.then(draw);
+try{ const v=+localStorage.getItem("btcan.range"); const b=[...$("ranges").querySelectorAll("[data-n]")].find(x=>+x.dataset.n===v);
+  if(b){ viewN=v; [...$("ranges").querySelectorAll("[data-n]")].forEach(x=>x.setAttribute("aria-pressed",x===b?"true":"false")); } }catch(_){ }
+load();
+setInterval(()=>{ if(S&&S.live&&!document.hidden) load(); },5*60*1000);
+})();
+</script>

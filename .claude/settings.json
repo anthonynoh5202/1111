@@ -1,0 +1,26 @@
+{
+  "permissions": {
+    "deny": [
+      "mcp__tradingview__ui_evaluate",
+      "mcp__tradingview__tv_update",
+      "mcp__tradingview__alert_create",
+      "mcp__tradingview__alert_delete",
+      "mcp__tradingview__replay_trade",
+      "mcp__tradingview__pine_set_source",
+      "mcp__tradingview__pine_save",
+      "mcp__tradingview__pine_new",
+      "mcp__tradingview__pine_compile",
+      "mcp__tradingview__pine_smart_compile",
+      "mcp__tradingview__watchlist_add",
+      "mcp__tradingview__watchlist_add_bulk",
+      "mcp__tradingview__watchlist_remove",
+      "mcp__tradingview__draw_clear",
+      "mcp__tradingview__tab_close",
+      "mcp__tradingview__layout_switch",
+      "mcp__tradingview__ui_click",
+      "mcp__tradingview__ui_mouse_click",
+      "mcp__tradingview__ui_keyboard",
+      "mcp__tradingview__ui_type_text"
+    ]
+  }
+}
