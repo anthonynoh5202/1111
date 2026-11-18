@@ -1,0 +1,12 @@
+{
+  "name": "btc-report",
+  "version": "0.1.0",
+  "private": true,
+  "description": "BTC/USDT 차트 데이터 → 클로드 분석 → PDF 보고서 → 텔레그램",
+  "dependencies": {
+    "pdfkit": "^0.15.0"
+  },
+  "devDependencies": {
+    "pdf-to-img": "^4.5.0"
+  }
+}

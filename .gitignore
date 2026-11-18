@@ -3,3 +3,8 @@ node_modules/
 analyzer/tv/out/
 analyzer/platform/data/
 analyzer/platform/config.json
+analyzer/report/secrets.json
+analyzer/report/report.pdf
+analyzer/report/latest.json
+analyzer/report/page_a.json
+analyzer/report/page*.png

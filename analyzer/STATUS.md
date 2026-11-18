@@ -11,6 +11,7 @@
 | 트레이딩뷰 연결(비공식 데스크톱 도구) | `analyzer/tv/`, `.mcp.json`, `.claude/skills/tv-chart/` | 가짜 자료로만 시험. **실제 연결 미확인** |
 | 자동 분석 플랫폼(PC에서 실행) | `analyzer/platform/` | 가짜 서비스로 한 회차 전체 시험 통과. **실제 연결 미확인** |
 | 검증 기록 | `analyzer/research/` | 아래 "알아낸 것" |
+| 보고서 파이프라인(6쪽 PDF→텔레그램) | `analyzer/report/` | 로컬에서 OKX 실시간으로 생성·전송 확인. 한글 폰트(나눔고딕) 번들. **클라우드 예약작업 연결은 미완** |
 
 ## 알아낸 것
 
@@ -32,6 +33,7 @@ PC 없이 24시간 돌리는 구성. 제안한 것은 다음과 같고, 사용�
 
 ## 아직 안 한 것
 
+- 보고서 파이프라인(`analyzer/report/`)을 **Claude 예약작업(클라우드)** 에 연결: 4시간마다 `fetch → 클로드가 page_a.json 작성 → send`. 필요한 것 — 저장소 clone, `npm install`, 허용 주소에 `api.telegram.org` 추가, 비밀(텔레그램 토큰)을 예약작업 환경에 넣기(저장소엔 커밋 안 함).
 - PC(한국)에서 실시간 확인: `analyzer/index.html`을 브라우저로 열어 "실시간"이 뜨는지. `node analyzer/platform/server.cjs --once`가 바이낸스를 읽는지(설정 `source`를 `binance`로).
 - 윈도우용 설치 스크립트(`analyzer/tv/setup.ps1`) 실행 시험.
 - 알림(텔레그램 등).
