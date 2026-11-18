@@ -1,0 +1,42 @@
+{
+ "2020~2023": {
+  "n": 8741,
+  "fut_long": 1736,
+  "spot_long": 1718,
+  "both": 1494,
+  "excess_fut": 0.145,
+  "t_fut": 2.2,
+  "excess_spot": 0.117,
+  "t_spot": 1.75
+ },
+ "2024~2026-09": {
+  "n": 6012,
+  "fut_long": 1119,
+  "spot_long": 1128,
+  "both": 985,
+  "excess_fut": 0.181,
+  "t_fut": 2.98,
+  "excess_spot": 0.083,
+  "t_spot": 1.3
+ },
+ "2026-09-29~": {
+  "n": 290,
+  "fut_long": 52,
+  "spot_long": 59,
+  "both": 46,
+  "excess_fut": -0.122,
+  "t_fut": -0.65,
+  "excess_spot": -0.257,
+  "t_spot": -1.35
+ },
+ "9pm_oos": {
+  "n": 1050,
+  "fut_long": 147,
+  "spot_long": 159,
+  "both": 128,
+  "excess_fut": 0.436,
+  "t_fut": 2.4,
+  "excess_spot": 0.107,
+  "t_spot": 0.62
+ }
+}
