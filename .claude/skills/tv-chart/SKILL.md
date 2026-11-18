@@ -10,14 +10,14 @@ description: 트레이딩뷰 데스크톱 차트(BTCUSDT 무기한 선물 4시�
 ## 순서
 
 1. `mcp__tradingview__tv_health_check`로 연결을 확인한다. 실패하면 멈추고 `analyzer/tv/README.md`의 "연결이 안 될 때"를 안내한다.
+   - 윈도우에서 트레이딩뷰가 떠 있는데도 연결이 안 되면, 사용자에게 물어본 뒤 `mcp__tradingview__tv_launch`로 다시 띄운다(일부 윈도우 설치본은 이 방법으로만 디버그 포트가 열린다).
 2. `mcp__tradingview__chart_get_state`로 종목과 주기를 읽는다.
    - 종목이 `BINANCE:BTCUSDT.P`가 아니거나 주기가 `240`이 아니면, 바꾼다고 사용자에게 말한 뒤 `chart_set_symbol`(`BINANCE:BTCUSDT.P`)과 `chart_set_timeframe`(`240`)으로 바꾸고 상태를 다시 읽는다.
-3. 봉 자료는 대화로 가져오지 않고 바로 계산 도구에 넘긴다(500봉을 대화에 싣지 않기 위해서다). 저장소 폴더에서 실행한다.
+3. 봉 자료는 대화로 가져오지 않고 계산 도구가 직접 읽게 한다(500봉을 대화에 싣지 않기 위해서다). 저장소 폴더에서 실행한다. 맥과 윈도우에서 명령이 같다.
    ```
-   node vendor/tradingview-mcp/src/cli/index.js ohlcv --count 500 \
-     | node analyzer/tv/analyze.cjs --symbol "<2에서 읽은 종목>" --tf "<2에서 읽은 주기>" --json --page analyzer/tv/out/chart.html
+   node analyzer/tv/analyze.cjs --from-tv --json --page analyzer/tv/out/chart.html
    ```
-   `--symbol`과 `--tf`에는 2에서 실제로 읽은 값을 넣는다. 도구가 "멈춤"을 내면 그 문장을 그대로 전하고 끝낸다.
+   도구가 차트의 종목과 주기를 스스로 다시 확인한다. "멈춤"을 내면 그 문장을 그대로 전하고 끝낸다.
 4. 결과를 쉬운 한국어로 전한다. 순서는 방향 → 크기 → 신호 → 판단 근거 1~8 → 주의(`warnings`). 숫자는 도구 출력의 값만 쓴다.
    - `page` 경로를 알려 준다. 브라우저에서 열면 같은 자료로 그린 분석기 화면이다.
 5. 사용자가 차트에 표시해 달라고 하면 `marks`의 항목을 `mcp__tradingview__draw_shape`로 그린다.
