@@ -41,4 +41,8 @@ PC 없이 24시간 돌리는 구성. 제안한 것은 다음과 같고, 사용�
 
 ## 클라우드 환경 메모
 
+- **보고서 파이프라인을 클라우드에서 돌려 봄(2026-11-19)**: `fetch`(OKX 6개 타임프레임)와 `build`(6쪽 PDF, 한글 폰트 포함)는 된다. 단, 명령 앞에 `NODE_USE_ENV_PROXY=1`을 붙여야 한다. 클라우드는 프록시를 거치는데 Node의 `fetch`가 기본으로는 프록시를 쓰지 않아서, 안 붙이면 "OKX 시세를 읽지 못했습니다"로 실패한다. 예: `NODE_USE_ENV_PROXY=1 node run.cjs fetch`
+- `send`(텔레그램)는 클라우드에서 아직 안 해 봤다. 허용 주소에 `api.telegram.org`가 없고, 토큰을 둘 곳을 정해야 한다. 텔레그램은 토큰이 주소에 들어가는 방식이라, 환경의 "네트워크 비밀"(헤더에 넣어 주는 방식)로는 넣을 수 없다.
+- 보고서 1쪽에서 차트 아래 날짜 눈금과 "데이터 …" 설명 줄이 겹쳐 보인다(고칠 것).
+
 환경 "기본"의 허용 주소에 `fapi.binance.com`, `data-api.binance.vision`, `data.binance.vision`, `www.okx.com`, `api.bybit.com`을 추가했다. `fapi.binance.com`과 `api.bybit.com`은 위치 차단이라 쓸모가 없다.
