@@ -53,3 +53,19 @@ test("텔레그램: 토큰 모양이 아니면 보내지 않고, 오류 글에 �
   } finally { global.fetch = real; }
 });
 
+
+test("보고서: 클로드가 쓴 차트 표시는 모양·범위가 맞는 것만 그린다", () => {
+  const { cleanMarks } = require("../report/pdf.cjs");
+  const out = cleanMarks([
+    { type: "level", price: 63000, text: "좋은 선" },
+    { type: "bar", ago: 500, text: "봉 범위 밖" },
+    { type: "trend", ago: 3, price: 1, text: "끝점 없음" },
+    { type: "script", price: 1, text: "모르는 종류" },
+    { type: "zone", price: 62000, price2: "x", text: "숫자 아님" },
+    { type: "bar", ago: 0, text: "x".repeat(500) }
+  ], 80);
+  assert.deepStrictEqual(out.map(m => [m.n, m.type]), [[1, "level"], [2, "bar"]]);
+  assert.strictEqual(out[1].text.length, 220);
+  assert.deepStrictEqual(cleanMarks("not array", 80), []);
+  assert.strictEqual(cleanMarks(Array(10).fill({ type: "level", price: 1, text: "a" }), 80).length, 6);
+});

@@ -139,9 +139,9 @@ function pageSummary(doc, data) {
 }
 /* 이 보고서의 구성(1쪽 아래) */
 function contents(doc, data) {
-  const n = (data.mtf || []).length, chartPages = Math.ceil(n / 2), rows = [];
+  const n = (data.mtf || []).length, chartPages = n, rows = [];
   let p = 2;
-  if (chartPages) { rows.push([p + (chartPages > 1 ? "–" + (p + chartPages - 1) : ""), "타임프레임별 차트", "5분부터 일봉까지 " + n + "개. 차트마다 클로드 의견(A)과 객관 구조(B 자리)."]); p += chartPages; }
+  if (chartPages) { rows.push([p + (chartPages > 1 ? "–" + (p + chartPages - 1) : ""), "타임프레임별 차트", "5분부터 일봉까지 한 쪽에 하나씩. 클로드가 차트에 번호를 그리고(유형 A) 번호별로 설명."]); p += chartPages; }
   if (data.result) rows.push([String(p++), "유형 B 상세", "4시간봉 검증 신호가 어떻게 나왔는지, 차트 번호별 근거."]);
   rows.push([String(p++), "분석 이론", "추세·지지/저항·거래량·변동성·모멘텀과 검증된 신호의 원리."]);
   rows.push([String(p++), "개념 사전", "보고서에 나오는 용어 풀이."]);
@@ -195,54 +195,83 @@ function summaryTable(doc, data) {
   doc.y = y; doc.x = x;
 }
 
-/* ---- 타임프레임 한 개: 머리줄 + 차트 + 범례 + 유형 A·B 두 칸 ---- */
+/* page_a.json 의 표시(marks)를 검사한다. 클로드가 쓴 값이라 모양·범위를 확인하고, 틀린 것은 뺀다. */
+const MARK_TYPES = ["level", "bar", "zone", "trend"];
+function cleanMarks(marks, nBars) {
+  if (!Array.isArray(marks)) return [];
+  const num = v => (typeof v === "number" && Number.isFinite(v) && v > 0) ? v : null;
+  const ago = v => (Number.isInteger(v) && v >= 0 && v < nBars) ? v : null;
+  const out = [];
+  for (const m of marks.slice(0, 6)) {
+    if (!m || !MARK_TYPES.includes(m.type) || typeof m.text !== "string" || !m.text.trim()) continue;
+    const a = { n: out.length + 1, type: m.type, text: m.text.trim().slice(0, 220), price: num(m.price), price2: num(m.price2), ago: ago(m.ago), ago2: ago(m.ago2) };
+    if (a.type === "level" && a.price == null) continue;
+    if (a.type === "bar" && a.ago == null) continue;
+    if (a.type === "zone" && (a.price == null || a.price2 == null)) continue;
+    if (a.type === "trend" && (a.price == null || a.price2 == null || a.ago == null || a.ago2 == null)) continue;
+    out.push(a);
+  }
+  return out;
+}
+
+/* ---- 타임프레임 한 쪽: 머리줄 + 큰 차트(클로드 표시 포함) + 유형 A 번호별 설명 + 유형 B 칸 ---- */
 function tfBlock(doc, m, aRead, result) {
-  const x = ML(doc), w = cw(doc), y0 = doc.y;
-  doc.font("kr-bold").fontSize(13).fillColor(INK).text(m.label, x, y0, { lineBreak: false });
+  const x = ML(doc), w = cw(doc), y0 = doc.y, a = aRead || {};
+  doc.font("kr-bold").fontSize(16).fillColor(INK).text(m.label, x, y0, { lineBreak: false });
   const lw = doc.widthOfString(m.label);
-  doc.font("kr").fontSize(8).fillColor(FAINT).text(m.bar, x + lw + 6, y0 + 4, { lineBreak: false });
+  doc.font("kr").fontSize(8.5).fillColor(FAINT).text(m.bar, x + lw + 7, y0 + 6, { lineBreak: false });
   if (!m.error) {
     const parts = [["추세 ", m.trend, callColor(m.trend)], ["   24봉 ", signed(m.chg, 1), m.chg >= 0 ? UP : DN], ["   변동성 ", "±" + m.volPct.toFixed(2) + "%", INK]];
     doc.font("kr").fontSize(8);
     let tw = 0; for (const [k, val] of parts) { doc.font("kr"); tw += doc.widthOfString(k); doc.font("kr-bold"); tw += doc.widthOfString(val); }
     let xx = x + w - tw;
     for (const [k, val, col] of parts) {
-      doc.font("kr").fillColor(MUTE).text(k, xx, y0 + 4, { lineBreak: false }); xx += doc.widthOfString(k);
-      doc.font("kr-bold").fillColor(col).text(val, xx, y0 + 4, { lineBreak: false }); xx += doc.widthOfString(val);
+      doc.font("kr").fillColor(MUTE).text(k, xx, y0 + 6, { lineBreak: false }); xx += doc.widthOfString(k);
+      doc.font("kr-bold").fillColor(col).text(val, xx, y0 + 6, { lineBreak: false }); xx += doc.widthOfString(val);
     }
   }
-  const cy = y0 + 22, ch = 200;
-  if (m.chart && m.chart.bars && m.chart.bars.length) drawChart(doc, { x, y: cy, w, h: ch }, m.chart);
-  else doc.font("kr").fontSize(9).fillColor(FAINT).text("(차트 자료 없음)", x, cy + 60, { width: w, align: "center" });
+  const hasChart = m.chart && m.chart.bars && m.chart.bars.length;
+  const marks = hasChart ? cleanMarks(a.marks, m.chart.bars.length) : [];
+  const cy = y0 + 28, ch = 380;
+  if (hasChart) drawChart(doc, { x, y: cy, w, h: ch }, { ...m.chart, annotations: marks });
+  else doc.font("kr").fontSize(9).fillColor(FAINT).text("(차트 자료 없음)", x, cy + 120, { width: w, align: "center" });
   const rg = m.chart && m.chart.range;
-  legend(doc, LEGEND_TF, x, cy + ch + 5, rg ? { t: "봉 " + rg.n + "개 · " + rg.from + " ~ " + rg.to, w } : null);
+  legend(doc, LEGEND_TF.concat(marks.length ? [{ color: COLORS.ann, t: "클로드 표시" }] : []), x, cy + ch + 5, rg ? { t: "봉 " + rg.n + "개 · " + rg.from + " ~ " + rg.to, w } : null);
+  doc.y = cy + ch + 24;
 
-  // 유형 A · 유형 B 두 칸
-  const a = aRead || {}, gap = 10, colW = (w - gap) / 2, py = cy + ch + 20;
-  const A = [
-    { t: "유형 A · 클로드 의견", bold: true, size: 6.8, color: MUTE, spacing: 0.4, gap: 3 },
-    { t: a.call || "–", bold: true, size: 11.5, color: callColor(a.call), gap: 2 },
-    { t: a.note || "(의견 없음)", size: 8.2 }
-  ];
+  // 유형 A: 의견 + 번호별 설명
+  const hy = doc.y;
+  doc.font("kr-bold").fontSize(7.5).fillColor(COLORS.ann).text("유형 A · 클로드 차트 분석", x, hy, { characterSpacing: 0.6, lineBreak: false });
+  doc.font("kr").fontSize(7.5).fillColor(FAINT).text("검증 안 된 의견", x, hy, { width: w, align: "right", lineBreak: false });
+  doc.save().lineWidth(0.5).strokeColor(LINE).moveTo(x, hy + 14).lineTo(x + w, hy + 14).stroke().restore();
+  doc.y = hy + 22;
+  const callY = doc.y;
+  doc.font("kr-bold").fontSize(15).fillColor(callColor(a.call)).text(a.call || "–", x, callY, { lineBreak: false });
+  doc.font("kr").fontSize(8.6).fillColor(TEXT).text(a.note || "(의견 없음)", x + 62, callY + 2, { width: w - 62, ...LH });
+  doc.y = Math.max(doc.y, callY + 20) + 8;
+  for (const mk of marks) {
+    ensureSpace(doc, 24);
+    const yy = doc.y;
+    doc.save().roundedRect(x, yy, 13, 13, 3).fill(COLORS.ann).restore();
+    doc.font("kr-bold").fontSize(7.5).fillColor("#ffffff").text(String(mk.n), x, yy + 2.6, { width: 13, align: "center", lineBreak: false });
+    doc.font("kr").fontSize(8.6).fillColor(TEXT).text(mk.text, x + 22, yy + 1, { width: w - 22, ...LH });
+    doc.y += 5;
+  }
+  if (!marks.length && a.call) { doc.font("kr").fontSize(7.8).fillColor(FAINT).text("(차트에 그린 표시가 없습니다.)", x, doc.y); doc.moveDown(0.4); }
+
+  // 유형 B 칸(한 줄)
+  doc.moveDown(0.5); ensureSpace(doc, 60);
   let B;
-  if (m.error) B = [{ t: "유형 B", bold: true, size: 6.8, color: MUTE, gap: 3 }, { t: "자료 읽기 실패", size: 8.2, color: FAINT }];
+  if (m.error) B = [{ t: "유형 B", bold: true, size: 6.8, color: MUTE, gap: 3 }, { t: "자료 읽기 실패", size: 8.4, color: FAINT }];
   else if (m.bar === "4H" && result) {
     const v = result.verdict;
-    B = [
-      { t: "유형 B · 검증 신호", bold: true, size: 6.8, color: ACCENT, spacing: 0.4, gap: 3 },
-      { t: v.signal, bold: true, size: 11.5, color: callColor(v.signal), gap: 2 },
-      { t: "신호값 " + (v.signal_value != null ? v.signal_value.toFixed(3) : "-") + " (롱 기준 " + v.long_threshold + ") · 크기 " + v.size_state + " · 16시간 ±" + v.p80_move_pct.toFixed(2) + "%. 근거는 '유형 B 상세' 쪽.", size: 8.2 }
-    ];
+    B = [{ t: "유형 B · 검증 신호", bold: true, size: 6.8, color: ACCENT, spacing: 0.4, gap: 4 },
+    { t: v.signal + "  —  신호값 " + (v.signal_value != null ? v.signal_value.toFixed(3) : "-") + " (롱 기준 " + v.long_threshold + ") · 크기 " + v.size_state + " · 16시간 ±" + v.p80_move_pct.toFixed(2) + "%. 근거는 '유형 B 상세' 쪽.", size: 8.4, color: INK }];
   } else {
-    B = [
-      { t: "유형 B 자리 · 객관 구조 (검증 신호 아님)", bold: true, size: 6.8, color: MUTE, spacing: 0.4, gap: 3 },
-      { t: "지지 " + (m.sup ? fmt(m.sup) : "–") + "  /  저항 " + (m.res ? fmt(m.res) : "–"), bold: true, size: 11.5, color: INK, gap: 2 },
-      { t: "쓰인 이론: 이동평균 배열 · 지지/저항 · 거래량 · 변동성 · 모멘텀", size: 8.2, color: MUTE }
-    ];
+    B = [{ t: "유형 B 자리 · 객관 구조 (검증 신호 아님)", bold: true, size: 6.8, color: MUTE, spacing: 0.4, gap: 4 },
+    { t: "계산된 지지 " + (m.sup ? fmt(m.sup) : "–") + " / 저항 " + (m.res ? fmt(m.res) : "–") + " (차트의 초록·빨강 점선). 이동평균 배열 · 지지/저항 · 거래량 · 변동성 · 모멘텀으로 계산.", size: 8.4, color: INK }];
   }
-  const h = Math.max(panel(doc, A, { w: colW, measure: true }), panel(doc, B, { w: colW, measure: true }));
-  panel(doc, A, { x, y: py, w: colW, minH: h }); panel(doc, B, { x: x + colW + gap, y: py, w: colW, minH: h });
-  doc.y = py + h + 22; doc.x = x;
+  panel(doc, B);
 }
 
 /* ---- 유형 B: 4시간봉 검증 신호 상세 ---- */
@@ -388,7 +417,7 @@ function buildPdf(outPath, data) {
   pageSummary(doc, data);
   const tf = (data.pageA && data.pageA.tf) || {}, list = data.mtf || [];
   for (let i = 0; i < list.length; i++) {
-    if (i % 2 === 0) startPage(doc, "타임프레임별 차트", foot);
+    startPage(doc, "타임프레임별 차트 · " + list[i].label, foot);
     tfBlock(doc, list[i], tf[list[i].bar], data.result);
   }
   if (data.result) { startPage(doc, "유형 B · 4시간봉 검증 상세", "유형 B · OKX 실시간 미리보기(바이낸스 선물과 약 90% 일치) · 확정은 하루 1회 바이낸스 보관소"); pageB(doc, data); }
@@ -403,4 +432,4 @@ function buildPdf(outPath, data) {
   return new Promise((res, rej) => { stream.on("finish", () => res(outPath)); stream.on("error", rej); });
 }
 
-module.exports = { buildPdf };
+module.exports = { buildPdf, cleanMarks };

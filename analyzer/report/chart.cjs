@@ -6,7 +6,7 @@
 const C = {
   ink: "#0f172a", mute: "#64748b", faint: "#94a3b8", grid: "#eef1f5", axis: "#e2e8f0",
   up: "#1a9e77", dn: "#e0525e", ma20: "#3f6fd1", ma60: "#c58b2b", vma: "#7c8798",
-  res: "#e0525e", sup: "#1a9e77", band: "#c58b2b"
+  res: "#e0525e", sup: "#1a9e77", band: "#c58b2b", ann: "#4353b8"
 };
 const fmt = n => Math.round(n).toLocaleString("en-US");
 
@@ -44,6 +44,7 @@ function drawChart(doc, area, cd) {
   if (cd.res) pmax = Math.max(pmax, cd.res);
   if (cd.sup) pmin = Math.min(pmin, cd.sup);
   if (cd.band) { pmin = Math.min(pmin, cd.band[0]); pmax = Math.max(pmax, cd.band[1]); }
+  for (const a of (cd.annotations || [])) for (const p of [a.price, a.price2]) if (p != null) { pmin = Math.min(pmin, p); pmax = Math.max(pmax, p); }
   const pad = (pmax - pmin) * 0.07; pmin -= pad; pmax += pad;
   const yP = p => priceBot - (p - pmin) / (pmax - pmin) * priceH;
 
@@ -136,6 +137,9 @@ function drawChart(doc, area, cd) {
     doc.text(label, cx(i) - 26, volBot + 3, { width: 52, align: "center", lineBreak: false });
   }
 
+  // 유형 A(클로드) 표시: 남보라색 선·구역과 번호
+  drawAnnotations(doc, cd.annotations || [], { bars, n, cx, yP, slotW, plotX, plotW, priceTop, priceBot });
+
   // 번호 1~8: 4시간봉 전용
   if (cd.simple) return;
   const sig = cd.sigIdx;
@@ -149,6 +153,41 @@ function drawChart(doc, area, cd) {
   if (cd.troughIdx != null && cd.troughIdx < n) marker(doc, cx(cd.troughIdx), yP(bars[cd.troughIdx].l) + 11, 6, C.mute);
   if (cd.res) marker(doc, bandX - 4, yP(cd.res), 7, C.res);
   if (cd.sup) marker(doc, bandX - 4, yP(cd.sup), 8, C.sup);
+}
+
+/* 유형 A 표시. a = { n, type: level|bar|zone|trend, text, price, price2, ago, ago2 } (pdf.cjs 가 미리 검사한 값) */
+function drawAnnotations(doc, list, g) {
+  const X = ago => g.cx(g.n - 1 - ago), col = C.ann;
+  const clampY = y => Math.max(g.priceTop + 8, Math.min(g.priceBot - 8, y));
+  const tags = [];
+  for (const a of list) {
+    if (a.type === "level") {
+      const y = g.yP(a.price);
+      doc.save().lineWidth(0.9).strokeColor(col).dash(4, { space: 2 }).moveTo(g.plotX, y).lineTo(g.plotX + g.plotW, y).stroke().undash().restore();
+      tags.push([a.ago != null ? X(a.ago) : g.plotX + g.plotW * 0.62, clampY(y - 10), a.n]);
+    } else if (a.type === "bar") {
+      const b = g.bars[g.n - 1 - a.ago], p = a.price != null ? a.price : b.h, y = g.yP(p), x = X(a.ago);
+      const above = p >= (b.h + b.l) / 2, ty = clampY(above ? y - 16 : y + 16);
+      doc.save().lineWidth(1.1).strokeColor(col).circle(x, y, 4.5).stroke().restore();
+      doc.save().lineWidth(0.6).strokeColor(col).moveTo(x, above ? y - 4.5 : y + 4.5).lineTo(x, above ? ty + 6.5 : ty - 6.5).stroke().restore();
+      tags.push([x, ty, a.n]);
+    } else if (a.type === "zone") {
+      const x0 = a.ago != null ? X(a.ago) - g.slotW / 2 : g.plotX, x1 = a.ago2 != null ? X(a.ago2) + g.slotW / 2 : g.plotX + g.plotW;
+      const y0 = g.yP(Math.max(a.price, a.price2)), y1 = g.yP(Math.min(a.price, a.price2));
+      doc.save().fillOpacity(0.09).fillColor(col).rect(x0, y0, x1 - x0, y1 - y0).fill().restore();
+      doc.save().lineWidth(0.6).strokeColor(col).strokeOpacity(0.7).dash(2, { space: 2 }).rect(x0, y0, x1 - x0, y1 - y0).stroke().undash().restore();
+      tags.push([x0 + 9, clampY(y0 + 9), a.n]);
+    } else if (a.type === "trend") {
+      const xa = X(a.ago), ya = g.yP(a.price), xb = X(a.ago2), yb = g.yP(a.price2);
+      doc.save().lineWidth(1.4).strokeColor(col).lineCap("round").moveTo(xa, ya).lineTo(xb, yb).stroke().restore();
+      doc.save().fillColor(col).circle(xa, ya, 1.8).fill().circle(xb, yb, 1.8).fill().restore();
+      tags.push([(xa + xb) / 2, clampY((ya + yb) / 2 - 12), a.n]);
+    }
+  }
+  for (const [x, y, n] of tags) {
+    doc.save().lineWidth(1.2).roundedRect(x - 6.5, y - 6.5, 13, 13, 3).fillAndStroke(col, "#ffffff").restore();
+    doc.fillColor("#ffffff").font("kr-bold").fontSize(7.5).text(String(n), x - 6.5, y - 4.2, { width: 13, align: "center", lineBreak: false });
+  }
 }
 
 module.exports = { drawChart, COLORS: C };
