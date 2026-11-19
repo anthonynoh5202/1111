@@ -8,3 +8,11 @@ analyzer/report/report.pdf
 analyzer/report/latest.json
 analyzer/report/page_a.json
 analyzer/report/page*.png
+
+# 비밀 값이 들어갈 수 있는 파일은 어디에 있든 올리지 않는다
+secrets.json
+secrets.*.json
+.env
+.env.*
+*.pem
+*.key

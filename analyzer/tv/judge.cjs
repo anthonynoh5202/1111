@@ -21,8 +21,10 @@ function toBars(rows) {
 
 /* 종목과 주기가 BTCUSDT 무기한 선물 4시간봉인지 확인한다 */
 function checkChart(symbol, tf) {
-  if (!/BTCUSDT(\.P|PERP)$/.test(String(symbol || "").toUpperCase())) throw new Stop("차트가 BTCUSDT 무기한 선물이 아닙니다(받은 값: " + (symbol || "없음") + "). BINANCE:BTCUSDT.P 로 바꾼 뒤 다시 실행하세요.");
-  if (String(tf) !== "240") throw new Stop("차트가 4시간봉이 아닙니다(받은 값: " + (tf || "없음") + "). 240으로 바꾼 뒤 다시 실행하세요.");
+  // 이름 전체가 정확히 맞아야 한다. 이 글자는 화면·기록·Claude 해설 입력에 들어가므로 다른 글자가 섞인 이름은 받지 않는다.
+  const shown = v => String(v == null ? "없음" : v).replace(/[^A-Za-z0-9:._-]/g, "?").slice(0, 40);
+  if (!/^(BINANCE:)?BTCUSDT(\.P|PERP)$/.test(String(symbol || "").toUpperCase())) throw new Stop("차트가 바이낸스 BTCUSDT 무기한 선물이 아닙니다(받은 값: " + shown(symbol) + "). BINANCE:BTCUSDT.P 로 바꾼 뒤 다시 실행하세요.");
+  if (String(tf) !== "240") throw new Stop("차트가 4시간봉이 아닙니다(받은 값: " + shown(tf) + "). 240으로 바꾼 뒤 다시 실행하세요.");
 }
 
 function judge(bars, now, symbol) {

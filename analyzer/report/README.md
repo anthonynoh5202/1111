@@ -45,8 +45,11 @@ node run.cjs build   전송 없이 PDF만 (개발 확인용)
 ## 설치
 
 ```
-npm install        # pdfkit (운영). pdf-to-img 는 개발 확인용(devDependencies)
+npm ci --omit=dev --ignore-scripts     # pdfkit 만 받는다. 설치 중 스크립트 실행을 끈다
 ```
+
+PDF를 그림으로 바꿔 눈으로 확인하는 `_render.mjs`는 개발용이다. 필요한 부품(`pdf-to-img`)은 설치 스크립트를 돌리고
+압축 풀기 부품(`tar`)에 알려진 취약점이 있어 기본 설치에서 뺐다. 꼭 필요할 때만 `npm install --no-save pdf-to-img` 로 잠깐 받는다.
 
 ## 주의
 

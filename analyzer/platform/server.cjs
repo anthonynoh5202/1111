@@ -38,8 +38,9 @@ function createApp(cfg, deps) {
   }
 
   const SEC = {
-    "Content-Security-Policy": "default-src 'none'; style-src 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; script-src 'unsafe-inline'; connect-src 'self'; frame-src 'self'; img-src data:; base-uri 'none'; form-action 'none'",
-    "X-Content-Type-Options": "nosniff", "Referrer-Policy": "no-referrer", "Cache-Control": "no-store"
+    "Content-Security-Policy": "default-src 'none'; style-src 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; script-src 'unsafe-inline'; connect-src 'self'; frame-src 'self'; frame-ancestors 'self'; img-src data:; base-uri 'none'; form-action 'none'",
+    "X-Content-Type-Options": "nosniff", "Referrer-Policy": "no-referrer", "Cache-Control": "no-store",
+    "X-Frame-Options": "SAMEORIGIN", "Cross-Origin-Resource-Policy": "same-origin"
   };
   const send = (res, code, type, body) => { res.writeHead(code, { "Content-Type": type, ...SEC }); res.end(body); };
   const json = (res, code, obj) => send(res, code, "application/json; charset=utf-8", JSON.stringify(obj));
@@ -48,8 +49,9 @@ function createApp(cfg, deps) {
     // 이 컴퓨터에서 연 주소만 받는다(다른 사이트가 이름을 속여 접근하는 것을 막는다)
     const host = String(req.headers.host || "");
     if (host !== "127.0.0.1:" + cfg.port && host !== "localhost:" + cfg.port) return send(res, 403, "text/plain; charset=utf-8", "거부했습니다.");
-    const url = new URL(req.url, "http://" + host);
     try {
+      if (req.method !== "GET" && req.method !== "POST") return send(res, 405, "text/plain; charset=utf-8", "쓸 수 없는 방식입니다.");
+      let url; try { url = new URL(req.url, "http://" + host); } catch (e) { return send(res, 400, "text/plain; charset=utf-8", "잘못된 주소입니다."); }
       if (req.method === "GET" && url.pathname === "/") return send(res, 200, "text/html; charset=utf-8", dash.replace("__TOKEN__", token));
       if (req.method === "GET" && url.pathname === "/chart") {
         const f = path.join(cfg.dataDir, "chart.html");

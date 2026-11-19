@@ -137,5 +137,10 @@ test("대시보드 서버: 다른 주소 이름과 토큰 없는 실행 요청�
     assert.strictEqual(st.latest.result.verdict.direction, "모름"); assert.strictEqual(st.history.length, 1); assert.strictEqual(st.latest.result.marks, undefined);
     assert.ok((await (await fetch(u + "/chart")).text()).includes("BTC/USDT 차트분석기"));
     assert.strictEqual((await fetch(u + "/nope")).status, 404);
+    // 잘못된 주소·방식으로 서버가 죽지 않고, 다른 사이트가 화면을 틀 안에 넣지 못한다
+    assert.strictEqual((await raw("//", { Host: "127.0.0.1:18787" })).status, 400);
+    assert.strictEqual((await raw("/", { Host: "127.0.0.1:18787" }, "DELETE")).status, 405);
+    assert.match(page.headers["content-security-policy"], /frame-ancestors 'self'/); assert.strictEqual(page.headers["x-frame-options"], "SAMEORIGIN");
+    assert.strictEqual((await fetch(u + "/api/status")).status, 200);
   } finally { app.stop(); }
 }));

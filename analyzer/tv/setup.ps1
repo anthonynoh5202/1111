@@ -24,18 +24,25 @@ if (-not (Test-Path (Join-Path $Dest ".git"))) {
   New-Item -ItemType Directory -Force -Path (Join-Path $Root "vendor") | Out-Null
   Run "git" @("clone", "--quiet", $Repo, $Dest)
 }
+# 받은 곳이 맞는지, 고정한 판과 내용이 한 글자도 다르지 않은지 확인한다
+$origin = (& git -C $Dest remote get-url origin).Trim()
+if ($origin -ne $Repo) { Stop-With "vendor\tradingview-mcp 의 받은 곳이 다릅니다. 폴더를 지우고 다시 실행하세요." }
 Run "git" @("-C", $Dest, "fetch", "--quiet", "origin")
 Run "git" @("-C", $Dest, "checkout", "--quiet", "--detach", $Pin)
 $head = (& git -C $Dest rev-parse HEAD).Trim()
 if ($head -ne $Pin) { Stop-With "고정한 판을 받지 못했습니다." }
+$dirty = & git -C $Dest status --porcelain --untracked-files=all
+if ($dirty) { Stop-With "vendor\tradingview-mcp 의 파일이 고정한 판과 다릅니다. 폴더를 지우고 다시 실행하세요." }
 
 Push-Location $Dest
 try { Run "npm.cmd" @("ci", "--ignore-scripts", "--no-audit", "--no-fund", "--omit=dev", "--silent") }
 finally { Pop-Location }
 
-Push-Location (Join-Path $Root "analyzer\platform")
-try { Run "npm.cmd" @("ci", "--ignore-scripts", "--no-audit", "--no-fund", "--omit=dev", "--silent") }
-finally { Pop-Location }
+foreach ($sub in @("analyzer\platform", "analyzer\report")) {
+  Push-Location (Join-Path $Root $sub)
+  try { Run "npm.cmd" @("ci", "--ignore-scripts", "--no-audit", "--no-fund", "--omit=dev", "--silent") }
+  finally { Pop-Location }
+}
 
 Write-Host "받았습니다: vendor\tradingview-mcp (판 $($Pin.Substring(0,7))), 자동 분석 플랫폼의 부품"
 Write-Host "다음: 1) 트레이딩뷰를 디버그 모드로 실행   vendor\tradingview-mcp\scripts\launch_tv_debug.bat"

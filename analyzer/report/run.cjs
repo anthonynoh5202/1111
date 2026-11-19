@@ -22,7 +22,12 @@ const PDF = path.join(HERE, "report.pdf");
 function secrets() {
   const f = path.join(HERE, "secrets.json");
   if (!fs.existsSync(f)) throw new Error("secrets.json 이 없습니다. { telegram_token, chat_id } 를 넣으세요.");
-  return JSON.parse(fs.readFileSync(f, "utf8"));
+  // 이 파일이 git에 올라가 있으면 보내지 않는다(공개 저장소에 토큰이 새는 것을 막는다)
+  const tracked = require("child_process").spawnSync("git", ["ls-files", "--error-unmatch", "secrets.json"], { cwd: HERE, stdio: "ignore" });
+  if (tracked.status === 0) throw new Error("secrets.json 이 git에 올라가 있습니다. 토큰을 새로 발급받고, 파일을 git에서 빼세요(git rm --cached analyzer/report/secrets.json).");
+  if (process.platform !== "win32" && (fs.statSync(f).mode & 0o077)) console.error("주의: secrets.json 을 이 PC의 다른 사용자도 읽을 수 있습니다. chmod 600 analyzer/report/secrets.json 을 권합니다.");
+  let s; try { s = JSON.parse(fs.readFileSync(f, "utf8")); } catch (e) { throw new Error("secrets.json 을 읽지 못했습니다(JSON 모양 확인)."); }
+  return s;
 }
 
 /* core.js 결과(s)에서 차트에 그릴 자료를 뽑는다. 최근 N개 봉만. */

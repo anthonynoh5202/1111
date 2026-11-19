@@ -11,7 +11,7 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
 
 async function getJson(url) {
   let r;
-  try { r = await fetch(url, { signal: AbortSignal.timeout(20000), headers: { "User-Agent": "btc-report/0.1", Accept: "application/json" } }); }
+  try { r = await fetch(url, { signal: AbortSignal.timeout(20000), redirect: "error", headers: { "User-Agent": "btc-report/0.1", Accept: "application/json" } }); }
   catch (e) { throw new J.Stop("OKX 시세를 읽지 못했습니다(" + (e.name || "오류") + "). 인터넷/접속 가능 여부를 확인하세요."); }
   if (!r.ok) throw new J.Stop("OKX가 " + r.status + " 을 돌려줬습니다.");
   let j; try { j = await r.json(); } catch (e) { throw new J.Stop("OKX 응답을 읽지 못했습니다."); }

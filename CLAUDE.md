@@ -16,5 +16,6 @@
 
 ```
 node --test analyzer/test/core.test.cjs
+node --test analyzer/test/security.test.cjs
 cd analyzer/platform && npm test
 ```

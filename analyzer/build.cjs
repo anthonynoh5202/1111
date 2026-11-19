@@ -5,6 +5,9 @@
 const fs = require("fs"), path = require("path");
 const SRC = path.join(__dirname, "src");
 
+// 이 화면이 접속할 수 있는 곳을 글꼴과 바이낸스 공개 시세로 제한한다
+const CSP = "default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; connect-src https://fapi.binance.com; img-src data:; base-uri 'none'; form-action 'none'";
+
 function buildPage({ embed = null, standalone = true } = {}) {
   const page = fs.readFileSync(path.join(SRC, "page.html"), "utf8");
   const core = fs.readFileSync(path.join(SRC, "core.js"), "utf8");
@@ -17,7 +20,7 @@ function buildPage({ embed = null, standalone = true } = {}) {
   out = sub(out, "/*SNAPSHOT*/[]", embed ? "[]" : snap);
   out = sub(out, "/*EMBED*/null", embed ? JSON.stringify(embed).replace(/</g, "\\u003c") : "null");
   if (!standalone) return out;
-  return '<!DOCTYPE html>\n<html lang="ko">\n<head>\n<meta charset="utf-8">\n<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">\n</head>\n<body>\n' + out + "\n</body>\n</html>\n";
+  return '<!DOCTYPE html>\n<html lang="ko">\n<head>\n<meta charset="utf-8">\n<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">\n<meta http-equiv="Content-Security-Policy" content="' + CSP + '">\n</head>\n<body>\n' + out + "\n</body>\n</html>\n";
 }
 
 module.exports = { buildPage };

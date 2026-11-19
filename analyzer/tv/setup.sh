@@ -18,12 +18,16 @@ if [ ! -d "$DEST/.git" ]; then
   mkdir -p "$ROOT/vendor"
   git clone --quiet "$REPO" "$DEST"
 fi
+# 받은 곳이 맞는지, 고정한 판과 내용이 한 글자도 다르지 않은지 확인한다
+[ "$(git -C "$DEST" remote get-url origin)" = "$REPO" ] || { echo "vendor/tradingview-mcp 의 받은 곳이 다릅니다. 폴더를 지우고 다시 실행하세요."; exit 1; }
 git -C "$DEST" fetch --quiet origin
 git -C "$DEST" checkout --quiet --detach "$PIN"
 [ "$(git -C "$DEST" rev-parse HEAD)" = "$PIN" ] || { echo "고정한 판을 받지 못했습니다."; exit 1; }
+[ -z "$(git -C "$DEST" status --porcelain --untracked-files=all)" ] || { echo "vendor/tradingview-mcp 의 파일이 고정한 판과 다릅니다. 폴더를 지우고 다시 실행하세요."; exit 1; }
 (cd "$DEST" && npm ci --ignore-scripts --no-audit --no-fund --omit=dev --silent)
 
 (cd "$ROOT/analyzer/platform" && npm ci --ignore-scripts --no-audit --no-fund --omit=dev --silent)
+(cd "$ROOT/analyzer/report" && npm ci --ignore-scripts --no-audit --no-fund --omit=dev --silent)
 
 echo "받았습니다: vendor/tradingview-mcp (판 ${PIN:0:7}), 자동 분석 플랫폼의 부품"
 echo "다음: 1) 트레이딩뷰 데스크톱을 디버그 모드로 실행   bash vendor/tradingview-mcp/scripts/launch_tv_debug_mac.sh"
