@@ -1,7 +1,7 @@
 /* 분석 이론 페이지에 넣을 작은 예시 도식들. 데이터가 아니라 개념을 보여주는 손그림 수준의 벡터. */
-const G = "#16a34a", R = "#dc2626", BL = "#2563eb", PU = "#9333ea", OR = "#ea580c", MU = "#6b7280", INK = "#111827", LINE = "#e5e7eb";
+const G = "#1a9e77", R = "#e0525e", BL = "#3f6fd1", PU = "#c58b2b", OR = "#7c8798", MU = "#64748b", INK = "#0f172a", LINE = "#e2e8f0";
 
-function frameBox(doc, x, y, w, h) { doc.save().roundedRect(x, y, w, h, 3).fillAndStroke("#fcfcfd", LINE).restore(); }
+function frameBox(doc, x, y, w, h) { doc.save().roundedRect(x, y, w, h, 4).fill("#f6f7f9").restore(); }
 function cap(doc, x, y, w, t) { doc.font("kr").fontSize(6).fillColor(MU).text(t, x, y, { width: w, align: "center", lineBreak: false }); }
 function candle(doc, cx, cw, bTop, bBot, wTop, wBot, col) {
   doc.save().lineWidth(1).strokeColor(col).moveTo(cx, wTop).lineTo(cx, wBot).stroke();
@@ -18,11 +18,11 @@ function arrow(doc, x1, y1, x2, y2, col, lw) {
 function maAlign(doc, x, y, w, h) {
   frameBox(doc, x, y, w, h); const x0 = x + 7, x1 = x + w - 7;
   doc.save().lineWidth(1.4);
-  doc.strokeColor("#9ca3af").moveTo(x0, y + h * 0.26).lineTo(x1, y + h * 0.40).stroke();
+  doc.strokeColor("#94a3b8").moveTo(x0, y + h * 0.26).lineTo(x1, y + h * 0.40).stroke();
   doc.strokeColor(PU).moveTo(x0, y + h * 0.38).lineTo(x1, y + h * 0.56).stroke();
   doc.strokeColor(BL).moveTo(x0, y + h * 0.50).lineTo(x1, y + h * 0.74).stroke();
   doc.restore();
-  doc.font("kr").fontSize(5.5).fillColor("#9ca3af").text("120", x1 - 14, y + h * 0.34, { lineBreak: false });
+  doc.font("kr").fontSize(5.5).fillColor("#94a3b8").text("120", x1 - 14, y + h * 0.34, { lineBreak: false });
   doc.fillColor(PU).text("60", x1 - 14, y + h * 0.50, { lineBreak: false });
   doc.fillColor(BL).text("20", x1 - 14, y + h * 0.68, { lineBreak: false });
   cap(doc, x, y + h - 10, w, "역배열 = 하락 정렬");
@@ -48,8 +48,8 @@ function volume(doc, x, y, w, h) {
   frameBox(doc, x, y, w, h); const base = y + h * 0.66, a = x + w * 0.33, b = x + w * 0.66;
   candle(doc, a, 8, y + h * 0.22, y + h * 0.42, y + h * 0.16, y + h * 0.48, G);
   candle(doc, b, 8, y + h * 0.24, y + h * 0.42, y + h * 0.18, y + h * 0.48, G);
-  doc.save().fillColor(OR).fillOpacity(0.7).rect(a - 5, base, 10, y + h * 0.94 - base).fill().restore();
-  doc.save().fillColor(OR).fillOpacity(0.7).rect(b - 5, y + h * 0.86, 10, y + h * 0.94 - (y + h * 0.86)).fill().restore();
+  doc.save().fillColor(OR).fillOpacity(0.45).rect(a - 5, base, 10, y + h * 0.82 - base).fill().restore();
+  doc.save().fillColor(OR).fillOpacity(0.45).rect(b - 5, y + h * 0.76, 10, y + h * 0.82 - (y + h * 0.76)).fill().restore();
   doc.font("kr").fontSize(5.5).fillColor(MU).text("거래량 큼", a - 14, y + h - 9, { width: 28, align: "center", lineBreak: false });
   doc.fillColor(MU).text("작음", b - 12, y + h - 9, { width: 24, align: "center", lineBreak: false });
 }
@@ -86,7 +86,7 @@ function momentum(doc, x, y, w, h) {
 function signal(doc, x, y, w, h) {
   frameBox(doc, x, y, w, h); const cx = x + w * 0.42, base = y + h * 0.64;
   candle(doc, cx, 10, y + h * 0.50, y + h * 0.60, y + h * 0.14, y + h * 0.60, R); // 긴 윗꼬리
-  doc.save().fillColor(OR).fillOpacity(0.7).rect(cx - 6, base, 12, y + h * 0.92 - base).fill().restore();
+  doc.save().fillColor(OR).fillOpacity(0.45).rect(cx - 6, base, 12, y + h * 0.80 - base).fill().restore();
   doc.save().lineWidth(0.5).strokeColor(MU).dash(1, { space: 1 }).moveTo(cx + 8, y + h * 0.14).lineTo(x + w - 6, y + h * 0.14).stroke().undash().restore();
   doc.font("kr").fontSize(5.5).fillColor(MU).text("긴 윗꼬리", x + w - 42, y + h * 0.12, { width: 40, lineBreak: false });
   doc.fillColor(OR).text("거래량 큼", x + w - 42, base + 2, { width: 40, lineBreak: false });
