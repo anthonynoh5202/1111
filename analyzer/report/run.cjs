@@ -6,7 +6,7 @@
    page_a.json 모양: { "call": "롱|숏|관망", "summary": "한 줄 요약", "body": "본문" } */
 const fs = require("fs"), path = require("path");
 const A = require("../src/core.js");
-const J = require("../tv/judge.cjs");
+const J = require("../src/judge.cjs");
 const { readOKX, readOKXTf } = require("./okx.cjs");
 const { computeTf, tfChart } = require("./mtf.cjs");
 const { buildPdf } = require("./pdf.cjs");

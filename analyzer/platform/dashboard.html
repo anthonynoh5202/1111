@@ -60,7 +60,6 @@ th{font-weight:500;color:var(--muted);font-size:12.5px}
     <div><span class="k">다음 자동 분석</span><span class="v num" id="next">–</span></div>
     <div><span class="k">마지막 실행</span><span class="v" id="last">–</span></div>
     <div><span class="k">쓴 자료</span><span class="v" id="src">–</span></div>
-    <div><span class="k">트레이딩뷰·바이낸스 대조</span><span class="v" id="cross">–</span></div>
   </section>
 
   <div class="banner" id="banner" hidden><ul id="notes"></ul></div>
@@ -98,7 +97,7 @@ const TOKEN="__TOKEN__";
 const $=id=>document.getElementById(id);
 const el=(tag,text,cls)=>{const e=document.createElement(tag); if(text!=null) e.textContent=text; if(cls) e.className=cls; return e;};
 const fmt=(x,d=0)=>Number(x).toLocaleString("en-US",{minimumFractionDigits:d,maximumFractionDigits:d});
-const SRC={tradingview:"트레이딩뷰",binance:"바이낸스"};
+const SRC={binance:"바이낸스"};
 let shown=null;
 
 function render(s){
@@ -111,10 +110,9 @@ function render(s){
   if(lr) (lr.notes||[]).forEach(n=>notes.push(n));
   if(L) (L.result.warnings||[]).forEach(n=>notes.push(n));
   $("banner").hidden=!notes.length; $("notes").replaceChildren(...notes.map(n=>el("li",n)));
-  if(!L){ $("src").textContent="–"; $("cross").textContent="–"; return; }
-  const v=L.result.verdict, cc=L.cross_check;
+  if(!L){ $("src").textContent="–"; return; }
+  const v=L.result.verdict;
   $("src").textContent=(SRC[L.source_used]||L.source_used)+" · 봉 "+L.result.source.bars_used+"개";
-  $("cross").textContent=cc?(cc.ok?"일치 ("+cc.compared+"개 봉)":"다름 (종가 "+cc.price_mismatch+", 거래량 "+cc.volume_mismatch+")"):(L.source_used==="binance"?"해당 없음":"하지 않음");
   $("vDir").textContent=v.direction; $("vBar").textContent=L.result.source.last_closed_bar_kst+" KST 마감 봉 기준";
   $("vSize").textContent=v.size_state+" · 보통 ±"+v.typical_move_pct.toFixed(2)+"%";
   $("vBand").textContent="5번 중 4번은 "+fmt(v.band_16h[0])+" ~ "+fmt(v.band_16h[1]);
@@ -129,7 +127,7 @@ function render(s){
     tr.append(el("td",h.bar_close_kst+(h.is_9pm_bar?" ★":""),"num"), el("td",h.signal,h.signal==="롱"?"up":""), el("td",h.signal_value!=null?h.signal_value.toFixed(3):"–","num"),
       el("td",h.size_state), el("td",fmt(h.close,1),"num"),
       el("td",h.after_16h_pct==null?"–":(h.after_16h_pct>=0?"+":"")+h.after_16h_pct.toFixed(2)+"%","num "+(h.after_16h_pct==null?"":(h.after_16h_pct>=0?"up":"down"))),
-      el("td",(SRC[h.source]||h.source)+(h.cross_check_ok===false?" (대조 다름)":"")));
+      el("td",SRC[h.source]||h.source));
     return tr;}):[(()=>{const tr=document.createElement("tr"); const td=el("td","아직 기록이 없습니다"); td.colSpan=7; tr.append(td); return tr;})()]));
   if(shown!==L.run_at_kst){ shown=L.run_at_kst; $("chart").src="/chart?t="+encodeURIComponent(L.run_at_kst); }
 }

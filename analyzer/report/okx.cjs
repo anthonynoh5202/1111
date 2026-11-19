@@ -3,7 +3,7 @@
    - candles: 지금 만들어지는 중인 봉까지 포함한 최신 봉
    거래량은 vol_btc(= volCcy, 바이낸스 거래량과 맞는 칼럼. research/okx_vs_futures 에서 검증)를 쓴다.
    4시간봉은 UTC 정렬(00·04·08·12·16·20시)이라 밤 9시 봉 판정이 그대로 맞는다. */
-const J = require("../tv/judge.cjs");
+const J = require("../src/judge.cjs");
 
 const BASE = "https://www.okx.com";
 const INST = "BTC-USDT-SWAP";

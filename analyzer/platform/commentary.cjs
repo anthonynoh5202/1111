@@ -24,8 +24,7 @@ const SYSTEM = `당신은 비트코인 선물 차트를 공부하는 사용자�
 function buildInput(result, s) {
   const A = require("../src/core.js");
   const recent = s.bars.slice(-30).map(b => A.kstFull(b[0] + A.MS4) + " 마감 | 시 " + b[1] + " 고 " + b[2] + " 저 " + b[3] + " 종 " + b[4] + " | 거래량 " + Math.round(b[5]));
-  const { marks, ...rest } = result;
-  return "[도구 계산 결과]\n" + JSON.stringify(rest, null, 1) + "\n\n[최근 30개 4시간봉, 한국 시간]\n" + recent.join("\n");
+  return "[도구 계산 결과]\n" + JSON.stringify(result, null, 1) + "\n\n[최근 30개 4시간봉, 한국 시간]\n" + recent.join("\n");
 }
 
 /* 반환: { text, model, usage } 또는 { skipped: 이유 } 또는 { error: 이유 } */

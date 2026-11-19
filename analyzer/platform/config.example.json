@@ -1,9 +1,5 @@
 {
   "port": 8787,
-  "source": "tradingview",
-  "fallbackToBinance": true,
-  "crossCheck": true,
-  "autoSwitchChart": false,
   "delaySeconds": 90,
   "commentary": {
     "enabled": false,

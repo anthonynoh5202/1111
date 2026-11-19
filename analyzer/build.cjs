@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /* 분석기 화면을 한 파일로 묶는다.
    node analyzer/build.cjs          → analyzer/index.html (실시간을 못 읽으면 저장 자료를 보여 주는 기본 화면)
-   다른 코드에서는 buildPage({embed})로 트레이딩뷰에서 읽은 봉을 넣은 화면을 만든다. */
+   다른 코드에서는 buildPage({embed})로 플랫폼이 읽은 봉을 넣은 화면을 만든다. */
 const fs = require("fs"), path = require("path");
 const SRC = path.join(__dirname, "src");
 

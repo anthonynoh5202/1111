@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /* BTC/USDT 차트분석기 자동 분석 플랫폼.
-   4시간봉이 마감될 때마다 트레이딩뷰(MCP)에서 봉을 읽어 고정된 기준으로 판정하고, 기록과 대시보드를 남긴다.
+   4시간봉이 마감될 때마다 바이낸스 선물 공개 시세에서 봉을 읽어 고정된 기준으로 판정하고, 기록과 대시보드를 남긴다.
    읽기 전용이다. 주문 기능이 없다. 이 컴퓨터 안에서만 열린다(127.0.0.1).
 
    실행(저장소 폴더에서):  node analyzer/platform/server.cjs
@@ -30,9 +30,9 @@ function createApp(cfg, deps) {
     const h = E.history(cfg, 60), ok = h.lastOk;
     return {
       running: state.running, next_run_kst: state.nextRunAt ? A.kstFull(state.nextRunAt) : null, next_run_ms: state.nextRunAt,
-      config: { source: cfg.source, fallbackToBinance: cfg.fallbackToBinance, crossCheck: cfg.crossCheck, autoSwitchChart: cfg.autoSwitchChart, commentary: cfg.commentary.enabled, model: cfg.commentary.model },
+      config: { commentary: cfg.commentary.enabled, model: cfg.commentary.model },
       last_run: h.last ? { run_at_kst: h.last.run_at_kst, ok: h.last.ok, trigger: h.last.trigger, source_used: h.last.source_used, notes: h.last.notes, error: h.last.error || null } : null,
-      latest: ok ? { run_at_kst: ok.run_at_kst, source_used: ok.source_used, cross_check: ok.cross_check || null, result: { ...ok.result, marks: undefined }, commentary: ok.commentary || null } : null,
+      latest: ok ? { run_at_kst: ok.run_at_kst, source_used: ok.source_used, result: ok.result, commentary: ok.commentary || null } : null,
       history: h.runs
     };
   }
@@ -94,7 +94,7 @@ if (require.main === module) {
     app.server.on("error", e => { console.error("멈춤: " + (e.code === "EADDRINUSE" ? cfg.port + "번 포트를 이미 쓰고 있습니다. 설정의 port를 바꾸거나 먼저 켠 것을 끄세요." : e.message)); process.exit(1); });
     app.server.listen(cfg.port, "127.0.0.1", () => {
       console.log("차트분석기 플랫폼을 켰습니다.  대시보드: http://127.0.0.1:" + cfg.port);
-      console.log("자료: " + (cfg.source === "tradingview" ? "트레이딩뷰(MCP)" + (cfg.fallbackToBinance ? ", 못 읽으면 바이낸스" : "") : "바이낸스") + " · Claude 해설: " + (cfg.commentary.enabled ? "켬(" + cfg.commentary.model + ")" : "끔"));
+      console.log("자료: 바이낸스 · Claude 해설: " + (cfg.commentary.enabled ? "켬(" + cfg.commentary.model + ")" : "끔"));
       app.schedule();
       console.log("다음 자동 분석: " + app.status().next_run_kst + " KST (4시간마다). 끄려면 Ctrl+C.");
       app.run("시작").then(rec => { if (rec) console.log(rec.ok ? "첫 분석을 마쳤습니다(" + rec.bar_close_kst + " 마감 봉, 자료 " + rec.source_used + ")." : "첫 분석을 하지 못했습니다: " + rec.error); if (rec) rec.notes.forEach(n => console.log("  - " + n)); });
