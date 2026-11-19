@@ -65,7 +65,7 @@ test("보고서: 클로드가 쓴 차트 표시는 모양·범위가 맞는 것�
     { type: "bar", ago: 0, text: "x".repeat(500) }
   ], 80);
   assert.deepStrictEqual(out.map(m => [m.n, m.type]), [[1, "level"], [2, "bar"]]);
-  assert.strictEqual(out[1].text.length, 220);
+  assert.strictEqual(out[1].text.length, 400);
   assert.deepStrictEqual(cleanMarks("not array", 80), []);
   assert.strictEqual(cleanMarks(Array(10).fill({ type: "level", price: 1, text: "a" }), 80).length, 6);
 });

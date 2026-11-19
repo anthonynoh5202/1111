@@ -1,15 +1,15 @@
 {
-  "_설명": "클로드(사람 또는 예약작업)가 fetch 후 latest.json 을 보고 채우는 파일. 이 파일을 page_a.json 으로 복사해 채운다. marks 는 차트에 그릴 표시(최대 6개, 번호는 순서대로 1,2,3...). ago = 마지막 봉에서 몇 봉 전인지(0 = 마지막 봉). 종류: level(가로선: price), bar(특정 봉 표시: ago, price), zone(구역: price, price2, 선택 ago~ago2), trend(추세선: ago,price → ago2,price2).",
+  "_설명": "클로드(사람 또는 예약작업)가 fetch 후 latest.json 을 보고 채우는 파일. 이 파일을 page_a.json 으로 복사해 채운다. marks 는 차트에 그릴 표시(최대 6개, 번호는 순서대로 1,2,3...). ago = 마지막 봉에서 몇 봉 전인지(0 = 마지막 봉). label = 차트 위 설명 상자에 쓰는 짧은 글(60자 안), text = 아래 번호별 자세한 설명(400자 안, 초보도 알게 용어를 풀어서). 종류: level(가로선: price), bar(특정 봉 표시: ago, price), zone(구역: price, price2, 선택 ago~ago2), trend(추세선: ago,price → ago2,price2).",
   "scalp": "여러 타임프레임을 겹쳐 본 단타 관점 한 단락. 검증 안 된 의견이라고 밝힐 것.",
   "tf": {
     "5m": {
       "call": "상승|하락|관망",
       "note": "5분봉 차트를 보고 쓴 한두 문장 요약.",
       "marks": [
-        { "type": "bar", "ago": 12, "price": 62000, "text": "이 봉에서 무엇을 봤는지." },
-        { "type": "level", "price": 63500, "text": "이 가격선이 왜 중요한지." },
-        { "type": "zone", "price": 62000, "price2": 62400, "ago": 30, "ago2": 5, "text": "이 구역의 의미." },
-        { "type": "trend", "ago": 40, "price": 62400, "ago2": 10, "price2": 62900, "text": "이 추세선의 의미." }
+        { "type": "bar", "ago": 12, "price": 62000, "label": "오늘 가장 낮은 값 62,000", "text": "이 봉에서 무엇을 봤는지, 그게 무슨 뜻인지, 다음에 무엇을 보면 되는지." },
+        { "type": "level", "price": 63500, "label": "63,500: 위에서 막힌 높이(저항)", "text": "이 가격선이 왜 중요한지." },
+        { "type": "zone", "price": 62000, "price2": 62400, "ago": 30, "ago2": 5, "label": "바닥 구역", "text": "이 구역의 의미." },
+        { "type": "trend", "ago": 40, "price": 62400, "ago2": 10, "price2": 62900, "label": "저점이 높아지는 중", "text": "이 추세선의 의미." }
       ]
     },
     "15m": { "call": "관망", "note": "...", "marks": [] },

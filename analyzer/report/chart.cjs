@@ -164,25 +164,53 @@ function drawAnnotations(doc, list, g) {
     if (a.type === "level") {
       const y = g.yP(a.price);
       doc.save().lineWidth(0.9).strokeColor(col).dash(4, { space: 2 }).moveTo(g.plotX, y).lineTo(g.plotX + g.plotW, y).stroke().undash().restore();
-      tags.push([a.ago != null ? X(a.ago) : g.plotX + g.plotW * 0.62, clampY(y - 10), a.n]);
+      tags.push([a.ago != null ? X(a.ago) : g.plotX + g.plotW * 0.62, clampY(y - 10), a.n, a.label]);
     } else if (a.type === "bar") {
       const b = g.bars[g.n - 1 - a.ago], p = a.price != null ? a.price : b.h, y = g.yP(p), x = X(a.ago);
       const above = p >= (b.h + b.l) / 2, ty = clampY(above ? y - 16 : y + 16);
       doc.save().lineWidth(1.1).strokeColor(col).circle(x, y, 4.5).stroke().restore();
       doc.save().lineWidth(0.6).strokeColor(col).moveTo(x, above ? y - 4.5 : y + 4.5).lineTo(x, above ? ty + 6.5 : ty - 6.5).stroke().restore();
-      tags.push([x, ty, a.n]);
+      tags.push([x, ty, a.n, a.label]);
     } else if (a.type === "zone") {
       const x0 = a.ago != null ? X(a.ago) - g.slotW / 2 : g.plotX, x1 = a.ago2 != null ? X(a.ago2) + g.slotW / 2 : g.plotX + g.plotW;
       const y0 = g.yP(Math.max(a.price, a.price2)), y1 = g.yP(Math.min(a.price, a.price2));
       doc.save().fillOpacity(0.09).fillColor(col).rect(x0, y0, x1 - x0, y1 - y0).fill().restore();
       doc.save().lineWidth(0.6).strokeColor(col).strokeOpacity(0.7).dash(2, { space: 2 }).rect(x0, y0, x1 - x0, y1 - y0).stroke().undash().restore();
-      tags.push([x0 + 9, clampY(y0 + 9), a.n]);
+      tags.push([x0 + 9, clampY(y0 + 9), a.n, a.label]);
     } else if (a.type === "trend") {
       const xa = X(a.ago), ya = g.yP(a.price), xb = X(a.ago2), yb = g.yP(a.price2);
       doc.save().lineWidth(1.4).strokeColor(col).lineCap("round").moveTo(xa, ya).lineTo(xb, yb).stroke().restore();
       doc.save().fillColor(col).circle(xa, ya, 1.8).fill().circle(xb, yb, 1.8).fill().restore();
-      tags.push([(xa + xb) / 2, clampY((ya + yb) / 2 - 12), a.n]);
+      tags.push([(xa + xb) / 2, clampY((ya + yb) / 2 - 12), a.n, a.label]);
     }
+  }
+  // 설명 상자(번호 옆 짧은 글). 서로, 그리고 번호와 겹치지 않게 아래위로 비켜 놓는다.
+  const placed = tags.map(([x, y]) => [x - 8, y - 8, 16, 16]);
+  const hit = (r) => placed.some(q => r[0] < q[0] + q[2] && q[0] < r[0] + r[2] && r[1] < q[1] + q[3] && q[1] < r[1] + r[3]);
+  const boxes = [];
+  for (const [x, y, n, label] of tags) {
+    if (!label) continue;
+    doc.font("kr").fontSize(6.9);
+    const bw = Math.min(164, doc.widthOfString(label) + 26), th = doc.heightOfString(label, { width: bw - 24, lineGap: 1 }), bh = Math.max(14, th + 7);
+    const right = x + 10 + bw <= g.plotX + g.plotW;
+    const bx = right ? x + 10 : x - 10 - bw;
+    let by = Math.max(g.priceTop + 1, Math.min(g.priceBot - bh - 1, y - bh / 2)), tries = 0;
+    for (const dir of [1, -1]) {
+      by = Math.max(g.priceTop + 1, Math.min(g.priceBot - bh - 1, y - bh / 2)); tries = 0;
+      while (hit([bx, by, bw, bh]) && tries++ < 12) by += dir * (bh / 2 + 2);
+      if (!hit([bx, by, bw, bh]) && by >= g.priceTop && by + bh <= g.priceBot) break;
+    }
+    by = Math.max(g.priceTop + 1, Math.min(g.priceBot - bh - 1, by));
+    placed.push([bx, by, bw, bh]);
+    boxes.push({ x, y, bx, by, bw, bh, label, right, n });
+  }
+  for (const b of boxes) {
+    const ax = b.right ? b.bx : b.bx + b.bw, ay = Math.max(b.by + 3, Math.min(b.by + b.bh - 3, b.y));
+    doc.save().lineWidth(0.6).strokeColor(col).moveTo(b.x + (b.right ? 6.5 : -6.5), b.y).lineTo(ax, ay).stroke().restore();
+    doc.save().lineWidth(0.7).fillOpacity(0.94).roundedRect(b.bx, b.by, b.bw, b.bh, 2.5).fillAndStroke("#ffffff", col).restore();
+    doc.save().roundedRect(b.bx + 3, b.by + 3, 10, b.bh - 6, 2).fill(col).restore();
+    doc.fillColor("#ffffff").font("kr-bold").fontSize(6.5).text(String(b.n), b.bx + 3, b.by + b.bh / 2 - 3.4, { width: 10, align: "center", lineBreak: false });
+    doc.fillColor("#27306b").font("kr").fontSize(6.9).text(b.label, b.bx + 17, b.by + 3.5, { width: b.bw - 22, lineGap: 1 });
   }
   for (const [x, y, n] of tags) {
     doc.save().lineWidth(1.2).roundedRect(x - 6.5, y - 6.5, 13, 13, 3).fillAndStroke(col, "#ffffff").restore();

@@ -204,7 +204,7 @@ function cleanMarks(marks, nBars) {
   const out = [];
   for (const m of marks.slice(0, 6)) {
     if (!m || !MARK_TYPES.includes(m.type) || typeof m.text !== "string" || !m.text.trim()) continue;
-    const a = { n: out.length + 1, type: m.type, text: m.text.trim().slice(0, 220), price: num(m.price), price2: num(m.price2), ago: ago(m.ago), ago2: ago(m.ago2) };
+    const a = { n: out.length + 1, type: m.type, text: m.text.trim().slice(0, 400), label: typeof m.label === "string" ? m.label.trim().slice(0, 60) : "", price: num(m.price), price2: num(m.price2), ago: ago(m.ago), ago2: ago(m.ago2) };
     if (a.type === "level" && a.price == null) continue;
     if (a.type === "bar" && a.ago == null) continue;
     if (a.type === "zone" && (a.price == null || a.price2 == null)) continue;
@@ -232,7 +232,7 @@ function tfBlock(doc, m, aRead, result) {
   }
   const hasChart = m.chart && m.chart.bars && m.chart.bars.length;
   const marks = hasChart ? cleanMarks(a.marks, m.chart.bars.length) : [];
-  const cy = y0 + 28, ch = 380;
+  const cy = y0 + 28, ch = 330;
   if (hasChart) drawChart(doc, { x, y: cy, w, h: ch }, { ...m.chart, annotations: marks });
   else doc.font("kr").fontSize(9).fillColor(FAINT).text("(차트 자료 없음)", x, cy + 120, { width: w, align: "center" });
   const rg = m.chart && m.chart.range;
