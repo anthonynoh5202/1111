@@ -19,9 +19,15 @@ const LATEST = path.join(HERE, "latest.json");
 const PAGE_A = path.join(HERE, "page_a.json");
 const PDF = path.join(HERE, "report.pdf");
 
+/* 텔레그램 비밀: 환경 변수(클라우드 예약작업용)를 먼저, 없으면 secrets.json(PC용). */
 function secrets() {
+  const et = process.env.TELEGRAM_TOKEN, ec = process.env.TELEGRAM_CHAT_ID;
+  if (et || ec) {
+    if (!et || !ec) throw new Error("환경 변수 TELEGRAM_TOKEN 과 TELEGRAM_CHAT_ID 를 둘 다 넣어야 합니다.");
+    return { telegram_token: et.trim(), chat_id: ec.trim() };
+  }
   const f = path.join(HERE, "secrets.json");
-  if (!fs.existsSync(f)) throw new Error("secrets.json 이 없습니다. { telegram_token, chat_id } 를 넣으세요.");
+  if (!fs.existsSync(f)) throw new Error("텔레그램 비밀이 없습니다. 환경 변수 TELEGRAM_TOKEN·TELEGRAM_CHAT_ID 를 넣거나, secrets.json 에 { telegram_token, chat_id } 를 넣으세요.");
   // 이 파일이 git에 올라가 있으면 보내지 않는다(공개 저장소에 토큰이 새는 것을 막는다)
   const tracked = require("child_process").spawnSync("git", ["ls-files", "--error-unmatch", "secrets.json"], { cwd: HERE, stdio: "ignore" });
   if (tracked.status === 0) throw new Error("secrets.json 이 git에 올라가 있습니다. 토큰을 새로 발급받고, 파일을 git에서 빼세요(git rm --cached analyzer/report/secrets.json).");

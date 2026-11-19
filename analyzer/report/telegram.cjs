@@ -1,11 +1,11 @@
-/* 텔레그램 봇으로 글/파일을 보낸다. 봇 토큰은 secrets.json 에서 받는다(저장소에 커밋하지 않음).
+/* 텔레그램 봇으로 글/파일을 보낸다. 봇 토큰은 환경 변수 또는 secrets.json 에서 받는다(저장소에 커밋하지 않음).
    토큰은 주소에 들어가므로, 오류 글·기록에 주소를 절대 싣지 않는다. */
 const fs = require("fs"), path = require("path");
 
 const TOKEN_RE = /^\d{6,12}:[A-Za-z0-9_-]{30,50}$/, CHAT_RE = /^-?\d{1,20}$|^@[A-Za-z0-9_]{4,64}$/;
 function check(token, chatId) {
-  if (typeof token !== "string" || !TOKEN_RE.test(token)) throw new Error("텔레그램 토큰 모양이 아닙니다. secrets.json 의 telegram_token 을 확인하세요.");
-  if (!CHAT_RE.test(String(chatId))) throw new Error("텔레그램 chat_id 모양이 아닙니다. secrets.json 의 chat_id 를 확인하세요.");
+  if (typeof token !== "string" || !TOKEN_RE.test(token)) throw new Error("텔레그램 토큰 모양이 아닙니다. TELEGRAM_TOKEN(또는 secrets.json 의 telegram_token)을 확인하세요.");
+  if (!CHAT_RE.test(String(chatId))) throw new Error("텔레그램 chat_id 모양이 아닙니다. TELEGRAM_CHAT_ID(또는 secrets.json 의 chat_id)를 확인하세요.");
 }
 const scrub = (text, token) => String(text || "").split(token).join("(토큰)").slice(0, 200);
 

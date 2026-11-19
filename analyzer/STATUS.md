@@ -31,7 +31,8 @@ PC 없이 24시간 돌리는 구성. 제안한 것은 다음과 같고, 사용�
 
 ## 아직 안 한 것
 
-- 보고서 파이프라인(`analyzer/report/`)을 **Claude 예약작업(클라우드)** 에 연결: 4시간마다 `fetch → 클로드가 page_a.json 작성 → send`. 필요한 것 — 저장소 clone, `npm install`, 허용 주소에 `api.telegram.org` 추가, 비밀(텔레그램 토큰)을 예약작업 환경에 넣기(저장소엔 커밋 안 함).
+- 보고서 파이프라인(`analyzer/report/`)을 **Claude 예약작업(클라우드)** 에 연결: `fetch → 클로드가 page_a.json 작성 → send`. 코드 쪽은 준비됨(2026-11-19): 토큰을 환경 변수 `TELEGRAM_TOKEN`·`TELEGRAM_CHAT_ID`로도 읽고, 회차 순서는 `analyzer/report/ROUTINE.md`. **사용자가 할 것**: 클라우드 환경에 두 환경 변수 넣기, 허용 주소에 `api.telegram.org` 추가, 주기 고르기 → 그다음 예약작업 생성.
+- 보고서 디자인 개편(2026-11-19): 10쪽(요약 + 타임프레임마다 한 쪽 + 유형 B 상세 + 이론 + 사전). 유형 A도 차트에 번호·설명 상자를 그리고 초보용으로 설명한다(`page_a.json`의 `marks`).
 - PC(한국)에서 실시간 확인: `analyzer/index.html`을 브라우저로 열어 "실시간"이 뜨는지. `node analyzer/platform/server.cjs --once`가 바이낸스를 읽는지.
 - 알림(텔레그램 등).
 - 개선 목록: 밤 9시 봉만 진하게 표시, 폐기 판정 자동 표시, 연도별 성적, 일지 기록.

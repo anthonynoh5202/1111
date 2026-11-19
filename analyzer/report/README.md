@@ -43,6 +43,7 @@ node run.cjs build   전송 없이 PDF만 (개발 확인용)
 ## 비밀·설정
 
 - `secrets.json` (커밋 안 함, `.gitignore`): `{ "telegram_token": "...", "chat_id": "..." }`
+- 클라우드 예약작업에서는 파일 대신 환경 변수 `TELEGRAM_TOKEN`, `TELEGRAM_CHAT_ID`를 쓴다(있으면 파일보다 먼저). 회차 순서는 `ROUTINE.md`.
 - 한글 폰트: `fonts/NanumGothic-*.ttf` (OFL, 재배포 가능). 없으면 윈도우 맑은 고딕으로 대체.
 
 ## 설치
