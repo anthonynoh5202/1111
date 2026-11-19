@@ -19,7 +19,8 @@ Claude 예약작업이 회차마다 이 순서대로 한다. 주문은 하지 �
    NODE_USE_ENV_PROXY=1 node run.cjs fetch
    ```
    실패하면 여기서 멈추고, 실패 이유만 적는다. 보내지 않는다.
-3. `latest.json`을 읽고 `page_a.json`을 쓴다. 모양은 `page_a.example.json`을 따른다.
+3. **`ANALYSIS_GUIDE.md`(캔들·거래량·이동평균 해석 지침)를 먼저 읽는다.** 그다음 `latest.json`을 읽고 `page_a.json`을 쓴다. 모양은 `page_a.example.json`을 따른다.
+   - `forming: true`인 마지막 봉은 아직 끝나지 않은 봉이다. 그 봉의 거래량·모양으로 판단하지 않는다.
    - `scalp`: 여러 타임프레임을 겹쳐 본 단타 관점 한 단락. 끝에 "검증 안 된 의견"이라고 밝힌다.
    - `tf`의 6개(5m, 15m, 30m, 1H, 4H, 1D)마다 `call`(상승·하락·관망), `note`, `marks` 3~4개.
    - `marks`의 `ago`·`price`는 `latest.json`의 `mtf[].chart.bars`에서 실제 봉을 보고 정한다(ago 0 = 마지막 봉).

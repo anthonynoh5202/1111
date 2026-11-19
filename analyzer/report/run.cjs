@@ -8,7 +8,7 @@ const fs = require("fs"), path = require("path");
 const A = require("../src/core.js");
 const J = require("../src/judge.cjs");
 const { readOKX, readOKXTf } = require("./okx.cjs");
-const { computeTf, tfChart } = require("./mtf.cjs");
+const { computeTf, tfChart, INTERVAL_MIN } = require("./mtf.cjs");
 const { buildPdf } = require("./pdf.cjs");
 const tg = require("./telegram.cjs");
 
@@ -72,8 +72,10 @@ async function fetchMtf() {
   for (const [label, bar] of TFS) {
     try {
       const rows = await readOKXTf(bar, 300);
-      const stat = computeTf(rows, bar);
-      out.push(Object.assign({ label, bar }, stat, { chart: tfChart(rows, stat.sup, stat.res) }));
+      // 마지막 봉이 아직 안 끝났으면(진행 중) 계산에서는 빼고, 차트에는 '진행 중'으로 표시해 넣는다
+      const iv = (INTERVAL_MIN[bar] || 0) * 60000, formingLast = rows.length > 1 && rows[rows.length - 1][0] + iv > Date.now();
+      const stat = computeTf(formingLast ? rows.slice(0, -1) : rows, bar);
+      out.push(Object.assign({ label, bar }, stat, { forming_last: formingLast, chart: tfChart(rows, stat.sup, stat.res, formingLast) }));
     }
     catch (e) { out.push({ label, bar, error: e.message }); }
   }

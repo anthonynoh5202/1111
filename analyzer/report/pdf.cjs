@@ -236,7 +236,8 @@ function tfBlock(doc, m, aRead, result) {
   if (hasChart) drawChart(doc, { x, y: cy, w, h: ch }, { ...m.chart, annotations: marks });
   else doc.font("kr").fontSize(9).fillColor(FAINT).text("(차트 자료 없음)", x, cy + 120, { width: w, align: "center" });
   const rg = m.chart && m.chart.range;
-  legend(doc, LEGEND_TF.concat(marks.length ? [{ color: COLORS.ann, t: "클로드 표시" }] : []), x, cy + ch + 5, rg ? { t: "봉 " + rg.n + "개 · " + rg.from + " ~ " + rg.to, w } : null);
+  const lastForming = hasChart && m.chart.bars[m.chart.bars.length - 1].forming;
+  legend(doc, LEGEND_TF.concat(marks.length ? [{ color: COLORS.ann, t: "클로드 표시" }] : [], lastForming ? [{ color: FAINT, t: "흐린 봉 = 진행 중", bar: true }] : []), x, cy + ch + 5, rg ? { t: "봉 " + rg.n + "개 · " + rg.from.slice(5) + " ~ " + rg.to.slice(5), w } : null);
   doc.y = cy + ch + 24;
 
   // 유형 A: 의견 + 번호별 설명
@@ -304,7 +305,8 @@ function pageB(doc, data) {
   const cy = doc.y, ch = 215;
   if (data.chart && data.chart.bars && data.chart.bars.length) drawChart(doc, { x, y: cy, w, h: ch }, data.chart);
   const rg = data.chart && data.chart.range;
-  legend(doc, LEGEND_TF.concat([{ color: COLORS.band, t: "다음 16시간 범위", bar: true }]), x, cy + ch + 5, rg ? { t: "봉 " + rg.n + "개 · " + rg.from + " ~ " + rg.to, w } : null);
+  const bForming = data.chart && data.chart.bars && data.chart.bars.length && data.chart.bars[data.chart.bars.length - 1].forming;
+  legend(doc, LEGEND_TF.concat([{ color: COLORS.band, t: "다음 16시간 범위", bar: true }], bForming ? [{ color: FAINT, t: "흐린 봉 = 진행 중", bar: true }] : []), x, cy + ch + 5, rg ? { t: "봉 " + rg.n + "개 · " + rg.from.slice(5) + " ~ " + rg.to.slice(5), w } : null);
   doc.y = cy + ch + 22;
 
   const calc = v.signal_value != null

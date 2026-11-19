@@ -33,12 +33,12 @@ function computeTf(bars, bar) {
 }
 
 /* 타임프레임 차트용 자료(최근 80봉 + 이동평균·거래량평균). 4시간봉 전용 표시(신호·띠·번호)는 없다. */
-function tfChart(bars, sup, res) {
+function tfChart(bars, sup, res, formingLast) {
   const N = 80, n = bars.length, start = Math.max(0, n - N);
   const C = bars.map(b => b[4]);
   const ma20 = A.sma(C, 20), ma60 = A.sma(C, 60), volAvg = A.sma(bars.map(b => b[5]), 20);
   const win = [];
-  for (let gi = start; gi < n; gi++) win.push({ t: bars[gi][0], o: bars[gi][1], h: bars[gi][2], l: bars[gi][3], c: bars[gi][4], v: bars[gi][5], ma20: ma20[gi], ma60: ma60[gi], volAvg: volAvg[gi], forming: false });
+  for (let gi = start; gi < n; gi++) win.push({ t: bars[gi][0], o: bars[gi][1], h: bars[gi][2], l: bars[gi][3], c: bars[gi][4], v: bars[gi][5], ma20: ma20[gi], ma60: ma60[gi], volAvg: volAvg[gi], forming: !!formingLast && gi === n - 1 });
   let lo = Infinity, hi = -Infinity; for (const b of win) { lo = Math.min(lo, b.l); hi = Math.max(hi, b.h); }
   return {
     bars: win, res: res || null, sup: sup || null, band: null, simple: true,

@@ -92,16 +92,16 @@ function drawChart(doc, area, cd) {
 
   // 봉
   for (let i = 0; i < n; i++) {
-    const b = bars[i], col = b.c >= b.o ? C.up : C.dn, x = cx(i);
-    doc.save().lineWidth(0.7).strokeColor(col).moveTo(x, yP(b.h)).lineTo(x, yP(b.l)).stroke().restore();
+    const b = bars[i], col = b.c >= b.o ? C.up : C.dn, x = cx(i), op = b.forming ? 0.4 : 1;   // 진행 중 봉은 흐리게
+    doc.save().lineWidth(0.7).strokeOpacity(op).strokeColor(col).moveTo(x, yP(b.h)).lineTo(x, yP(b.l)).stroke().restore();
     const yo = yP(b.o), yc = yP(b.c), top = Math.min(yo, yc), hgt = Math.max(0.8, Math.abs(yo - yc));
-    doc.save().fillColor(col).rect(x - bw / 2, top, bw, hgt).fill().restore();
+    doc.save().fillOpacity(op).fillColor(col).rect(x - bw / 2, top, bw, hgt).fill().restore();
   }
 
   // 거래량 막대 + 20봉 평균선
   for (let i = 0; i < n; i++) {
     const b = bars[i], col = b.c >= b.o ? C.up : C.dn;
-    doc.save().fillOpacity(0.32).fillColor(col).rect(cx(i) - bw / 2, yV(b.v), bw, volBot - yV(b.v)).fill().restore();
+    doc.save().fillOpacity(b.forming ? 0.12 : 0.32).fillColor(col).rect(cx(i) - bw / 2, yV(b.v), bw, volBot - yV(b.v)).fill().restore();
   }
   doc.save().lineWidth(0.9).strokeColor(C.vma); let vs = false, vany = false;
   for (let i = 0; i < n; i++) { const a = bars[i].volAvg; if (a == null) { vs = false; continue; } const x = cx(i), y = yV(a); if (!vs) { doc.moveTo(x, y); vs = true; } else { doc.lineTo(x, y); vany = true; } }
